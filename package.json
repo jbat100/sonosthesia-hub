@@ -1,0 +1,25 @@
+{
+  "name": "sonosthesia-hub",
+  "version": "0.0.1",
+  "description": "Node module for the sonosthesia hub",
+  "main": "src/node/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jbat100/sonosthesia-hub.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jbat100/sonosthesia-hub/issues"
+  },
+  "homepage": "https://github.com/jbat100/sonosthesia-hub",
+  "dependencies": {
+    "nw": "0.18.3-sdk",
+    "q": "^1.4.1",
+    "rx": "^4.1.0",
+    "underscore": "^1.8.3"
+  }
+}

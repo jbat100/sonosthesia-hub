@@ -30,18 +30,23 @@ module.exports.NativeEmitterClass = NativeEmitterClass;
  */
 class Declarable extends NativeEmitterClass {
 
-    constructor(identifier, info) {
+    static create(identifier, info) {
+        const instance = new this(identifier);
+        instance.update(info);
+        return instance;
+    }
+
+    constructor(identifier) {
         this._identifier = identifier;
-        this._valid = true;
-        this.update(info);
+        this._alive = true;
     }
 
     get identifier() { return this._identifier; }
 
-    get valid() { return this._valid; }
-    set valid(value) {
-        this._valid = value;
-        this.emit('valid', value);
+    get alive() { return this._alive; }
+    set alive(value) {
+        this._alive = value;
+        this.emit('alive', value);
     }
 
     update(info) {
@@ -50,7 +55,38 @@ class Declarable extends NativeEmitterClass {
         this.emit('update');
     }
 
+    createReference() {
+        throw new Error('unimplemented');
+    }
+
     _applyInfo(info) {
 
+    }
+}
+
+/**
+ *  References a target, target come and go reference stay wether the linked target is there or not
+ */
+class Reference extends NativeClass {
+
+    static get targetClass() { return null; }
+
+    constructor(identifier) {
+        this._identifier = identifier;
+        this._target = null;
+    }
+
+    get identifier() { return this._identifier; }
+
+    get target() { return this._target; }
+
+    /**
+     * Link to a target object to facilitate access (mostly make it faster)
+     * @param {Object|null} target
+     */
+    link(target) {
+        if (target && this.constructor.targetClass)
+            NativeClass.checkInstanceClass(declarable, this.constructor.targetClass);
+        this._target = target;
     }
 }

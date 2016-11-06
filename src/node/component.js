@@ -1,6 +1,10 @@
 'use strict';
 
-const core = require('./core');
+const _ = require('underscore');
+
+const NativeEmitterClass = require('./core').NativeEmitterClass;
+const Declarable = require('./core').Declarable;
+const Reference = require('./core').Reference;
 
 /**
  *
@@ -8,18 +12,32 @@ const core = require('./core');
 
 
 
-class Component extends core.NativeEmitterClass {
+class Component extends Declarable {
 
-    constructor(description) {
+    constructor(identifier) {
+        super(identifier);
         this.channels = {};
+    }
+
+    _applyInfo(info) {
+        this.channels = _.mapObject(info.channels, (info, identifier) => { return Channel.create(identifier, info); });
     }
 
 }
 
-class Channel extends core.NativeEmitterClass {
+class ComponentReference extends Reference {
 
-    constructor(description) {
+    static get targetClass() { return Component; }
 
+}
+
+class Channel extends Declarable {
+
+    constructor(identifier) {
+        super(identifier);
+        // emitter / receiver ?
+        // producer ?
+        this.parameters = {};
     }
 
 }

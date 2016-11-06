@@ -38,15 +38,15 @@ class Declarable extends NativeEmitterClass {
 
     constructor(identifier) {
         this._identifier = identifier;
-        this._alive = true;
+        this._live = true;
     }
 
     get identifier() { return this._identifier; }
 
-    get alive() { return this._alive; }
-    set alive(value) {
-        this._alive = value;
-        this.emit('alive', value);
+    get live() { return this._live; }
+    set live(value) {
+        this._live = value;
+        this.emit('live', value);
     }
 
     update(info) {
@@ -69,7 +69,7 @@ class Declarable extends NativeEmitterClass {
  */
 class Reference extends NativeClass {
 
-    static get targetClass() { return null; }
+    static get targetClass() { return Declarable; }
 
     constructor(identifier) {
         this._identifier = identifier;

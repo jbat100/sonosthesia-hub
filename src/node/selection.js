@@ -2,7 +2,13 @@
 
 class Selection {
 
+    check() {
+
+    }
+
 }
+
+
 
 class ChannelSelection extends Selection {
 

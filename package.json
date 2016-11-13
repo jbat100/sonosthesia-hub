@@ -17,7 +17,10 @@
   },
   "homepage": "https://github.com/jbat100/sonosthesia-hub",
   "dependencies": {
-    "nw": "0.18.3-sdk",
+    "chai": "^3.5.0",
+    "enum": "^2.3.0",
+    "line-input-stream": "^1.0.1",
+    "nw": "0.18.5-sdk",
     "q": "^1.4.1",
     "rx": "^4.1.0",
     "underscore": "^1.8.3"

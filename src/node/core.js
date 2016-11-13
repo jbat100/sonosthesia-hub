@@ -1,4 +1,6 @@
 
+const _ = require('underscore');
+
 /**
  *
  */
@@ -63,6 +65,7 @@ class Declarable extends NativeEmitterClass {
 
     }
 }
+module.exports.Declarable = Declarable;
 
 /**
  *  References a target, target come and go reference stay wether the linked target is there or not
@@ -90,3 +93,87 @@ class Reference extends NativeClass {
         this._target = target;
     }
 }
+module.exports.Reference = Reference;
+
+/**
+ * Abstract class for info (usually declared by JSON network interfaces)
+ */
+class Info extends NativeClass {
+
+    static newFromJSON(obj) {
+        const instance = new this(obj)
+        instance.applyJSON(obj);
+    }
+
+    constructor() {
+        super();
+        this._identifier = null;
+    }
+
+    get identifier() { return this._identifier; }
+
+    applyJSON(obj) {
+        expect(obj).to.be.an('object');
+        expect(obj.identifier).to.be.a('string');
+        this._identifier = obj.identifier;
+    }
+
+    makeJSON() {
+        return _.pick(this, 'identifier');
+    }
+
+}
+module.exports.Info = Info;
+
+class Selection {
+
+    constructor() {
+        this._identifier = null;
+        this._valid = false;
+    }
+
+    get identifier() { return this._identifier; }
+
+    set identifier(identifier) {
+        if (identifier !== null) expect(identifier).to.be.a('string');
+        this._identifier = identifier;
+    }
+
+    get valid() { return this._valid; }
+
+    set valid(valid) {
+        expect(valid).to.be.a('boolean');
+        this._valid = valid;
+    }
+
+}
+module.exports.Selection = Selection;
+
+class Range extends NativeClass {
+
+    constructor(min, max) {
+        this._min = min || 0.0;
+        this._max = max || 1.0;
+        expect(this._min).to.be.a('number');
+        expect(this._max).to.be.a('number');
+        expect(this._min).to.be.at.most(this._max);
+    }
+
+    get min() { return this._min; }
+
+    set min(min) {
+        expect(min).to.be.a('number');
+        expect(min).to.be.at.most(this._max);
+        this._min = min;
+    }
+
+    get max() { return this._max; }
+
+    set max(max) {
+        expect(max).to.be.a('number');
+        expect(this._min).to.be.at.most(max);
+        this._max = max;
+    }
+
+}
+module.exports.Range = Range;

@@ -114,6 +114,9 @@ class ParameterSelection extends Selection {
 
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+// MANAGER ?
+
 class ComponentManager extends NativeEmitterClass {
 
     constructor() {

@@ -46,7 +46,7 @@ class ParameterConnection extends NativeClass {
     }
 
     removeOperator(index) {
-
+        this._operators.splice(index, 1);
     }
 }
 

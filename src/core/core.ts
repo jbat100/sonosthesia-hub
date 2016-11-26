@@ -1,10 +1,11 @@
 
-const _ = require('underscore');
+import * as _ from 'underscore';
+import {expect} from "chai";
 
 /**
  *
  */
-class NativeClass {
+export class NativeClass {
     static cloneInstance(instance) {
         // seems too good to be true, but also seems to work...
         // http://codepen.io/techniq/pen/qdZeZm
@@ -17,163 +18,118 @@ class NativeClass {
     }
     get tag() { return this.constructor.name; }
 }
-module.exports.NativeClass = NativeClass;
 
-/**
- *
- */
-class NativeEmitterClass extends EventEmitter {
-    get tag() { return this.constructor.name; }
-}
-module.exports.NativeEmitterClass = NativeEmitterClass;
 
 /**
  *  Declarable can be destroyed by new declarations or disconnections
  */
-class Declarable extends NativeEmitterClass {
+export class Declarable extends NativeClass {
 
-    static create(identifier, info) {
+    private _identifier : string;
+    private _live = true;
+    private _info : any;
+
+    static create(identifier:string, info:any) {
         const instance = new this(identifier);
         instance.update(info);
         return instance;
     }
 
-    constructor(identifier) {
+    constructor(identifier:string) {
         this._identifier = identifier;
         this._live = true;
     }
 
-    get identifier() { return this._identifier; }
+    get identifier() : string { return this._identifier; }
 
-    get live() { return this._live; }
-    set live(value) {
+    get live() : boolean { return this._live; }
+    set live(value : boolean) {
         this._live = value;
-        this.emit('live', value);
     }
 
-    update(info) {
+    update(info:any) {
         this._info = info;
         this._applyInfo(info);
-        this.emit('update');
     }
 
     createReference() {
         throw new Error('unimplemented');
     }
 
-    _applyInfo(info) {
+    _applyInfo(info:any) {
 
     }
 }
-module.exports.Declarable = Declarable;
-
-/**
- *  References a target, target come and go reference stay wether the linked target is there or not
- */
-class Reference extends NativeClass {
-
-    static get targetClass() { return Declarable; }
-
-    constructor(identifier) {
-        this._identifier = identifier;
-        this._target = null;
-    }
-
-    get identifier() { return this._identifier; }
-
-    get target() { return this._target; }
-
-    /**
-     * Link to a target object to facilitate access (mostly make it faster)
-     * @param {Object|null} target
-     */
-    link(target) {
-        if (target && this.constructor.targetClass)
-            NativeClass.checkInstanceClass(declarable, this.constructor.targetClass);
-        this._target = target;
-    }
-}
-module.exports.Reference = Reference;
 
 /**
  * Abstract class for info (usually declared by JSON network interfaces)
  */
-class Info extends NativeClass {
+export class Info extends NativeClass {
 
-    static newFromJSON(obj) {
+    private _identifier : string;
+
+    static newFromJSON(obj : any) {
         const instance = new this(obj)
         instance.applyJSON(obj);
+        return instance;
     }
 
-    constructor() {
-        super();
-        this._identifier = null;
-    }
+    get identifier() : string { return this._identifier; }
 
-    get identifier() { return this._identifier; }
-
-    applyJSON(obj) {
-        expect(obj).to.be.an('object');
+    applyJSON(obj:any) {
         expect(obj.identifier).to.be.a('string');
         this._identifier = obj.identifier;
     }
 
-    makeJSON() {
+    makeJSON() : any {
         return _.pick(this, 'identifier');
     }
 
 }
-module.exports.Info = Info;
 
-class Selection {
+export class Selection {
+
+    private _identifier : string;
+    private _valid : boolean;
 
     constructor() {
         this._identifier = null;
         this._valid = false;
     }
 
-    get identifier() { return this._identifier; }
+    get identifier() : string { return this._identifier; }
 
-    set identifier(identifier) {
-        if (identifier !== null) expect(identifier).to.be.a('string');
-        this._identifier = identifier;
+    set identifier(identifier : string) { this._identifier = identifier; }
+
+    get valid() : boolean { return this._valid; }
+
+    set valid(valid : boolean) { this._valid = valid; }
+
+}
+
+export class Range extends NativeClass {
+
+    static newFromJSON(obj) {
+        expect(obj).to.be.an('object');
+        const instance = new this(+obj.min, +obj.max);
+        instance.check();
+        return instance;
     }
 
-    get valid() { return this._valid; }
+    constructor(private _min : number, private _max : number) { }
 
-    set valid(valid) {
-        expect(valid).to.be.a('boolean');
-        this._valid = valid;
+    get min() : number { return this._min; }
+
+    set min(min : number) { this._min = min; }
+
+    get max() : number { return this._max; }
+
+    set max(max : number) { this._max = max; }
+
+    check() { if (this._min > this._max) throw new Error('min should be less than max'); }
+
+    makeJSON() {
+        return _.pick(this, 'min', 'max');
     }
 
 }
-module.exports.Selection = Selection;
-
-class Range extends NativeClass {
-
-    constructor(min, max) {
-        this._min = min || 0.0;
-        this._max = max || 1.0;
-        expect(this._min).to.be.a('number');
-        expect(this._max).to.be.a('number');
-        expect(this._min).to.be.at.most(this._max);
-    }
-
-    get min() { return this._min; }
-
-    set min(min) {
-        expect(min).to.be.a('number');
-        expect(min).to.be.at.most(this._max);
-        this._min = min;
-    }
-
-    get max() { return this._max; }
-
-    set max(max) {
-        expect(max).to.be.a('number');
-        expect(this._min).to.be.at.most(max);
-        this._max = max;
-    }
-
-}
-module.exports.Range = Range;

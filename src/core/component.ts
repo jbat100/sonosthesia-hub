@@ -1,13 +1,6 @@
-'use strict';
-
-const _ = require('underscore');
-const Enum = require('enum');
-const expect = require('chai').expect;
-
-const NativeEmitterClass = require('./core').NativeEmitterClass;
-const Info = require('./core').Info;
-const Selection = require('./core').Selection;
-const Range = require('./core').Range;
+import * as _ from "underscore";
+import {expect} from "chai";
+import {Info, Selection, Range} from "./core";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // INFO
@@ -16,72 +9,86 @@ const Range = require('./core').Range;
  *
  */
 
-class ComponentInfo extends Info {
+export class ComponentInfo extends Info {
 
-    constructor() {
-        super();
-        this._channels = {};
-    }
+    private _channels : ChannelInfo[];
 
-    applyJSON(obj) {
+    applyJSON(obj:any) {
         super.applyJSON(obj);
         expect(obj.channels).to.be.instanceof(Array);
-        this._channels = _.map(obj.channels, channel => { return ChannelInfo.newFromJson(channel); });
+        this._channels = _.map(obj.channels, channel => { return ChannelInfo.newFromJSON(channel) as ChannelInfo; });
     }
 
     get channels() { return this._channels; }
 
+    makeJSON() : any {
+        const obj : any = super.makeJSON();
+        obj['channels'] = _.map(this.channels, (channel : ChannelInfo) => { return channel.makeJSON(); });
+        return obj;
+    }
+
 }
 
 
-const ChannelFlow = new Enum(['emitter', 'receiver']);
+export enum ChannelFlow {
+    Emitter,
+    Receiver
+}
 
-class ChannelInfo extends Info {
+export class ChannelInfo extends Info {
 
-    constructor() {
-        super();
-        this._flow = ChannelFlow.emitter;
-        this._producer = false;
-        this._parameters = {};
-    }
+    private _flow = ChannelFlow.Emitter;
+    private _producer = false;
+    private _parameters : ParameterInfo[];
 
-    applyJSON(obj) {
+    applyJSON(obj : any) {
         super.applyJSON(obj);
         expect(obj.parameters).to.be.instanceof(Array);
-        this._parameters = _.map(obj.parameters, parameter => { return ParameterInfo.newFromJson(parameter); });
-        expect(ChannelFlow.get(obj.flow)).to.be.ok;
-        this._flow = ChannelFlow.get(obj.flow);
+        this._parameters = _.map(obj.parameters, parameter => { return ParameterInfo.newFromJSON(parameter) as ParameterInfo; });
+        expect(ChannelFlow[obj.flow]).to.be.ok;
+        this._flow = ChannelFlow[obj.flow];
         expect(obj.producer).to.be.a('boolean');
         this._producer = obj.producer;
     }
 
-    get flow() { return this._flow; }
+    get flow() : ChannelFlow { return this._flow; }
 
-    get producer() { return this._producer; }
+    get producer() : boolean { return this._producer; }
 
-    get parameters() { return this._parameters; }
+    get parameters() : ParameterInfo[] { return this._parameters; }
+
+    makeJSON() : any {
+        const obj = super.makeJSON();
+        obj.flow = ChannelFlow[this.flow]; // convert to string
+        obj.producer = this.producer;
+        obj.parameters = _.map(this.parameters, (parameter : ParameterInfo) => { return parameter.makeJSON(); });
+        return obj;
+    }
 
 }
 
-class ParameterInfo extends Info {
+export class ParameterInfo extends Info {
 
-    constructor() {
-        super();
-        this._default = 0.0;
-        this._range = null;
-    }
+    private _defaultValue = 0.0;
+    private _range : Range;
 
     applyJSON(obj) {
         super.applyJSON(obj);
-        expect(obj.default).to.be.a('number');
-        this._default = obj.default;
-        expect(obj.range).to.be.an('object');
-        this._range = new Range(obj.min, obj.max);
+        expect(obj.defaultValue).to.be.a('number');
+        this._defaultValue = obj.defaultValue;
+        this._range = Range.newFromJSON(obj.range);
     }
 
-    get default() { return this._default; }
+    get defaultValue() : number { return this._defaultValue; }
 
-    get range() { return this._range; }
+    get range() : Range { return this._range; }
+
+    makeJSON() {
+        const obj : any = super.makeJSON();
+        obj.defaultValue = this.defaultValue;
+        obj.range = this.range.makeJSON();
+        return obj;
+    }
 
 }
 
@@ -92,11 +99,7 @@ class ComponentSelection extends Selection { }
 
 class ChannelSelection extends Selection {
 
-    constructor(identifier, component) {
-        super(identifier);
-        expect(component).to.be.instanceof(ComponentSelection);
-        this._component = component;
-    }
+    private _component = new ComponentSelection();
 
     get component() { return this._component; }
 
@@ -104,20 +107,16 @@ class ChannelSelection extends Selection {
 
 class ParameterSelection extends Selection {
 
-    constructor(identifier, channel) {
-        super(identifier);
-        expect(channel).to.be.instanceof(ChannelSelection);
-        this._channel = channel;
-    }
+    private _channel = new ChannelSelection();
 
-    get component() { return this._component; }
+    get channel() { return this._channel; }
 
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
 // MANAGER ?
 
-class ComponentManager extends NativeEmitterClass {
+class ComponentManager extends NativeClass {
 
     constructor() {
 

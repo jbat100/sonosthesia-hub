@@ -1,23 +1,22 @@
-'use strict';
 
-const net = require('net');
-const EventEmitter = require('events');
+import * as net from 'net';
 
-const _ = require('underscore');
-const q = require('q');
-const rx = require('rx');
+import * as _ from 'underscore';
+import * as Q from 'q';
+import * as Rx from 'rx';
+
 const LineInputStream = require('line-input-stream');
 
-const NativeEmitterClass = require('./core').NativeEmitterClass;
+import {NativeClass} from './core';
 
-class ComponentConnector extends NativeEmitterClass {
+class ComponentConnector extends NativeClass {
 
     constructor() {
         this._server = null;
         this._error = null;
         this._jsonDelimiter = '__json_delimiter__';
         this._connections = [];
-        this._messageObservable = rx.Observable.fromEvent(this, 'message');
+        this._messageObservable = Rx.Observable.fromEvent(this, 'message');
     }
 
     get messageObservable () { return this._messageObservable; }

@@ -1,8 +1,6 @@
-'use strict';
 
-const core = require('./core');
+import { NativeClass } from './core';
 
-class Configuration extends core.NativeClass {
+class Configuration extends NativeClass {
 
 }
-module.exports.Configuration = Configuration;

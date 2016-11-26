@@ -18,11 +18,18 @@
   "homepage": "https://github.com/jbat100/sonosthesia-hub",
   "dependencies": {
     "chai": "^3.5.0",
-    "enum": "^2.3.0",
     "line-input-stream": "^1.0.1",
     "nw": "0.18.5-sdk",
     "q": "^1.4.1",
     "rx": "^4.1.0",
+    "serializer.ts": "0.0.12",
     "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "@types/chai": "^3.4.34",
+    "@types/node": "^6.0.51",
+    "@types/q": "0.0.32",
+    "@types/rx": "^2.5.34",
+    "@types/underscore": "^1.7.35"
   }
 }

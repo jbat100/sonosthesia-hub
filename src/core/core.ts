@@ -1,6 +1,7 @@
 
 import * as _ from 'underscore';
 import {expect} from "chai";
+import {EventEmitter} from 'eventemitter3';
 
 /**
  *
@@ -11,6 +12,12 @@ export class NativeClass {
         // http://codepen.io/techniq/pen/qdZeZm
         return Object.assign(Object.create(instance), instance);
     }
+    /**
+     * Not really useful now that we are using typescript
+     * @param instance
+     * @param klass
+     * @returns {Assertion}
+     */
     static checkInstanceClass(instance, klass) {
         // seems too good to be true, but also seems to work...
         // http://codepen.io/techniq/pen/qdZeZm
@@ -19,6 +26,35 @@ export class NativeClass {
     get tag() { return this.constructor.name; }
 }
 
+export class NativeEmitterClass extends EventEmitter {
+    get tag() { return this.constructor.name; }
+}
+
+
+export class Message extends NativeClass {
+
+    private _path : string;
+    private _date : Date;
+    private _content: any;
+    private _raw : string; // used to keep a stringified version to avoid converting again and again
+
+    static newFromRaw(raw:string) {
+        const obj : any = JSON.parse(raw);
+        expect(obj.path).to.be.a('string');
+        expect(obj.date).to.be.a('string');
+        return new this(obj.path, Date.parse(obj.date), obj.content, raw);
+    }
+
+    constructor(private _path : string, private _date : Date, private _content: any, private _raw?: string) { }
+
+    get path() : string { return this._path; }
+
+    get date() : Date { return this._date; }
+
+    get content() : any { return this._content; }
+
+    get raw() : string { return this._raw; }
+}
 
 /**
  *  Declarable can be destroyed by new declarations or disconnections

@@ -18,6 +18,7 @@
   "homepage": "https://github.com/jbat100/sonosthesia-hub",
   "dependencies": {
     "chai": "^3.5.0",
+    "eventemitter3": "^2.0.2",
     "line-input-stream": "^1.0.1",
     "nw": "0.18.5-sdk",
     "q": "^1.4.1",

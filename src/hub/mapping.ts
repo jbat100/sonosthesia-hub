@@ -1,10 +1,10 @@
-'use strict';
 
-const _ = require('underscore');
-const expect = require('chai').expect;
+import * as _ from "underscore";
+import * as Q from "q";
+import {expect} from "chai";
 
-const NativeClass = require('./core').NativeClass;
-const Selection = require('./core').Selection;
+import { NativeClass, Selection } from '../core/core'
+
 
 const ParameterOperator = require('./parameter').ParameterOperator;
 const ParameterProcessor = require('./parameter').ParameterProcessor;

@@ -1,67 +1,66 @@
 
-import * as net from 'net';
+//
 
+import * as net from 'net';
 import * as _ from 'underscore';
 import * as Q from 'q';
 import * as Rx from 'rx';
+import {EventEmitter} from 'eventemitter3';
+
+import {NativeClass, Message} from '../core/core';
+import {IConnection} from "../core/interface";
 
 const LineInputStream = require('line-input-stream');
 
-import {NativeClass} from './core';
 
-class ComponentConnector extends NativeClass {
+class TCPConnector extends NativeClass {
 
-    constructor() {
-        this._server = null;
-        this._error = null;
-        this._jsonDelimiter = '__json_delimiter__';
-        this._connections = [];
-        this._messageObservable = Rx.Observable.fromEvent(this, 'message');
-    }
+    readonly jsonDelimiter = '__json_delimiter__';
+    readonly verbose = true;
+    private _error : Error;
+    private _server : net.Server;
+    private _connections : TCPConnection[] = [];
+    private _emitter : any = new EventEmitter();
 
-    get messageObservable () { return this._messageObservable; }
     get server() { return this._server; }
     get error() { return this._error; }
-    get jsonDeleimiter() { return this._jsonDelimiter; }
+    get emitter() { return this._emitter; }
 
     start(port) {
-        return q().then(() => {
-            if (this.server) return q.reject(new Error('connector is alredy started'));
+        return new Q.Promise((resolve, reject) => {
+            if (this.server) return reject(new Error('connector is alredy started'));
             console.info(this.tag + ' start on port ' + port);
-            // use a defer because we want to wait for the net server listening event before resolving the promise
-            const d = q.defer();
             this._server = net.createServer((socket) => {
-                const connection = new ComponentConnection(this, socket);
+                const connection = new TCPConnection(this, socket);
                 this._connections.push(connection);
-                this.emit('connection', connection);
+                this.emitter.emit('connection', connection);
             });
             // try reconnect on server error (usually port is taken, address in use)
-            this.server.on('error', (err) => {
+            this.server.on('error', (err : any) => {
                 console.error(this.tag + ' server error ' + err.type + ' ' + err.message);
-                d.reject(err);
+                reject(err);
                 this._error = err;
-                this.emit('error', err);
+                this.emitter.emit('error', err);
                 this.stop();
             });
             this.server.on('close', () => {
                 console.error(this.tag + ' server close');
-                d.reject();
+                reject();
                 this.stop();
             });
             this.server.on('listening', () => {
                 console.info(this.tag + ' server listening on port ' + port);
-                d.resolve();
+                resolve();
                 this._error = null;
-                this.emit('start');
+                this.emitter.emit('start');
             });
             // actually start the server
             this.server.listen(port);
             console.info(this.tag + ' created server listening on port ' + port);
-            return d.promise;
         }).catch((err) => {
-            this.error = err;
+            this._error = err;
             console.error(this.tag + ' could not create server on port ', port, err.message);
-            this.emit('error', err);
+            this.emitter.emit('error', err);
             this.stop();
             throw err;
         });
@@ -72,70 +71,69 @@ class ComponentConnector extends NativeClass {
             if (this.server) {
                 this.server.removeAllListeners();
                 this.server.close();
-                this.emit('stop');
+                this._server = null;
+                this.emitter.emit('stop');
             }
-            this.server = null;
         });
     }
 
     destroyConnection(connection) {
         console.warn(this.tag + ' destroying connection!');
-        this.connections = _.without(this.connections, connection);
+        this._connections = _.without(this._connections, connection);
         this.emitter.emit('disconnection', connection);
     }
 
 }
 
-class ComponentConnection extends NativeEmitterClass {
+class TCPConnection extends NativeClass implements IConnection {
 
-    constructor(connector, socket) {
+    private _lineInputStream : any;
+
+    private _messageSubject : Rx.Subject<Message> = new Rx.Subject<Message>();
+    private _messageObservable: Rx.Observable<Message> = this._messageSubject.asObservable();
+
+    constructor(private _connector : TCPConnector, private _socket : net.Socket) {
         super();
-        expect(connector).to.be.instanceof(ComponentConnector);
-        this._connector = connector;
-        this._socket = socket;
-        this._info = {};
-        console.info(this.tag + ' initialize with socket : ' + socket.remoteAddress +':'+ socket.remotePort);
-
+        console.info(this.tag + ' initialize with socket : ' + this.socket.remoteAddress +':'+ this.socket.remotePort);
         // destroy connection on socket close or error
-        socket.on('close', () => {
+        this.socket.on('close', () => {
             console.info(this.tag + ' socket closed');
             this.connector.destroyConnection(this);
         });
         // we NEED the error handler, otherwise it bubbles up and causes the server to crash
-        socket.on('error', (err) => {
+        this.socket.on('error', (err : any) => {
             console.error(this.tag + ' socket error' + err.type + ' ' + err.message);
             this.connector.destroyConnection(this);
         });
 
         // setup a line input stream with the json delimiter and parse json objects
-        this.lineInputStream = LineInputStream(socket);
-        this.lineInputStream.setEncoding('utf8');
-        this.lineInputStream.setDelimiter(this.connector.jsonDelimiter);
-        this.lineInputStream.on('line', (line) => {
+        this._lineInputStream = LineInputStream(this.socket);
+        this._lineInputStream.setEncoding('utf8');
+        this._lineInputStream.setDelimiter(this.connector.jsonDelimiter);
+        this._lineInputStream.on('line', (line : any) => {
             if (line && line.length) {
-                if (this.connector.verbose) console.info(this.tag + ' line : ' + line);
-                let obj = null;
                 try {
-                    obj = JSON.parse(line);
                     //console.info(this.tag + ' parsed json');
+                    this._messageSubject.onNext(Message.newFromRaw(line));
                 } catch (err) {
                     console.error(this.tag + ' json parsing error : ' + err.message);
                 }
-                if (obj) {
-                    this.emit('message', obj);
-                }
-            } else {
-                if (this.connector.verbose) console.info(this.tag + ' empty line');
             }
         });
-        this.lineInputStream.on('error', err => {
+        this._lineInputStream.on('error', err => {
             console.error(this.tag + ' line input stream error event : ' + err.message);
         });
 
     }
 
+    get messageObservable() : Rx.Observable<Message> { return this._messageObservable; }
+
+    get socket() : net.Socket { return this._socket; }
+
+    get connector() : TCPConnector { return this._connector; }
+
     sendMessage(message) {
-        const str = this.connector.tcpJsonDelimiter + JSON.stringify(message) + this.connector.tcpJsonDelimiter;
+        const str = this.connector.jsonDelimiter + JSON.stringify(message) + this.connector.jsonDelimiter;
         if (this.connector.verbose) console.info(this.tag + ' sending : ' + str);
         this.socket.write(str);
     }

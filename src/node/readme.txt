@@ -1,0 +1,2 @@
+Files in this folder make use of node modules (not available in chromium) and core, assuming that the js files are compiled alongside the typescript files. For the angular app, webpack will take care of bundling things up for web access. This means that the core folder will,
+be compiled to javascript twice, once for node and once for chromium (angular), which seems fine (beyond the slight size increase). I don't see any fundamental problem, more importatly I can't see any other solution.

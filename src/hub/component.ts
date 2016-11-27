@@ -1,9 +1,10 @@
 import * as _ from "underscore";
 import {expect} from "chai";
-import {Info, Selection, Range} from "./core";
+import {NativeClass, Info, Selection, Range} from "../core/core";
 
 // ---------------------------------------------------------------------------------------------------------------------
-// INFO
+// Info classes represent the declarations of available components (and their channels) made by connections, they are
+// pure data containers, and persist only for as long as the connection which declared them
 
 /**
  *
@@ -93,11 +94,12 @@ export class ParameterInfo extends Info {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// SELECTION
+// Selection classes represent user selections, they are originally made in reference to info declarations but can outlive
+// the connections that made the info declarations (the selections become invalid when the referenced connection is dead)
 
-class ComponentSelection extends Selection { }
+export class ComponentSelection extends Selection { }
 
-class ChannelSelection extends Selection {
+export class ChannelSelection extends Selection {
 
     private _component = new ComponentSelection();
 
@@ -105,7 +107,7 @@ class ChannelSelection extends Selection {
 
 }
 
-class ParameterSelection extends Selection {
+export class ParameterSelection extends Selection {
 
     private _channel = new ChannelSelection();
 
@@ -114,9 +116,17 @@ class ParameterSelection extends Selection {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// MANAGER ?
+//
 
-class ComponentManager extends NativeClass {
+export class Component extends NativeClass {
+
+    constructor(connection) {
+
+    }
+
+}
+
+export class ComponentManager extends NativeClass {
 
     constructor() {
 

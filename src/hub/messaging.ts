@@ -1,42 +1,37 @@
-'use strict';
 
-const _ = require('underscore');
-const Enum = require('enum');
-const expect = require('chai').expect;
+import * as _ from "underscore";
+import { expect } from 'chai';
 
-const NativeClass = require('./core').NativeClass;
+import { NativeClass, MessageContentParser } from '../core/core';
+import { ComponentInfo } from './component';
 
-const ComponentInfo = require('./component').ComponentInfo;
 
-class Parameters extends NativeClass {
+export class Parameters extends NativeClass {
 
-    static newFromJson(obj) {
+    private _values = {};
+
+    static newFromJson(obj : any) {
         expect(obj).to.be.an('object');
         const parameters = new this();
         _.each(obj, (value, key) => {
+            expect(key).to.be.a('string');
+            if (typeof value === 'number') value = [value];
+            if (!_.isArray(value)) throw new Error('value should be number or array');
             parameters.setParameter(key, value);
         });
         return parameters;
     }
 
-    constructor() {
-        super();
-        this._values = {};
-    }
-
-    getKeys() {
+    getKeys() : string[] {
         return _.keys(this._settings);
     }
 
-    setParameter(key, value) {
-        expect(key).to.be.a('string');
+    setParameter(key : string, value : number[]) {
         if (!key) throw new Error('invalid key');
-        if (typeof value === 'number') value = [value];
-        if (!_.isArray(value)) throw new Error('value should be number or array');
         this._values[key] = value;
     }
 
-    getParameter(key) {
+    getParameter(key : string) : number[]  {
         if (!_.has(this._values, key)) throw new Error('unknown key');
         return this._values[key];
     }
@@ -44,87 +39,97 @@ class Parameters extends NativeClass {
 }
 
 
-class Message extends NativeClass {
+export class MessageContent extends NativeClass {
 
-    constructor() {
-
-    }
 }
 
-class ComponentMessage extends Message {
+export class ComponentMessageContent extends MessageContent {
 
-    static newFromJson(obj) {
-        return new this(new ComponentInfo(obj.content));
+    static newFromJson(obj : any) {
+        expect(obj.component).to.be.an('object');
+        const component : ComponentInfo = ComponentInfo.newFromJSON(obj.component) as ComponentInfo;
+        return new this(component);
     }
 
-    constructor(component) {
+    constructor(private _component : ComponentInfo) {
         super();
-        NativeClass.checkInstanceClass(component, ComponentInfo);
-        this._component = component;
     }
 
-    get component() { return this._component; }
+    get component() : ComponentInfo { return this._component; }
 
 }
 
 /**
  * Abstract base for control, create and destroy messages
  */
-class ChannelMessage extends Message {
 
-    static newFromJson(obj) {
-        return new this(obj.content.channel, obj.content.object, new Parameters(obj.content.parameters));
+export class ChannelMessageContent extends MessageContent {
+
+    static newFromJson(obj : any) {
+        expect(obj.component).to.be.an('object');
+        expect(obj.component).to.be.a('string');
+        expect(obj.channel).to.be.a('string');
+        expect(obj.object).to.be.a('string');
+        return new this(obj.component, obj.channel, obj.object, Parameters.newFromJson(obj.parameters));
     }
 
-    constructor(channel, object, parameters) {
+    constructor(private _component : string,
+                private _channel : string,
+                private object : string,
+                private parameters : Parameters) {
+
         super();
-        expect(channel).to.be.a('string');
-        if (object) expect(object).to.be.a('string');
-        NativeClass.checkInstanceClass(parameters, Parameters);
-        this._channel = channel;
-        this._object = object;
-        this._parameters = parameters;
     }
 
-    get channel() { return this._channel; }
+    get component() : string { return this._component; }
 
-    get object() { return this._object; }
+    get channel() : string { return this._channel; }
 
-    get parameters() { return this._parameters; }
+    get object() : string { return this._object; }
+
+    get parameters() : Parameters { return this._parameters; }
 
 }
 
-class ControlMessage extends ChannelMessage { }
+export class ControlMessageContent extends ChannelMessageContent { }
 
 /**
  * Object cannot be null
  */
-class ObjectMessage extends ChannelMessage {
+export class ObjectMessageContent extends ChannelMessageContent {
 
-    constructor(channel, object, parameters) {
+    constructor(_component : string, _channel : string, object : string, parameters : Parameters) {
         expect(object).to.be.ok;
-        super(channel, object, parameters);
+        super(component, channel, object, parameters);
     }
 
 }
 
-class CreateMessage extends ObjectMessage { }
+export class CreateMessageContent extends ObjectMessageContent { }
 
-class DestroyMessage extends ObjectMessage { }
+export class DestroyMessageContent extends ObjectMessageContent { }
 
-const MessageClasses = {
-    'component': ComponentMessage,
-    'control': ControlMessage,
-    'create': CreateMessage,
-    'destroy': DestroyMessage
-};
 
-class MessageParser extends NativeClass {
 
-    static newFromJson(obj) {
-        expect(obj.type).to.be.a('string');
-        if (!_.has(MessageClasses, obj.type)) throw new Error('unsuported message type : ' + obj.type);
-        return MessageClasses[obj.type].newFromJson(obj);
+export enum HubMessageType {
+    component,
+    control,
+    create,
+    destroy
+}
+
+export class HubMessageContentParser extends MessageContentParser {
+
+    private _contentClasses = {
+        'component' : ComponentMessage,
+        'control' : ControlMessage,
+        'create': CreateMessage,
+        'destroy': DestroyMessage
+    };
+
+    parse(type : string, content : any) : any {
+        if (!_.has(MessageClasses, type)) throw new Error('unsuported message type : ' + type);
+        return MessageContentClasses[type].newFromJson(obj);
     }
 
 }

@@ -8,6 +8,8 @@ export interface IConnection {
 
     messageObservable : Rx.Observable<Message>;
 
+    sendMessage(message : Message);
+
 }
 
 export enum ConnectorState {

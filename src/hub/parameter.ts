@@ -1,8 +1,7 @@
 
 import * as _ from "underscore";
-import {expect} from "chai";
 
-import { NativeClass } from '../core/core'
+import { NativeClass } from '../core/core';
 
 /**
  * Multi-dimensional
@@ -89,67 +88,85 @@ export class StatefulParameterOperator extends ParameterOperator {
 }
 
 
+/**
+ * A processor is a concrete instantiation of an operator which tracks past inputs and outputs
+ */
 
-class ParameterProcessorFactory extends NativeClass {
+export class ParameterProcessor extends NativeClass {
 
-    static newProcessorWithOperator(operator : ParameterOperator) {
+    constructor(operator : ParameterOperator) {
+        super();
+        this._operator = operator;
+    }
+
+    get operator() : ParameterOperator { return this._operator; }
+
+    process(sample : ParameterSample) : ParameterSample {
+        throw new Error('not implemented')
+    }
+
+}
+
+export class StatelessParameterProcessor extends ParameterProcessor {
+
+    process(sample : ParameterSample) : ParameterSample {
+        const operator = this.operator as StatelessParameterOperator;
+        return operator.process(sample);
+    }
+
+}
+
+export class StatefulParameterProcessor extends ParameterProcessor {
+
+    private _pastInputs : ParameterSample[];
+    private _pastOutputs : ParameterSample[];
+
+    constructor(operator : ParameterOperator) {
+        super(operator);
+        this._pastInputs = [];
+        this._pastOutputs = [];
+    }
+
+    process(sample : ParameterSample) : ParameterSample {
+        const operator : StatefulParameterOperator = this.operator as StatefulParameterOperator;
+        const processed = operator.process(sample, this._pastInputs, this._pastOutputs);
+        if (this.operator.memory > 0) {
+            this._pastInputs.unshift(sample);
+            this._pastOutputs.unshift(processed);
+            // http://stackoverflow.com/questions/953071/how-to-easily-truncate-an-array-with-javascript
+            // setting length seems to work and is more efficient than slice
+            if (this._pastInputs.length > operator.inputMemory) this._pastInputs.length = operator.inputMemory;
+            if (this._pastOutputs.length > operator.outputMemory) this._pastOutputs.length = operator.outputMemory;
+        }
+        return output;
+    }
+
+}
+
+export class ParameterProcessorFactory extends NativeClass {
+
+    static newProcessorWithOperator(operator : ParameterOperator) : ParameterProcessor {
         if (operator.constructor === StatelessArrayOperator) {
-            return new StatelessParameterProcessor(operator as StatelessArrayOperator);
+            return new StatelessParameterProcessor(operator);
         } else if (operator.constructor === StatefulArrayOperator) {
-            return new StatefulParameterProcessor(operator as StatefulArrayOperator);
+            return new StatefulParameterProcessor(operator);
         } else {
             throw new Error('unsuported operator');
         }
     }
 }
 
-/**
- * A processor is a concrete instantiation of an operator which tracks past inputs and outputs
- */
+export class ParameterProcessorChain extends NativeClass {
 
-class ParameterProcessor extends NativeClass {
+    private _processors : ParameterProcessor[];
 
-    constructor(operator) {
-        expect(operator).to.be.instanceof(ParameterOperator);
-        this._operator = operator;
-        this._pastInputs = [];
-        this._pastOutputs = [];
+    constructor(operators : ParameterOperator[]) {
+        this._processors = _.map(operators, operator => {
+            return ParameterProcessorFactory.newProcessorWithOperator(operator);
+        });
     }
 
-    get operator() { return this._operator; }
-
-    process(sample) {
-        expect(sample).to.be.instanceof(ParameterSample);
-        const processed = this.operator(sample, this._pastInputs, this._pastOutputs);
-        expect(processed).to.be.instanceof(ParameterSample);
-        if (this.operator.memory > 0) {
-            this._pastInputs.unshift(sample);
-            this._pastOutputs.unshift(processed);
-            // http://stackoverflow.com/questions/953071/how-to-easily-truncate-an-array-with-javascript
-            // setting length seems to work and is more efficient than slice
-            if (this._pastInputs.length > this.operator.memory) this._pastInputs.length = this.operator.memory;
-            if (this._pastOutputs.length > this.operator.memory) this._pastOutputs.length = this.operator.memory;
-        }
-        return output;
-    }
-}
-
-class StatelessParameterProcessor extends ParameterProcessor {
-
-}
-
-class StatefulParameterProcessor extends ParameterProcessor {
-
-}
-
-class ParameterProcessorChain extends NativeClass {
-
-    constructor(operators) {
-        this._processors = _.map(operators, operator => { return new ParameterProcessor(operator); });
-    }
-
-    process(sample) {
-        expect(sample).to.be.instanceof(ParameterSample);
+    process(sample : ParameterSample) : ParameterSample {
         _.each(this._processors, processor => { sample = processor.process(sample); });
         return sample;
     }

@@ -31,29 +31,42 @@ export class NativeEmitterClass extends EventEmitter {
 }
 
 
+export class MessageContentParser extends NativeClass {
+
+    parse(type : string, content : any) : any {
+        throw new Error('not implemented');
+    }
+
+}
+
 export class Message extends NativeClass {
 
-    private _path : string;
-    private _date : Date;
-    private _content: any;
-    private _raw : string; // used to keep a stringified version to avoid converting again and again
+    _parsed = false;
 
     static newFromRaw(raw:string) {
         const obj : any = JSON.parse(raw);
-        expect(obj.path).to.be.a('string');
+        expect(obj.type).to.be.a('string');
         expect(obj.date).to.be.a('string');
-        return new this(obj.path, Date.parse(obj.date), obj.content, raw);
+        return new this(obj.type, Date.parse(obj.date), this.parseContent(obj.type, obj.content), raw);
     }
 
-    constructor(private _path : string, private _date : Date, private _content: any, private _raw?: string) { }
+    constructor(private _type : string, private _date : Date, private _content: any, private _raw?: string) {
+        super();
+    }
 
-    get path() : string { return this._path; }
+    get type() : string { return this._type; }
 
     get date() : Date { return this._date; }
 
     get content() : any { return this._content; }
 
     get raw() : string { return this._raw; }
+
+    parse(parser : MessageContentParser) {
+        if (this._parsed) throw new Error('message content is already parsed');
+        this._content = parser.parse(this.type, this.content);
+        this._parsed = true;
+    }
 }
 
 /**

@@ -1,6 +1,7 @@
 import * as _ from "underscore";
 import {expect} from "chai";
 import {NativeClass, Info, Selection, Range} from "../core/core";
+import {IConnection} from "../core/interface";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Info classes represent the declarations of available components (and their channels) made by connections, they are
@@ -120,16 +121,75 @@ export class ParameterSelection extends Selection {
 
 export class Component extends NativeClass {
 
-    constructor(connection) {
-
+    constructor(private _connection : IConnection, private _info : ComponentInfo) {
+        super();
     }
+
+    get connection() : IConnection { return this._connection; }
+
+    get info() : ComponentInfo { return this._info; }
+
+    set info(info : ComponentInfo) { this._info = info; }
 
 }
 
+/**
+ * Note, allows multiple component declarations per connection (keyed by identifier). Cannot have duplicate
+ * component identifiers
+ */
+
 export class ComponentManager extends NativeClass {
 
-    constructor() {
+    private _components = new Map<string, Component>();
 
+    registerComponent(connection : IConnection, info : ComponentInfo) {
+        let component = this._components.get(info.identifier);
+        if (!(info && info.identifier)) throw new Error('invalid identifier');
+        if (component) {
+            if (component.connection === connection) throw new Error('duplicate component declaration');
+        } else {
+            component = new Component(connection, info);
+            this._components.set(info.identifier, component);
+        }
+        component.info = info;
+    }
+
+    // in order to unregister a component, you must know its associated connection
+    unregisterComponent(connection : IConnection, identifier : string) {
+        let component = this._components.get(identifier);
+        if (!component) {
+            throw new Error('unknown component identifier : ' + identifier);
+        } else if (component.connection !== connection) {
+            throw new Error('component ' + identifier + ' is not associated with connection');
+        }
+        this._components.delete(identifier);
+    }
+
+    getComponent(identifier : string, required? : boolean) : Component {
+        if (required !== false) required = true;
+        const result : Component = this._components.get(identifier);
+        if ((!result) && required) throw new Error('unknown component identifier : ' + identifier);
+        return result;
+    }
+
+    getComponents(connection : IConnection) : Component[] {
+        if (required !== false) required = true;
+        const components = [];
+        for (let [identifier, component] of this._components) {
+            if (component.connection === connection) components.push(component);
+        }
+        return components;
+    }
+
+    clean(connection : IConnection) {
+        // get component identifiers for this connection
+        const identifiers = this.getComponents(connection).map((component :Component) => {
+            return component.info.identifier;
+        });
+        // and remove them...
+        for (let identifier of identifiers) {
+            this._components.delete(identifier);
+        }
     }
 
 }

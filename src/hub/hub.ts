@@ -1,15 +1,22 @@
 import * as _ from "underscore";
 import * as Q from "q";
-import {expect} from "chai";
 
-import {NativeClass} from "../core/core";
+import {NativeClass, Message} from "../core/core";
 import {Configuration} from './configuration';
 import {IConnector, IConnection} from "../core/interface";
+import {HubMessageContentParser} from "./messaging";
+import {ComponentManager} from "./component";
 
 
-class HubManager extends NativeClass {
+export class HubManager extends NativeClass {
 
-    constructor(private _configuration : Configuration, private _connector : IConnector) { }
+    private _messageContentParser = new HubMessageContentParser();
+
+    private _componentManager = new ComponentManager();
+
+    constructor(private _configuration : Configuration, private _connector : IConnector) {
+        super();
+    }
 
     get configuration() { return this._configuration; }
 
@@ -28,7 +35,10 @@ class HubManager extends NativeClass {
     }
 
     setupConnection(connection : IConnection) {
+        connection.messageObservable.subscribe((message : Message) => {
+            message.parse(this._messageContentParser);
 
+        });
     }
 
     getComponent(identifier) {

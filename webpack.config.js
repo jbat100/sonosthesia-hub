@@ -11,8 +11,8 @@ module.exports = {
         "vendor": "./src/vendor.ts"
     },
     output: {
-        path: __dirname + "\\dist",
-        filename: "js\\[name].bundle.js"
+        path: __dirname + "/dist/electron",
+        filename: "js/[name].bundle.js"
     },
     resolve: {
         extensions: ['*', '.ts', '.js']

@@ -3,4 +3,4 @@
 
 //export * from 'sonosthesia-node-utils'; // use this if using npm
 
-export * from './sonosthesia-node-utils/index'; // point to dev version
+export * from './sonosthesia/index'; // point to dev version

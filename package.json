@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "main": "main.js",
   "scripts": {
-    "dev": "webpack --progress --colors --watch",
+    "dev-lib": "gulp dev",
+    "dev-hub": "webpack --progress --colors --watch",
     "electron": "electron ."
   },
   "dependencies": {

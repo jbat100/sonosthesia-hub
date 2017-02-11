@@ -29,6 +29,7 @@ module.exports = {
              */
             {
                 test: /\.ts$/,
+                exclude: /node_modules/,
                 loaders: [
                     'awesome-typescript-loader',
                     'angular2-template-loader',
@@ -57,7 +58,7 @@ module.exports = {
             template: 'index.html',
             hash: false,
             cache: false,
-            title: 'Angular 2 sample'
+            title: 'Sonosthesia Hub'
         })
     ]
 };

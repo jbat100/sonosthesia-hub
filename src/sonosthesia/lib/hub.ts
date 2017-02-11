@@ -1,17 +1,22 @@
 import * as _ from "underscore";
 import * as Q from "q";
 
-import {NativeClass, Message, IConnector, IConnection} from "./core";
-import {Configuration} from './configuration';
-import {HubMessageContentParser} from "./messaging";
+import {NativeClass, IConnector, IConnection} from "./core";
+import {HubConfiguration, ConnectorType} from './configuration';
 import {ComponentManager} from "./component";
+import {HubMessage, HubMessageContentParser} from "./messaging";
+import {TCPConnector} from "./connector";
 
 
 export class HubManager extends NativeClass {
 
+    private _connector : IConnector;
+    private _connections = new Map<string, IConnection>();
+    private _subscriptions = new Map<string, Rx.Disposable>();
+
     private _componentManager = new ComponentManager();
 
-    constructor(private _configuration : Configuration, private _connector : IConnector) {
+    constructor(private _configuration : HubConfiguration) {
         super();
     }
 
@@ -19,22 +24,71 @@ export class HubManager extends NativeClass {
     get componentManager() { return this._componentManager; }
     get connector() { return this._connector; }
 
-    setup() {
-        return Q(null).then(() => {
+    public setup() : Q.Promise<void> {
+        return Q().then(() => {
+
+            return this.setupConnector();
 
         });
     }
 
-    teardown() {
-        return Q(null).then(() => {
+    public teardown() : Q.Promise<void> {
+        return Q().then(() => {
+
+            return this.connector.stop().then(() => {
+                this._subscriptions.forEach((subscription : Rx.Disposable) => { subscription.dispose(); });
+                this._subscriptions.clear();
+                this._connections.clear();
+            });
 
         });
     }
 
-    setupConnection(connection : IConnection) {
-        connection.messageObservable.subscribe((message : Message) => {
+    private setupConnector() : Q.Promise<void> {
+        return Q().then(() => {
+
+            const parser = new HubMessageContentParser();
+
+            if (this.configuration.connectorType == ConnectorType.TCP) {
+                this._connector = new TCPConnector(parser);
+            } else {
+                throw new Error('unsupported connector type');
+            }
+
+            this.connector.emitter.on('connection', (connection : IConnection) => {
+                this.setupConnection(connection);
+            });
+
+            this.connector.emitter.on('disconnection', (connection : IConnection) => {
+                this.teardownConnection(connection);
+            });
+
+            return this.connector.start(this.configuration.port).then(() => {
+                console.log('Server started on port ' + this.configuration.port);
+            }).catch(err => {
+                console.error('Error : ' + err.stack);
+            });
 
         });
+    }
+
+    // used to handle the setup of incomming connector connections, registration and message routing mostly
+    private setupConnection(connection : IConnection) {
+        this._connections[connection.identifier] = connection;
+        this._subscriptions[connection.identifier] = connection.messageObservable.subscribe((message : HubMessage) => {
+            this.processMessage(message);
+        });
+    }
+
+    private teardownConnection(connection : IConnection) {
+        if (this._subscriptions[connection.identifier])
+            this._subscriptions[connection.identifier].dispose();
+        this._subscriptions.delete(connection.identifier);
+        this._connections.delete(connection.identifier);
+    }
+
+    protected processMessage(message : HubMessage) {
+        console.log('processing hub message ' + JSON.stringify(message.toJSON()));
     }
 
 }

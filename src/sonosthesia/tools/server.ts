@@ -1,4 +1,5 @@
 
+// simple server demonstrating minimalist messaging
 
 const commandLineArgs = require('command-line-args');
 

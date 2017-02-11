@@ -1,4 +1,5 @@
 
+import * as Q from "q";
 import * as _ from 'underscore';
 import {expect} from "chai";
 import {EventEmitter} from 'eventemitter3';
@@ -8,7 +9,11 @@ import * as uuid from 'node-uuid';
 
 export interface IConnection {
 
+    // http://stackoverflow.com/questions/12838248/is-it-possible-to-use-getters-setters-in-interface-definition
+
     messageObservable : Rx.Observable<Message>;
+
+    identifier : string;
 
     sendJSON(message : any);
 
@@ -33,6 +38,10 @@ export interface IConnector {
     //stateObservable : Rx.Observable<ConnectorState>;
     //connectionObservable : Rx.Observable<IConnection>;
     //disconnectionObservable : Rx.Observable<IConnection>;
+
+    start(port : number) : Q.Promise<void>;
+
+    stop() : Q.Promise<void>;
 
 }
 

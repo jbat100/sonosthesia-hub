@@ -1,6 +1,21 @@
 
 import { NativeClass } from './core';
 
-export class Configuration extends NativeClass {
+
+export enum ConnectorType {
+    Undefined,
+    TCP
+}
+
+export class HubConfiguration extends NativeClass {
+
+    public connectorType : ConnectorType;
+    public port : number;
+
+    static newFromJSON(obj) {
+
+    }
+
+
 
 }

@@ -2,7 +2,7 @@
  * Created by jonathan on 07/02/2017.
  */
 
-import sonosthesia from './sonosthesia';
+import sonosthesia from '../src/sonosthesia';
 
 export class Test {
 

@@ -3,19 +3,32 @@
   "version": "0.1.0",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "dev": "webpack --progress --colors --watch",
+    "electron": "electron ."
   },
   "dependencies": {
+    "@angular/common": "^2.4.7",
+    "@angular/core": "^2.4.7",
+    "@angular/forms": "^2.4.7",
+    "@angular/http": "^2.4.7",
+    "@angular/platform-browser": "^2.4.7",
+    "@angular/router": "^3.4.7",
+    "@ng-bootstrap/ng-bootstrap": "^1.0.0-alpha.20",
+    "bootstrap": "^3.3.7",
     "chai": "^3.5.0",
     "command-line-args": "^3.0.5",
     "electron": "^1.4.15",
+    "es6-shim": "^0.35.3",
     "eventemitter3": "^2.0.2",
+    "gulp": "^3.9.1",
     "line-input-stream": "^1.0.1",
     "node-uuid": "^1.4.7",
     "q": "^1.4.1",
-    "rx": "^4.1.0",
+    "reflect-metadata": "^0.1.9",
+    "rxjs": "^5.1.0",
     "serializer.ts": "0.0.12",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "zone.js": "^0.7.6"
   },
   "devDependencies": {
     "@types/chai": "^3.4.34",
@@ -25,19 +38,21 @@
     "@types/q": "0.0.32",
     "@types/rx": "^2.5.34",
     "@types/underscore": "^1.7.35",
+    "angular2-router-loader": "^0.3.4",
+    "angular2-template-loader": "^0.6.0",
+    "awesome-typescript-loader": "^2.2.4",
+    "bower": "^1.8.0",
     "del": "^2.2.2",
     "devtron": "^1.4.0",
-    "gulp": "^3.9.1",
-    "gulp-debug": "^3.0.0",
-    "gulp-inject": "^4.2.0",
-    "gulp-mocha": "^3.0.1",
-    "gulp-rimraf": "^0.2.1",
-    "gulp-sourcemaps": "^2.4.0",
-    "gulp-tslint": "^7.0.1",
-    "gulp-typescript": "^3.1.4",
+    "es6-shim": "^0.35.3",
+    "html-webpack-plugin": "^2.21.0",
     "mocha": "^3.2.0",
+    "raw-loader": "^0.5.1",
+    "ts-loader": "^2.0.0",
     "ts-node": "^2.0.0",
     "tslint": "^4.4.2",
-    "typescript": "^2.1.5"
+    "typescript": "2.1.1",
+    "webpack": "^2.2.1",
+    "webpack-dev-server": "^2.3.0"
   }
 }

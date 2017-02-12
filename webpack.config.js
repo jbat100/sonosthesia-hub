@@ -1,7 +1,12 @@
 
+const path = require('path');
+
 const webpack = require("webpack");
+const autoprefixer = require('autoprefixer');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+// apparently not great with webpack 2
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const helpers = require('./config/helpers');
 
@@ -15,7 +20,7 @@ module.exports = {
         filename: "js/[name].bundle.js"
     },
     resolve: {
-        extensions: ['*', '.ts', '.js']
+        extensions: ['*', '.ts', '.js', '.sass']
     },
     module: {
         loaders: [
@@ -46,6 +51,22 @@ module.exports = {
                 test: /\.html$/,
                 loaders: ['raw-loader'],
                 exclude: ['index.html']
+            },
+
+            /*
+             * https://www.jonathan-petitcolas.com/2015/05/15/howto-setup-webpack-on-es6-react-application-with-sass.html
+             * using ExtractTextPlugin would be better practise but it causes problems
+             * https://github.com/webpack/webpack/issues/2764 and the problems it solves are irrelevant to electron apps anyway.
+             *
+             * Added -loaders at the end to fix:
+             *      Module not found: Error: Can't resolve 'style' in 'F:\Sonosthesia\sonosthesia-hub'
+             *      BREAKING CHANGE: It's no longer allowed to omit the '-loader' suffix when using loaders.
+             *      You need to specify 'style-loader' instead of 'style'.
+             */
+            {
+                test: /\.scss$/,
+                //loader: ExtractTextPlugin.extract('css!sass')
+                loaders: ['style-loader', 'css-loader', 'sass-loader']
             }
         ]
     },
@@ -59,6 +80,9 @@ module.exports = {
             hash: false,
             cache: false,
             title: 'Sonosthesia Hub'
-        })
+        }),
+        // https://www.jonathan-petitcolas.com/2015/05/15/howto-setup-webpack-on-es6-react-application-with-sass.html
+        // https://github.com/webpack/webpack/issues/2764
+        // new ExtractTextPlugin('public/style.css', { allChunks: true })
     ]
 };

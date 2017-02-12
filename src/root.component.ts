@@ -5,7 +5,7 @@ import * as sonosthesia from './sonosthesia';
 
 @Component({
     selector: 'root',
-    templateUrl: 'views/root.html'
+    templateUrl: 'root.html'
 })
 export class RootComponent {
 

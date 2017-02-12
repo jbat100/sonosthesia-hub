@@ -1,20 +1,300 @@
-.message {
-  border: 1px solid #ccc;
+
+// flexbox css3 video https://www.youtube.com/watch?v=G7EIAgfkhmg
+
+/**---------------------------------------------------------------------------------------------------------------------
+  * Root (between the top and bottom bars)
+  */
+
+.root-canvas {
+  background: white;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow-y: hidden;
+}
+
+.root-top-bar {
+  text-align: center;
+  height: 30px;
+  background: indianred;
+  flex-shrink: 0;
+  overflow-y: hidden;
+}
+
+.root-main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: row;
+  justify-content: inherit;
+  overflow-y: hidden;
+}
+
+.root-bottom-bar {
+  text-align: center;
+  height: 30px;
+  background: #757575;
+  flex-shrink: 0;
+  overflow-y: hidden;
+}
+
+/**---------------------------------------------------------------------------------------------------------------------
+  * Main (between the top and bottom bars)
+  */
+
+.main-navigation {
+  border-right: 2px solid darkgray;
   padding: 10px;
-  color: blue;
+  text-align: center;
+  width: 160px;
+  flex-shrink: 0;
+  background: white;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: scroll;
 }
 
-.success {
-  @extend .message;
-  border-color: green;
+// TODO: make main content and inspector scrollable http://stackoverflow.com/questions/21515042/scrolling-a-flexbox-with-overflowing-content
+
+.main-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.error {
-  @extend .message;
-  border-color: red;
+.main-header {
+  flex-shrink: 0;
 }
 
-.warning {
-  @extend .message;
-  border-color: yellow;
+.main-footer {
+  flex-shrink: 0;
+}
+
+.main-body {
+  padding: 10px;
+  text-align: left;
+  flex-grow: 1;
+  background: #dcdbd8;
+  overflow-y: scroll;
+}
+
+.main-inspector {
+  padding: 10px;
+  text-align: center;
+  width: 0;
+  background: darkgray;
+  overflow-y: scroll;
+}
+
+/**
+  * UTILS
+  */
+
+.no-vertical-margin {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+/**---------------------------------------------------------------------------------------------------------------------
+  * Header
+  */
+
+.header-container {
+  border-bottom: 1px solid #3d3c3c;
+  margin-right: 10px;
+}
+
+.header-bar {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 10px 10px 10px;
+}
+
+.header-title {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.header-bar-button {
+  flex-shrink: 0;
+  margin-left: 10px;
+  width: 35px;
+}
+
+.header-bar-glyph-button {
+  @extend .header-bar-button;
+  width: 35px;
+}
+
+.header-bar-text-button {
+  @extend .header-bar-button;
+  width: 100px;
+}
+
+.header-bar-wide-text-button {
+  @extend .header-bar-button;
+  width: 150px;
+}
+
+.header-label {
+  font-size: 12px;
+}
+
+.list-container {
+  height: 100%;
+}
+
+/**---------------------------------------------------------------------------------------------------------------------
+  * Error
+  */
+
+.error-panel {
+  margin: 10px;
+}
+
+/**---------------------------------------------------------------------------------------------------------------------
+  * Panels
+  */
+
+.content-panel {
+  text-align: left;
+  margin-bottom: 10px;
+  padding:5px 5px 5px 10px;
+  border-radius: 6px 6px 6px 6px;
+  border: 1px solid darkgray;
+  //box-shadow: 10px 10px 16px -7px rgba(0,0,0,0.75);
+}
+
+.default-content-panel {
+  @extend .content-panel;
+  //background-color: #f7f8fa;
+  background-color: #eaeaea;
+}
+
+.inverse-default-content-panel {
+  @extend .content-panel;
+  background-color: #a4a4a5;
+}
+
+.primary-content-panel {
+  @extend .content-panel;
+  background-color: darken(#428bca, 6.5%); // bootstrap primary color http://getbootstrap.com/customize/
+}
+
+.primary-content-panel span {
+  color: white;
+}
+
+.secondary-content-panel {
+  @extend .content-panel;
+  background-color: #8fddf4;
+}
+
+.alert-content-panel {
+  @extend .content-panel;
+  background-color: #ffb4ce;
+}
+
+.incoming-content-panel {
+  @extend .content-panel;
+  background-color: #dcfae0;
+}
+
+.outgoing-content-panel {
+  @extend .content-panel;
+  background-color: #ffd7ed;
+}
+
+.panel-header {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  margin-right: 10px;
+}
+
+.panel-header-title {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.panel-header-item {
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+
+/**---------------------------------------------------------------------------------------------------------------------
+  * Common Buttons, Settings, and Labels
+  */
+
+.state-label {
+  flex: 0 0 80px;
+  margin-right: 10px;
+}
+
+.glyph-button-container {
+  margin-left: 10px;
+  flex: 0 0 35px;
+}
+
+.glyph-button {
+  // this mystifies me but seems to align glyph correctly
+  // http://stackoverflow.com/questions/22719315/vertical-align-glyphicon-in-bootstrap-3
+  top: 50%; }
+
+.number-setting-control {
+  display: flex;
+  flex-direction: row;
+}
+
+.setting-label {
+  flex: 0 0 50px;
+}
+
+.setting-controller {
+  flex-grow: 1;
+  margin-right: 10px;
+}
+
+.aspect-setting-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.aspect-setting-control > * {
+  margin-right: 10px;
+}
+
+
+
+/**---------------------------------------------------------------------------------------------------------------------
+  * Palettes
+  */
+
+// http://www.color-hex.com/color-palettes/popular.php
+
+.pastel-palette-1 {
+  background-color: #a8e6cf;
+}
+
+.pastel-palette-2 {
+  background-color: #dcedc1;
+}
+
+.pastel-palette-3 {
+  background-color: #ffd3b6;
+}
+
+.pastel-palette-4 {
+  background-color: #ffaaa5;
+}
+
+.pastel-palette-5 {
+  background-color: #ff8b94;
 }

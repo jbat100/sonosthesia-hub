@@ -8,22 +8,33 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 // main services
 
+import { ConfigurationService } from './services/configuration.service';
+import { HubService } from './services/hub.service';
 
-// mode services
+// root components
 
-// main components
 import { RootComponent } from './root.component';
 import { MenuComponent } from './menu.component';
+import { NavigationComponent } from './navigation.component';
+
+// sub-root components, loaded by navigation
+
+import { RootSettingsComponent } from './components/settings/root.settings.component';
+import { RootGeneratorsComponent } from './components/generators/root.generators.component';
 
 const routes : Routes = [
     {
         path: '',
-        redirectTo: '/menu',
+        redirectTo: '/settings',
         pathMatch: 'full'
     },
     {
-        path: 'menu',
-        component: MenuComponent
+        path: 'settings',
+        component: RootSettingsComponent
+    },
+    {
+        path: 'generators',
+        component: RootGeneratorsComponent
     }
 ];
 
@@ -35,10 +46,19 @@ const routes : Routes = [
         NgbModule.forRoot()
     ],
     declarations: [
+
         RootComponent,
-        MenuComponent
+        MenuComponent,
+        NavigationComponent,
+
+        RootSettingsComponent,
+        RootGeneratorsComponent
+
     ],
     providers: [
+
+        ConfigurationService,
+        HubService
 
     ],
     bootstrap: [

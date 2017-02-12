@@ -2,12 +2,12 @@
 
 import { Component } from '@angular/core';
 
-import { HubManager } from '../sonosthesia';
-import { HubService } from '../services/hub.service';
+import { HubManager } from '../../sonosthesia';
+import { HubService } from '../../services/hub.service';
 
 @Component({
     selector: 'hub-overview',
-    templateUrl: '../views/hub-overview.html'
+    templateUrl: 'hub.overview.html'
 })
 export class HubOverviewComponent {
 

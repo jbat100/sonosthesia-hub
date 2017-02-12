@@ -20,7 +20,7 @@ module.exports = {
         filename: "js/[name].bundle.js"
     },
     resolve: {
-        extensions: ['*', '.ts', '.js', '.sass']
+        extensions: ['*', '.ts', '.js', '.sass', 'scss', 'css']
     },
     module: {
         loaders: [
@@ -67,6 +67,24 @@ module.exports = {
                 test: /\.scss$/,
                 //loader: ExtractTextPlugin.extract('css!sass')
                 loaders: ['style-loader', 'css-loader', 'sass-loader']
+            },
+
+            {
+                test: /\.css$/,
+                //loader: ExtractTextPlugin.extract('css!sass')
+                loaders: ['style-loader', 'css-loader']
+            },
+
+            // files used by photonkit
+            // not actually using photon kit as it looks really shitty on windows...
+            // https://github.com/abduld/electron-react-cerebral-photonkit-babel6-webpack/blob/master/webpack.config.js
+            {
+                test: /\.woff(2)?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                loader: "url-loader?limit=1000000&mimetype=application/font-woff"
+            },
+            {
+                test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+                loader: "file-loader"
             }
         ]
     },

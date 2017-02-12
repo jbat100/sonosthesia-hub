@@ -5,13 +5,13 @@ import {Component} from '@angular/core';
 
 @Component({
     selector: 'menu',
-    templateUrl: 'views/menu.html'
+    templateUrl: 'menu.html'
 })
 export class MenuComponent {
 
     readonly tag = 'MenuComponent';
 
-    identifier:string;
+    identifier = 'Sonosthesia';
 
     heartbeat:number;
 

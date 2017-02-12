@@ -1,0 +1,20 @@
+<div>
+    <div class="root-canvas">
+        <div class="root-main">
+            <div class="main-navigation">
+                <ngb-tabset class="flex-column" type="pills" active="activeIndex">
+                    <ngb-tab ng-repeat="tab in tabs"
+                             heading="{{tab.key | titlecase}}"
+                             active="tab.active"
+                             disable="tab.disabled"
+                             ng-click="navigate(tab.key)">
+
+                    </ngb-tab>
+                </ngb-tabset>
+            </div>
+            <div class="main-container">
+                <ng-content></ng-content>
+            </div>
+        </div>
+    </div>
+</div>

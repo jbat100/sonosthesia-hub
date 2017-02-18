@@ -102,5 +102,10 @@ module.exports = {
         // https://www.jonathan-petitcolas.com/2015/05/15/howto-setup-webpack-on-es6-react-application-with-sass.html
         // https://github.com/webpack/webpack/issues/2764
         // new ExtractTextPlugin('public/style.css', { allChunks: true })
-    ]
+    ],
+
+    // ways around the 'cannot resolve 'net', or all the other node modules
+    // https://github.com/request/request/issues/1529
+    target: 'node'
+    //node: {console: true, fs: 'empty', net: 'empty', tls: 'empty'}
 };

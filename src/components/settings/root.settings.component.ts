@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
 
 @Component({
     selector: 'root-settings',
-    templateUrl: 'root.setting.html'
+    templateUrl: 'root.settings.html'
 })
 export class RootSettingsComponent {
 

@@ -6,10 +6,14 @@ import {RouterModule, Routes}  from '@angular/router';
 
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
-// main services
+// services
 
 import { ConfigurationService } from './services/configuration.service';
 import { HubService } from './services/hub.service';
+
+// pipes
+
+import {TitleCasePipe} from './pipes';
 
 // root components
 
@@ -47,9 +51,17 @@ const routes : Routes = [
     ],
     declarations: [
 
+        // pipes
+
+        TitleCasePipe,
+
+        // root components
+
         RootComponent,
         MenuComponent,
         NavigationComponent,
+
+        // navigation components
 
         RootSettingsComponent,
         RootGeneratorsComponent

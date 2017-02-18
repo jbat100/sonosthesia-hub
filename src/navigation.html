@@ -1,18 +1,23 @@
 <div>
     <div class="root-canvas">
-        <div class="root-main">
-            <div class="main-navigation">
-                <ngb-tabset class="flex-column" type="pills" active="activeIndex">
-                    <ngb-tab ng-repeat="tab in tabs"
-                             heading="{{tab.key | titlecase}}"
-                             active="tab.active"
-                             disable="tab.disabled"
-                             ng-click="navigate(tab.key)">
-
+        <div class="container">
+            <div>
+                <ngb-tabset type="pills" (tabChange)="tabChange($event)" [activeId]="currentKey">
+                    <ngb-tab *ngFor="let tab of tabs" id="{{tab.key}}" title="{{tab.key | titleCase}}">
+                        <template ngbTabContent></template>
                     </ngb-tab>
                 </ngb-tabset>
+
+                <!--
+                http://stackoverflow.com/questions/40204521/exception-error-in-ngbtabset-class-ngbtabset-inline-template1220-caused-b
+                <ngb-tabset>
+                    <ngb-tab id="boo" title="boo"><template ngbTabContent>boo</template></ngb-tab>
+                    <ngb-tab id="baa" title="baa"><template ngbTabContent>baa</template></ngb-tab>
+                </ngb-tabset>
+                -->
+
             </div>
-            <div class="main-container">
+            <div>
                 <ng-content></ng-content>
             </div>
         </div>

@@ -2,7 +2,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Router} from "@angular/router";
 
-
+import {NgbTabChangeEvent} from '@ng-bootstrap/ng-bootstrap';
 
 // https://toddmotto.com/transclusion-in-angular-2-with-ng-content
 
@@ -15,7 +15,7 @@ export class NavigationComponent implements OnInit {
     readonly tag = 'NavigationComponent';
 
     @Input()
-    currentKey : string;
+    public currentKey : string;
 
     readonly tabs = [
         { key:'generators' },
@@ -24,7 +24,7 @@ export class NavigationComponent implements OnInit {
 
     activeIndex : number;
 
-    constructor(_router : Router) {
+    constructor(private _router : Router) {
 
     }
 
@@ -44,9 +44,18 @@ export class NavigationComponent implements OnInit {
 
     }
 
-    navigate(key : string) {
-        console.info(this.tag + ' navigation switching with key ' + key);
-        $location.path(key);
+    public tabChange($event: NgbTabChangeEvent) {
+        console.info(this.tag + ' tab changed ' + $event.nextId);
+        this.navigate($event.nextId);
     }
 
-};
+    private navigate(key : string) {
+        console.info(this.tag + ' navigation switching with key ' + key);
+        const path : string = '/' + key;
+        console.info(this.tag + ' navigating to path ' + path);
+        this._router.navigate([path]).then(() => {
+            console.info(this.tag + ' navigation done');
+        });
+    }
+
+}

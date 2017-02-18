@@ -1,7 +1,7 @@
 
 import { Component } from '@angular/core';
 
-import * as sonosthesia from './sonosthesia';
+// import * as sonosthesia from './sonosthesia';
 
 @Component({
     selector: 'root',
@@ -9,6 +9,6 @@ import * as sonosthesia from './sonosthesia';
 })
 export class RootComponent {
 
-    private message : sonosthesia.HubMessage;
+    // private message : sonosthesia.HubMessage;
 
 }

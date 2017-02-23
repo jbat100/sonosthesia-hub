@@ -1,5 +1,6 @@
 
 import * as _ from "underscore";
+import * as Q from "q";
 import {expect} from "chai";
 import {NativeClass, Info, Selection, Range, IConnection} from "./core";
 
@@ -131,9 +132,36 @@ export class ParameterSelection extends Selection {
 // ---------------------------------------------------------------------------------------------------------------------
 //
 
-export class Component extends NativeClass {
+export class ChannelController extends NativeClass {
 
-    constructor(private _connection : IConnection, private _info : ComponentInfo) {
+    private _info : ChannelInfo;
+
+    constructor(private _componentController : ComponentController) {
+        super();
+    }
+
+    get componentController() : ComponentController { return this._componentController; }
+
+    get info() : ChannelInfo { return this._info; }
+
+    public setup(info : ChannelInfo) : Q.Promise<void> {
+        this._info = info;
+        return Q();
+    }
+
+    public teardown() : Q.Promise<void> {
+        return Q();
+    }
+
+}
+
+export class ComponentController extends NativeClass {
+
+    private _channelControllers = new Map<string, ChannelController>();
+
+    private _info : ComponentInfo;
+
+    constructor(private _connection : IConnection) {
         super();
     }
 
@@ -141,7 +169,14 @@ export class Component extends NativeClass {
 
     get info() : ComponentInfo { return this._info; }
 
-    set info(info : ComponentInfo) { this._info = info; }
+    public setup(info : ComponentInfo) : Q.Promise<void>  {
+        this._info = info;
+        return Q();
+    }
+
+    public teardown() : Q.Promise<void> {
+        return Q();
+    }
 
 }
 
@@ -152,42 +187,45 @@ export class Component extends NativeClass {
 
 export class ComponentManager extends NativeClass {
 
-    private _components = new Map<string, Component>();
+    private _componentControllers = new Map<string, ComponentController>();
 
-    registerComponent(connection : IConnection, info : ComponentInfo) {
-        let component = this._components.get(info.identifier);
+    registerComponent(connection : IConnection, info : ComponentInfo) : Q.Promise<void> {
         if (!(info && info.identifier)) throw new Error('invalid identifier');
-        if (component) {
-            if (component.connection === connection) throw new Error('duplicate component declaration');
+        let componentController = this._componentControllers.get(info.identifier);
+        let result = Q();
+        if (componentController) {
+            if (componentController.connection !== connection) throw new Error('duplicate component declaration');
+            result = componentController.teardown();
         } else {
-            component = new Component(connection, info);
-            this._components.set(info.identifier, component);
+            componentController = new ComponentController(connection);
+            this._componentControllers.set(info.identifier, componentController);
         }
-        component.info = info;
+        return result.then(() => componentController.setup(info));
     }
 
     // in order to unregister a component, you must know its associated connection
-    unregisterComponent(connection : IConnection, identifier : string) {
-        let component = this._components.get(identifier);
-        if (!component) {
+    unregisterComponent(connection : IConnection, identifier : string) : Q.Promise<void> {
+        let componentController = this._componentControllers.get(identifier);
+        if (!componentController) {
             throw new Error('unknown component identifier : ' + identifier);
-        } else if (component.connection !== connection) {
+        } else if (componentController.connection !== connection) {
             throw new Error('component ' + identifier + ' is not associated with connection');
         }
-        this._components.delete(identifier);
+        this._componentControllers.delete(identifier);
+        return componentController.teardown();
     }
 
-    getComponent(identifier : string, required? : boolean) : Component {
+    getComponentController(identifier : string, required? : boolean) : ComponentController {
         if (required !== false) required = true;
-        const result : Component = this._components.get(identifier);
+        const result : ComponentController = this._componentControllers.get(identifier);
         if ((!result) && required) throw new Error('unknown component identifier : ' + identifier);
         return result;
     }
 
-    getComponents(connection : IConnection, required? : boolean) : Component[] {
+    getComponentControllers(connection : IConnection, required? : boolean) : ComponentController[] {
         if (required !== false) required = true;
         const components = [];
-        this._components.forEach((component : Component, identifier : string) => {
+        this._componentControllers.forEach((component : ComponentController, identifier : string) => {
             if (component.connection === connection) components.push(component);
         });
         return components;
@@ -195,12 +233,12 @@ export class ComponentManager extends NativeClass {
 
     clean(connection : IConnection) {
         // get component identifiers for this connection
-        const identifiers = this.getComponents(connection).map((component :Component) => {
+        const identifiers = this.getComponentControllers(connection).map((component :ComponentController) => {
             return component.info.identifier;
         });
         // and remove them...
         for (let identifier of identifiers) {
-            this._components.delete(identifier);
+            this.unregisterComponent(connection, identifier);
         }
     }
 

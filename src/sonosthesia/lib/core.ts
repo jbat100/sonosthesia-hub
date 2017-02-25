@@ -174,6 +174,11 @@ export class Info extends NativeClass {
         return instance;
     }
 
+    constructor() {
+        super();
+        this._identifier = GUID.generate(); // generate a default id, may be overriten by JSON
+    }
+
     get identifier() : string { return this._identifier; }
 
     applyJSON(obj:any) {
@@ -184,16 +189,75 @@ export class Info extends NativeClass {
     toJSON() : any {
         return _.pick(this, 'identifier');
     }
+}
+
+// used for common case of set of elements
+// http://stackoverflow.com/questions/17382143/how-to-create-a-new-object-from-type-parameter-in-generic-class-in-typescript
+// looks redundant but I don't see any other way, generics info does not compile down to javascript so we have to pass in the
+// constructor used to build the info objects
+//
+// Use like this:
+// const set = new InfoSet<ChannelInfo>(ChannelInfo);
+//
+export class InfoSet <T extends Info> {
+
+    private _elements : T[];
+
+    constructor(private _TCreator : { new (): T; }) {
+        this._elements = [];
+    }
+
+    // cannot use generic type in static method
+    applyJSON(objs : any[]) {
+        expect(objs).to.be.instanceof(Array);
+        objs.forEach((obj : any) => {
+            const element : T = new this._TCreator();
+            element.applyJSON(obj);
+            this.addOrUpdateElement( element );
+        })
+    }
+
+    toJSON() : any[] {
+        return this._elements.map((element : T) => { return element.toJSON(); })
+    }
+
+    addOrUpdateElement(element : T) {
+        const index = this._elements.findIndex((candidate : T) => {return candidate.identifier === element.identifier});
+        if (index == -1) {
+            this._elements.push(element);
+        } else {
+            this._elements[index] = element;
+        }
+    }
+
+    removeElement(identifier : string) {
+        this._elements = this._elements.filter(candidate => { return candidate.identifier == identifier; });
+    }
+
+    removeAllElements() {
+        this._elements = [];
+    }
+
+    identifiers() : string[] {
+        return this._elements.map((element : T) => { return element.identifier; })
+    }
+
+    elements() : T[] {
+        return Array.from(this._elements);
+    }
+
+    has(identifier : string) : boolean {
+        return !!this._elements.find((element : T) => { return element.identifier === identifier; })
+    }
 
 }
 
 export class Selection {
 
-    private _identifier : string;
     private _valid : boolean;
 
-    constructor() {
-        this._identifier = null;
+    constructor(private _identifier : string = null) {
+        this._identifier = _identifier;
         this._valid = false;
     }
 

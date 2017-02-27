@@ -1,0 +1,16 @@
+{
+  "identifier" : "local",
+  "channels" : [
+    {
+      "identifier" : "test1",
+      "parameters" : [
+        {
+          "identifier" : "parameter1"
+        },
+        {
+          "identifier" : "parameter2"
+        }
+      ]
+    }
+  ]
+}

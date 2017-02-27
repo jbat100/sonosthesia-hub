@@ -17,7 +17,7 @@ export class ComponentInfo extends Info {
 
     applyJSON(obj:any) {
         super.applyJSON(obj);
-        this._channelSet.applyJSON(obj.channels as any[]);
+        if (obj.channels) this._channelSet.applyJSON(obj.channels as any[]);
     }
 
     get channelSet() : InfoSet<ChannelInfo> { return this._channelSet; }
@@ -33,30 +33,58 @@ export class ComponentInfo extends Info {
 export enum ChannelFlow {
     Undefined,
     Emitter,
-    Receiver
+    Receiver,
+    Duplex
 }
 
 export enum ChannelType {
     Undefined,
     Event,
-    Control,
-    Generator
+    Control
 }
 
 export class ChannelInfo extends Info {
 
-    private _flow = ChannelFlow.Emitter;
-    private _type = ChannelType.Event;
+    private _flow = ChannelFlow.Undefined;
+    private _type = ChannelType.Undefined;
+
+    private _generator = true;
 
     private _parameterSet = new InfoSet<ParameterInfo>(ParameterInfo);
 
     applyJSON(obj : any) {
         super.applyJSON(obj);
-        this._parameterSet.applyJSON(obj.parameters);
-        expect(ChannelFlow[obj.flow]).to.be.ok;
-        this._flow = ChannelFlow[<string>obj.flow];
-        expect(ChannelType[obj.type]).to.be.ok;
-        this._type = ChannelType[<string>obj.type];
+        if (obj.parameters) this._parameterSet.applyJSON(obj.parameters);
+        if (obj.flow) {
+            expect(ChannelFlow[obj.flow]).to.be.ok;
+            this._flow = ChannelFlow[<string>obj.flow];
+        }
+        if (obj.type) {
+            expect(ChannelType[obj.type]).to.be.ok;
+            this._type = ChannelType[<string>obj.type];
+        }
+    }
+
+    get canEmit() : boolean {
+        return this._flow === ChannelFlow.Duplex ||
+            this._flow === ChannelFlow.Emitter ||
+            this._flow === ChannelFlow.Undefined;
+    }
+
+    get canReceive() : boolean {
+        return this._flow === ChannelFlow.Duplex ||
+            this._flow === ChannelFlow.Receiver ||
+            this._flow === ChannelFlow.Undefined;
+    }
+
+    get eventSupport() : boolean {
+        return this._type === ChannelType.Event ||
+            this.type === ChannelType.Undefined;
+    }
+
+    get controlSupport() : boolean {
+        return this._type === ChannelType.Control ||
+            this.type === ChannelType.Undefined;
     }
 
     get flow() : ChannelFlow { return this._flow; }

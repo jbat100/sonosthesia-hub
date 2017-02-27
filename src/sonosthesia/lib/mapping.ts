@@ -3,8 +3,7 @@
 import { NativeClass } from './core';
 
 import { ParameterOperator, ParameterProcessor, ParameterProcessorChain } from './parameter';
-import { ChannelFlow, ComponentInfo, ChannelInfo, ParameterInfo } from './component';
-import { ComponentSelection, ChannelSelection, ParameterSelection } from './component';
+import { ComponentManager, ChannelSelection, ParameterSelection } from './component';
 
 
 
@@ -16,8 +15,8 @@ export class ParameterConnection extends NativeClass {
 
     constructor() {
         super();
-        this._input = new ParameterSelection();
-        this._output = new ParameterSelection();
+        this._input = new ParameterSelection(null, null, null);
+        this._output = new ParameterSelection(null, null, null);
         this._operators = [];
     }
 
@@ -50,14 +49,14 @@ export class ChannelConnection extends NativeClass {
 
     constructor() {
         super();
-        this._input = new ChannelSelection();
-        this._output = new ChannelSelection();
+        this._input = new ChannelSelection(null, null);
+        this._output = new ChannelSelection(null, null);
         this._parameterConnections = [];
     }
 
-    get input() { return this._input; }
+    get input() : ChannelSelection { return this._input; }
 
-    get output() { return this._output; }
+    get output() : ChannelSelection { return this._output; }
 
     process(input) {
 
@@ -67,7 +66,7 @@ export class ChannelConnection extends NativeClass {
 
 export class MappingManager extends NativeClass {
 
-    constructor() {
+    constructor(private _componentManager : ComponentManager) {
         super();
     }
 

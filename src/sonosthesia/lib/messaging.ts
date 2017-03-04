@@ -190,6 +190,8 @@ export class HubMessage extends Message {
         return new this(hubMessageType, new Date(<string>obj.date), parser.parse(obj.type, obj.content)) as Message;
     }
 
+    private _hubMessageType : HubMessageType;
+
     constructor(type : HubMessageType, date : Date, content : any) {
         // note that Map has doesn't seem to work
         const expectedContentClass = HubMessageContentClasses[type];
@@ -197,7 +199,10 @@ export class HubMessage extends Message {
         //const expectedContentClass = HubMessageContentClasses[type];
         expect(content).to.be.instanceOf(expectedContentClass);
         super(HubMessageType[type] as string, date, content);
+        this._hubMessageType = type;
     }
+
+    get hubMessageType() : HubMessageType { return this._hubMessageType; }
 
 }
 

@@ -158,9 +158,9 @@ export class ParameterProcessorChain extends NativeClass {
 
     private _processors : ParameterProcessor[];
 
-    constructor(operators : ParameterOperator[]) {
+    constructor(private _operators : ParameterOperator[]) {
         super();
-        this._processors = _.map(operators, operator => {
+        this._processors = _.map(this._operators, operator => {
             return ParameterProcessorFactory.newProcessorWithOperator(operator);
         });
     }

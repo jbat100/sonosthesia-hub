@@ -17,4 +17,4 @@ export * from './lib/component';
 export * from './lib/hub';
 export * from './lib/mapping';
 export * from './lib/messaging';
-export * from './lib/parameter';
+export * from './lib/processing';

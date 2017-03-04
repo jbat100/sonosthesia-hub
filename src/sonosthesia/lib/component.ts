@@ -1,4 +1,7 @@
 
+import * as Rx from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+
 import * as _ from "underscore";
 import {expect} from "chai";
 
@@ -199,7 +202,7 @@ export class ChannelController extends BaseController<ChannelInfo> {
 
     constructor(info : ChannelInfo, private _componentController : ComponentController) {
         super(info);
-        this._messageObservable = this._componentController.connection.messageObservable.filter(function (message, idx, obs) {
+        this._messageObservable = this._componentController.connection.messageObservable.filter((message, idx) => {
             return message.content.channel === this.info.identifier;
         });
     }
@@ -225,7 +228,7 @@ export class ComponentController extends BaseController<ComponentInfo> {
 
     constructor(info : ComponentInfo, private _connection : IConnection) {
         super(info);
-        this._messageObservable = this.connection.messageObservable.filter(function (message, idx, obs) {
+        this._messageObservable = this.connection.messageObservable.filter((message, idx) => {
             return message.content.component === this.info.identifier;
         });
     }
@@ -253,7 +256,7 @@ export class ComponentController extends BaseController<ComponentInfo> {
         return this._channelControllers.get(selection.identifier);
     }
 
-    public update(info : ComponentInfo) {
+    update(info : ComponentInfo) {
         super.update(info);
         info.channelSet.elements().forEach((channelInfo : ChannelInfo) => {
             let controller = this._channelControllers.get(channelInfo.identifier);

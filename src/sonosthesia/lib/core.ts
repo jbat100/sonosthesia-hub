@@ -3,7 +3,7 @@ import * as Q from "q";
 import * as _ from 'underscore';
 import {expect} from "chai";
 import {EventEmitter} from 'eventemitter3';
-import * as Rx from 'rx';
+import * as Rx from 'rxjs/Rx';
 import * as uuid from 'node-uuid';
 
 

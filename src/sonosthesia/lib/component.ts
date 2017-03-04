@@ -1,82 +1,107 @@
 
 import * as _ from "underscore";
-import * as Q from "q";
 import {expect} from "chai";
-import {NativeClass, Info, Selection, Range, IConnection} from "./core";
+
+import {NativeClass, Info, InfoSet, Selection, Range, IConnection} from "./core";
+import {HubMessage} from "./messaging";
 
 // ---------------------------------------------------------------------------------------------------------------------
-// INFO classes represent the declarations of available components (and their channels) made by connections, they are
+// Info classes represent the declarations of available components (and their channels) made by connections, they are
 // pure data containers, and persist only for as long as the connection which declared them
-
-/**
- *
- */
+// they have both a JSON get/set interface and a property based interface has they can be manipulated by network messages
+// or locally
 
 export class ComponentInfo extends Info {
 
-    private _channels : ChannelInfo[];
+    private _channelSet = new InfoSet<ChannelInfo>(ChannelInfo);
 
     applyJSON(obj:any) {
         super.applyJSON(obj);
-        expect(obj.channels).to.be.instanceof(Array);
-        this._channels = _.map(obj.channels, channel => { return ChannelInfo.newFromJSON(channel) as ChannelInfo; });
+        if (obj.channels) this._channelSet.applyJSON(obj.channels as any[]);
     }
 
-    get channels() { return this._channels; }
+    get channelSet() : InfoSet<ChannelInfo> { return this._channelSet; }
 
     toJSON() : any {
         const obj : any = super.toJSON();
-        obj['channels'] = _.map(this.channels, (channel : ChannelInfo) => { return channel.toJSON(); });
+        obj['channels'] = this._channelSet.toJSON();
         return obj;
     }
 
 }
 
-
 export enum ChannelFlow {
     Undefined,
     Emitter,
-    Receiver
+    Receiver,
+    Duplex
 }
 
 export enum ChannelType {
     Undefined,
     Event,
-    Control,
-    Generator
+    Control
 }
 
 export class ChannelInfo extends Info {
 
-    private _flow = ChannelFlow.Emitter;
-    private _type = ChannelType.Event;
-    private _parameters : ParameterInfo[];
+    private _flow = ChannelFlow.Undefined;
+    private _type = ChannelType.Undefined;
+
+    private _generator = true;
+
+    private _parameterSet = new InfoSet<ParameterInfo>(ParameterInfo);
 
     applyJSON(obj : any) {
         super.applyJSON(obj);
-        expect(obj.parameters).to.be.instanceof(Array);
-        this._parameters = _.map(obj.parameters, parameter => {
-            return ParameterInfo.newFromJSON(parameter) as ParameterInfo;
-        });
-        expect(ChannelFlow[obj.flow]).to.be.ok;
-        this._flow = ChannelFlow[<string>obj.flow];
-        expect(ChannelType[obj.type]).to.be.ok;
-        this._type = ChannelType[<string>obj.type];
+        if (obj.parameters) this._parameterSet.applyJSON(obj.parameters);
+        if (obj.flow) {
+            expect(ChannelFlow[obj.flow]).to.be.ok;
+            this._flow = ChannelFlow[<string>obj.flow];
+        }
+        if (obj.type) {
+            expect(ChannelType[obj.type]).to.be.ok;
+            this._type = ChannelType[<string>obj.type];
+        }
+    }
+
+    get canEmit() : boolean {
+        return this._flow === ChannelFlow.Duplex ||
+            this._flow === ChannelFlow.Emitter ||
+            this._flow === ChannelFlow.Undefined;
+    }
+
+    get canReceive() : boolean {
+        return this._flow === ChannelFlow.Duplex ||
+            this._flow === ChannelFlow.Receiver ||
+            this._flow === ChannelFlow.Undefined;
+    }
+
+    get eventSupport() : boolean {
+        return this._type === ChannelType.Event ||
+            this.type === ChannelType.Undefined;
+    }
+
+    get controlSupport() : boolean {
+        return this._type === ChannelType.Control ||
+            this.type === ChannelType.Undefined;
     }
 
     get flow() : ChannelFlow { return this._flow; }
 
+    set flow(_flow : ChannelFlow) { this._flow = _flow; }
+
     get type() : ChannelType { return this._type; }
 
-    get parameters() : ParameterInfo[] { return this._parameters; }
+    set type(_type : ChannelType) { this._type = _type; }
+
+    get parameterSet() : InfoSet<ParameterInfo> { return this._parameterSet; }
 
     toJSON() : any {
         const obj = super.toJSON();
         obj.flow = ChannelFlow[this.flow]; // convert to string
         obj.producer = ChannelType[this.type];
-        obj.parameters = _.map(this.parameters, (parameter : ParameterInfo) => {
-            return parameter.toJSON();
-        });
+        obj.parameters = this._parameterSet.toJSON();
         return obj;
     }
 
@@ -96,6 +121,8 @@ export class ParameterInfo extends Info {
 
     get defaultValue() : number { return this._defaultValue; }
 
+    set defaultValue(val : number) { this._defaultValue = val; }
+
     get range() : Range { return this._range; }
 
     toJSON() {
@@ -108,125 +135,218 @@ export class ParameterInfo extends Info {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// SELECTIONS: represent user selections, they are originally made in reference to info declarations but can outlive
+// Selection classes represent user selections, they are originally made in reference to info declarations but can outlive
 // the connections that made the info declarations (the selections become invalid when the referenced connection is dead)
 
 export class ComponentSelection extends Selection { }
 
 export class ChannelSelection extends Selection {
 
-    private _component = new ComponentSelection();
+    private _componentSelection : ComponentSelection;
 
-    get component() { return this._component; }
+    constructor(channelIdentifier : string, compomentIdentifier : string) {
+        super(channelIdentifier);
+        this._componentSelection = new ComponentSelection(compomentIdentifier);
+    }
+
+    get componentSelection() { return this._componentSelection; }
 
 }
 
 export class ParameterSelection extends Selection {
 
-    private _channel = new ChannelSelection();
+    private _channelSelection : ChannelSelection;
 
-    get channel() { return this._channel; }
+    constructor(parameterIdentifier : string, channelIdentifier : string, compomentIdentifier : string) {
+        super(channelIdentifier);
+        this._channelSelection = new ChannelSelection(channelIdentifier, compomentIdentifier);
+    }
+
+    get channelSelection() { return this._channelSelection; }
 
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// CONTROLLERS: the controllers do the work of handling the operation of components and channels, they only live for as
-// long as the associated connection
+//
 
-export class ChannelController extends NativeClass {
+// a controller has an info (Info subclass), doing a generic class to centralise setup/teardown/update dynamics
+export class BaseController <T extends Info> extends NativeClass {
 
-    constructor(private _componentController : ComponentController, private _info : ChannelInfo) {
+    constructor(private _info : T) {
         super();
+    }
+
+    get info() : T { return this._info; }
+
+    set info(val : T) { this._info = val; }
+
+    public update(info : T) {
+        if (info && this._info && this._info.identifier !== info.identifier)
+            throw new Error('the identifier specified in info must remain constant');
+        this._info = info;
+    }
+
+    public reload() {
+
     }
 
 }
 
-export class ComponentController extends NativeClass {
+export class ChannelController extends BaseController<ChannelInfo> {
 
-    private _channelControllers : ChannelController[];
+    // an observable with only the messages addressed to this channel
+    private _messageObservable: Rx.Observable<HubMessage>;
 
-    constructor(private _manager : ComponentManager, private _connection : IConnection, private _info : ComponentInfo) {
-        super();
-        this._channelControllers = [];
+    constructor(info : ChannelInfo, private _componentController : ComponentController) {
+        super(info);
+        this._messageObservable = this._componentController.connection.messageObservable.filter(function (message, idx, obs) {
+            return message.content.channel === this.info.identifier;
+        });
     }
 
-    public setup() : Q.Promise<void> {
-        return Q();
+    get messageObservable() : Rx.Observable<HubMessage> { return this._messageObservable; }
+
+    get componentController() : ComponentController { return this._componentController; }
+
+    validateParameterSelection(selection : ParameterSelection) {
+        const result = this.info.parameterSet.has(selection.identifier);
+        selection.valid = result;
+        return result;
     }
 
-    public teardown() : Q.Promise<void> {
-        return Q();
+}
+
+export class ComponentController extends BaseController<ComponentInfo> {
+
+    private _channelControllers = new Map<string, ChannelController>();
+
+    // an observable with only the messages addressed to this component
+    private _messageObservable: Rx.Observable<HubMessage>;
+
+    constructor(info : ComponentInfo, private _connection : IConnection) {
+        super(info);
+        this._messageObservable = this.connection.messageObservable.filter(function (message, idx, obs) {
+            return message.content.component === this.info.identifier;
+        });
     }
+
+    get messageObservable() : Rx.Observable<HubMessage> { return this._messageObservable; }
 
     get connection() : IConnection { return this._connection; }
 
-    get info() : ComponentInfo { return this._info; }
+    validateParameterSelection(selection : ParameterSelection) {
+        if (!this.validateChannelSelection(selection.channelSelection)) {
+            selection.valid = false;
+            return false;
+        }
+        const channelController = this.getChannelController(selection.channelSelection);
+        return channelController.validateParameterSelection(selection);
+    }
 
-    public updateInfo(info : ComponentInfo) {
-        this._info = info;
-        // update
+    validateChannelSelection(selection : ChannelSelection) {
+        const result =  this._channelControllers.has(selection.identifier);
+        selection.valid = result;
+        return result;
+    }
+
+    getChannelController(selection : ChannelSelection) : ChannelController {
+        return this._channelControllers.get(selection.identifier);
+    }
+
+    public update(info : ComponentInfo) {
+        super.update(info);
+        info.channelSet.elements().forEach((channelInfo : ChannelInfo) => {
+            let controller = this._channelControllers.get(channelInfo.identifier);
+            if (!controller) controller = new ChannelController(channelInfo, this);
+            else controller.update(channelInfo);
+        });
+        // remove obsolete channel controllers, add required new channel controllers
+        _.difference(Array.from(this._channelControllers.keys()), this.info.channelSet.identifiers()).forEach((id : string) => {
+            this._channelControllers.delete(id);
+        });
     }
 
 }
 
-/**
- * Note, allows multiple component declarations per connection (keyed by identifier). Cannot have duplicate
- * component identifiers
- */
+// ---------------------------------------------------------------------------------------------------------------------
+// Note, allows multiple component declarations per connection (keyed by identifier).
+// Cannot have duplicate component identifiers
 
 export class ComponentManager extends NativeClass {
 
     private _componentControllers = new Map<string, ComponentController>();
 
-    // TODO replace with create component controller which returns a promise
+    // call register to associate component info with a connection, note there can be multiple components per connection
     registerComponent(connection : IConnection, info : ComponentInfo) {
-        let component = this._componentControllers.get(info.identifier);
         if (!(info && info.identifier)) throw new Error('invalid identifier');
-        if (component) {
-            if (component.connection === connection) throw new Error('duplicate component declaration');
+        let componentController = this._componentControllers.get(info.identifier);
+        if (componentController) {
+            if (componentController.connection !== connection)
+                throw new Error('duplicate component declaration');
+            componentController.update(info);
         } else {
-            component = new ComponentController(this, connection, info);
-            this._componentControllers.set(info.identifier, component);
+            componentController = new ComponentController(info, connection);
+            this._componentControllers.set(info.identifier, componentController);
         }
-        component.info = info;
     }
-
     // in order to unregister a component, you must know its associated connection
     unregisterComponent(connection : IConnection, identifier : string) {
-        let component = this._componentControllers.get(identifier);
-        if (!component) {
+        let componentController = this._componentControllers.get(identifier);
+        if (!componentController)
             throw new Error('unknown component identifier : ' + identifier);
-        } else if (component.connection !== connection) {
+        if (componentController.connection !== connection)
             throw new Error('component ' + identifier + ' is not associated with connection');
-        }
         this._componentControllers.delete(identifier);
     }
+    // call clean whenever a connection ends
+    clean(connection : IConnection) {
+        // get component identifiers for this connection
+        this.getComponentControllers(connection).map((component : ComponentController) => {
+            return component.info.identifier;
+        }).forEach((identifier : string) => {
+            this.unregisterComponent(connection, identifier);
+        });
+    }
 
-    getComponent(identifier : string, required? : boolean) : ComponentController {
-        if (required !== false) required = true;
-        const result : ComponentController = this._componentControllers.get(identifier);
-        if ((!result) && required) throw new Error('unknown component identifier : ' + identifier);
+    // validate a component selection
+    validateComponentSelection(selection : ComponentSelection) : boolean {
+        const result =  this._componentControllers.has(selection.identifier);
+        selection.valid = result;
         return result;
     }
 
-    getComponents(connection : IConnection, required? : boolean) : ComponentController[] {
-        if (required !== false) required = true;
-        const components = [];
-        this._componentControllers.forEach((component : ComponentController, identifier : string) => {
-            if (component.connection === connection) components.push(component);
-        });
-        return components;
+    // validate a channel selection (including the associated component selection)
+    validateChannelSelection(selection : ChannelSelection) {
+        if (!this.validateComponentSelection(selection.componentSelection)) {
+            selection.valid = false;
+            return false;
+        }
+        const componentController = this.getComponentController(selection.componentSelection);
+        return componentController.validateChannelSelection(selection);
     }
 
-    clean(connection : IConnection) {
-        // get component identifiers for this connection
-        const identifiers = this.getComponents(connection).map((component :ComponentController) => {
-            return component.info.identifier;
-        });
-        // and remove them...
-        for (let identifier of identifiers) {
-            this._componentControllers.delete(identifier);
+    // validate a full parameter selection (including the associated channel and component selections)
+    validateParameterSelection(selection : ParameterSelection) {
+        if (!this.validateChannelSelection(selection.channelSelection)) {
+            selection.valid = false;
+            return false;
         }
+        const channelController = this.getChannelController(selection.channelSelection);
+        return channelController.validateParameterSelection(selection);
+    }
+
+    // get component or channel controllers based on selections
+    getComponentController(selection : ComponentSelection) : ComponentController {
+        return this._componentControllers.get(selection.identifier);
+    }
+    getComponentControllers(connection : IConnection) : ComponentController[] {
+        return Array.from(this._componentControllers.values()).filter((controller : ComponentController) => {
+            return controller.connection === connection
+        });
+    }
+    getChannelController(selection : ChannelSelection) {
+        const componentController = this.getComponentController(selection.componentSelection);
+        return componentController ? componentController.getChannelController(selection) : null;
     }
 
 }

@@ -7,9 +7,6 @@ import { ApplicationModule } from './application.module';
 
 import 'bootstrap/dist/css/bootstrap.css';
 
-// not using photonkit as it looks really shitty on windows
-//import 'photonkit/dist/css/photon.css';
-
 import './scss/style.scss';
 
 const platform = platformBrowserDynamic();

@@ -1,10 +1,11 @@
 
 import * as _ from "underscore";
+import * as Q from "q";
 import {expect} from "chai";
 import {NativeClass, Info, Selection, Range, IConnection} from "./core";
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Info classes represent the declarations of available components (and their channels) made by connections, they are
+// INFO classes represent the declarations of available components (and their channels) made by connections, they are
 // pure data containers, and persist only for as long as the connection which declared them
 
 /**
@@ -107,7 +108,7 @@ export class ParameterInfo extends Info {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Selection classes represent user selections, they are originally made in reference to info declarations but can outlive
+// SELECTIONS: represent user selections, they are originally made in reference to info declarations but can outlive
 // the connections that made the info declarations (the selections become invalid when the referenced connection is dead)
 
 export class ComponentSelection extends Selection { }
@@ -129,19 +130,42 @@ export class ParameterSelection extends Selection {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-//
+// CONTROLLERS: the controllers do the work of handling the operation of components and channels, they only live for as
+// long as the associated connection
 
-export class Component extends NativeClass {
+export class ChannelController extends NativeClass {
 
-    constructor(private _connection : IConnection, private _info : ComponentInfo) {
+    constructor(private _componentController : ComponentController, private _info : ChannelInfo) {
         super();
+    }
+
+}
+
+export class ComponentController extends NativeClass {
+
+    private _channelControllers : ChannelController[];
+
+    constructor(private _manager : ComponentManager, private _connection : IConnection, private _info : ComponentInfo) {
+        super();
+        this._channelControllers = [];
+    }
+
+    public setup() : Q.Promise<void> {
+        return Q();
+    }
+
+    public teardown() : Q.Promise<void> {
+        return Q();
     }
 
     get connection() : IConnection { return this._connection; }
 
     get info() : ComponentInfo { return this._info; }
 
-    set info(info : ComponentInfo) { this._info = info; }
+    public updateInfo(info : ComponentInfo) {
+        this._info = info;
+        // update
+    }
 
 }
 
@@ -152,42 +176,43 @@ export class Component extends NativeClass {
 
 export class ComponentManager extends NativeClass {
 
-    private _components = new Map<string, Component>();
+    private _componentControllers = new Map<string, ComponentController>();
 
+    // TODO replace with create component controller which returns a promise
     registerComponent(connection : IConnection, info : ComponentInfo) {
-        let component = this._components.get(info.identifier);
+        let component = this._componentControllers.get(info.identifier);
         if (!(info && info.identifier)) throw new Error('invalid identifier');
         if (component) {
             if (component.connection === connection) throw new Error('duplicate component declaration');
         } else {
-            component = new Component(connection, info);
-            this._components.set(info.identifier, component);
+            component = new ComponentController(this, connection, info);
+            this._componentControllers.set(info.identifier, component);
         }
         component.info = info;
     }
 
     // in order to unregister a component, you must know its associated connection
     unregisterComponent(connection : IConnection, identifier : string) {
-        let component = this._components.get(identifier);
+        let component = this._componentControllers.get(identifier);
         if (!component) {
             throw new Error('unknown component identifier : ' + identifier);
         } else if (component.connection !== connection) {
             throw new Error('component ' + identifier + ' is not associated with connection');
         }
-        this._components.delete(identifier);
+        this._componentControllers.delete(identifier);
     }
 
-    getComponent(identifier : string, required? : boolean) : Component {
+    getComponent(identifier : string, required? : boolean) : ComponentController {
         if (required !== false) required = true;
-        const result : Component = this._components.get(identifier);
+        const result : ComponentController = this._componentControllers.get(identifier);
         if ((!result) && required) throw new Error('unknown component identifier : ' + identifier);
         return result;
     }
 
-    getComponents(connection : IConnection, required? : boolean) : Component[] {
+    getComponents(connection : IConnection, required? : boolean) : ComponentController[] {
         if (required !== false) required = true;
         const components = [];
-        this._components.forEach((component : Component, identifier : string) => {
+        this._componentControllers.forEach((component : ComponentController, identifier : string) => {
             if (component.connection === connection) components.push(component);
         });
         return components;
@@ -195,12 +220,12 @@ export class ComponentManager extends NativeClass {
 
     clean(connection : IConnection) {
         // get component identifiers for this connection
-        const identifiers = this.getComponents(connection).map((component :Component) => {
+        const identifiers = this.getComponents(connection).map((component :ComponentController) => {
             return component.info.identifier;
         });
         // and remove them...
         for (let identifier of identifiers) {
-            this._components.delete(identifier);
+            this._componentControllers.delete(identifier);
         }
     }
 

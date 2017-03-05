@@ -10,8 +10,9 @@ import { NativeClass } from './core';
 export class ParameterSample extends NativeClass {
 
 
-    constructor(private _values : number[], private _timestamp : number = Date.now()) {
+    constructor(private _values : number[], private _timestamp : number = null) {
         super();
+        if (this._timestamp === null) this._timestamp = Date.now();
     }
 
     get values() : number[] { return this._values; }

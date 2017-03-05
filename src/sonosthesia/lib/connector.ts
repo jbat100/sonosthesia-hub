@@ -4,7 +4,7 @@
 import * as net from 'net';
 import * as _ from 'underscore';
 import * as Q from 'q';
-import * as Rx from 'rx';
+import * as Rx from 'rxjs/Rx';
 import {EventEmitter} from 'eventemitter3';
 
 import {NativeClass, Message, MessageContentParser, IConnection, GUID} from './core';
@@ -138,7 +138,7 @@ export class TCPConnection extends NativeClass implements IConnection {
                 try {
                     //console.info(this.tag + ' parsed json');
                     const obj = JSON.parse(line);
-                    this._messageSubject.onNext(HubMessage.newFromJSON(obj, this.parser));
+                    this._messageSubject.next(HubMessage.newFromJSON(obj, this.parser));
                 } catch (err) {
                     console.error(this.tag + ' json parsing error : ' + err.stack);
                 }

@@ -110,6 +110,8 @@ export class Message extends NativeClass {
         return this._raw;
     }
 
+    get timestamp() { return this.date.getTime(); }
+
     toJSON() : any {
         return {
             type: this.type,

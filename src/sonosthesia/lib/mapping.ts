@@ -5,7 +5,7 @@ import { NativeClass } from './core';
 
 import { ParameterSample, ParameterOperator, ParameterProcessorChain } from './processing';
 import { ComponentManager, ChannelSelection, ParameterSelection, ChannelController } from './component';
-import { HubMessage } from "./messaging";
+import {HubMessage, HubMessageType, Parameters, ChannelMessageContent} from "./messaging";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Mapper actually carries out the mapping process for a given parameter mapping for a given channel or instance
@@ -139,6 +139,17 @@ export class ChannelMapping extends NativeClass {
         this.reload();
     }
 
+    addParameterMapping(parameterMapping : ParameterMapping) {
+        if (parameterMapping) {
+            //parameterMapping
+            this._parameterMappings.push(parameterMapping);
+        }
+    }
+
+    removeParameterMapping(index : number) {
+        this._parameterMappings.splice(index, 1);
+    }
+
     // call reload when the input/output selection changes
     reload() {
 
@@ -162,15 +173,58 @@ export class ChannelMapping extends NativeClass {
 
     process(message : HubMessage) {
 
+        // first check message is addressed to the correct component channel
+
+        const content = message.content as ChannelMessageContent;
+
+        if (!content)
+            throw new Error('expected message content');
+        if (content.component !== this._input.componentSelection.identifier)
+            throw new Error('unexpected component');
+        if (content.channel !== this._input.identifier)
+            throw new Error('unexpected channel');
+
         if (this._outputController) {
 
-            switch(message.type) {
-                case Mess
+            switch(message.hubMessageType) {
+                case HubMessageType.Create:
+                    break;
+                case HubMessageType.Destroy:
+                    break;
+                case HubMessageType.Control:
+                    break;
+                default:
+                    break;
             }
 
         }
 
     }
+
+    private mapParameters(parameters : Parameters, instance : string, timestamp : number) : Parameters {
+        const mapped : Parameters = new Parameters();
+        this._parameterMappings.forEach((parameterMapping : ParameterMapping) => {
+            const sample = new ParameterSample(parameters.getParameter(parameterMapping.input.identifier), timestamp);
+            const processed = parameterMapping.process(sample, instance);
+            mapped.setParameter(parameterMapping.output.identifier, processed.values);
+        });
+        return mapped;
+    }
+
+    private mapMessage(message : HubMessage) : HubMessage {
+
+        const content = message.content as ChannelMessageContent;
+
+        const mappedContent = new (content.constructor as typeof ChannelMessageContent) (
+            this._output.componentSelection.identifier,
+            this._output.identifier,
+            content.instance,
+            null,
+            this.mapParameters(content.parameters, content.instance, message.date.getTime())
+        );
+
+    }
+
 
 }
 

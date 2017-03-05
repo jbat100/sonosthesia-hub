@@ -190,6 +190,10 @@ export class HubMessage extends Message {
         return new this(hubMessageType, new Date(<string>obj.date), parser.parse(obj.type, obj.content)) as Message;
     }
 
+    static contentClass(type : HubMessageType) : any {
+        return HubMessageContentClasses.get(type);
+    }
+
     private _hubMessageType : HubMessageType;
 
     constructor(type : HubMessageType, date : Date, content : any) {

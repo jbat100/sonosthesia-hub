@@ -1,10 +1,13 @@
 
+import  * as fs from 'fs';
+
 import * as Q from "q";
 import * as _ from 'underscore';
 import {expect} from "chai";
 import {EventEmitter} from 'eventemitter3';
 import * as Rx from 'rxjs/Rx';
 import * as uuid from 'node-uuid';
+
 
 
 export interface IConnection {
@@ -93,16 +96,15 @@ export class Message extends NativeClass {
 
     static newFromJSON(obj : any, parser : MessageContentParser) : Message {
         this.checkJSON(obj);
-        return new this(obj.type, new Date(<string>obj.date), parser.parse(obj.type, obj.content));
+        return new this(obj.type, +(obj.date as string), parser.parse(obj.type, obj.content));
     }
 
-    constructor(private _type : string, private _date : Date, private _content: any) {
+    constructor(private _type : string, private _timestamp : number, private _content: any) {
         super();
-        if (!this._date) this._date = new Date();
+        if (!this._timestamp) this._timestamp = Date.now();
     }
 
     get type() : string { return this._type; }
-    get date() : Date { return this._date; }
     get content() : any { return this._content; }
     get raw() : string {
         if (!this._raw)
@@ -110,12 +112,12 @@ export class Message extends NativeClass {
         return this._raw;
     }
 
-    get timestamp() { return this.date.getTime(); }
+    get timestamp() : number { return this._timestamp; }
 
     toJSON() : any {
         return {
             type: this.type,
-            date: this.date.toISOString(),
+            date: this.timestamp,
             content: this.content.toJSON()
         }
     }
@@ -300,6 +302,29 @@ export class GUID extends NativeClass {
 
     static generate() : string {
         return uuid.v4();
+    }
+
+}
+
+export class FileUtils extends NativeClass {
+
+    // playing around with rx but seems quite a bit of trouble and promises make sense here...
+    // http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#static-method-bindNodeCallback
+    // static readFileAsObservable = Rx.Observable.bindNodeCallback(fs.readFile);
+
+    static readFile(path : string, options : any) : Q.Promise<string> {
+        return Q.Promise<string>((resolve, reject, notify) => {
+            fs.readFile(path, options, (err, data) => {
+                if (err) return reject(err);
+                return resolve(data);
+            })
+        });
+    }
+
+    static readJSONFile(path : string, options : any) : Q.Promise<any> {
+        return this.readFile(path, options).then(data => {
+            return JSON.parse(data);
+        })
     }
 
 }

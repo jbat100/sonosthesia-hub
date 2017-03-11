@@ -187,7 +187,7 @@ export class HubMessage extends Message {
     static newFromJSON(obj : any, parser : MessageContentParser) : Message {
         this.checkJSON(obj);
         const hubMessageType : HubMessageType = HubMessageType[obj.type as string];
-        return new this(hubMessageType, new Date(<string>obj.date), parser.parse(obj.type, obj.content)) as Message;
+        return new this(hubMessageType, +(obj.date as string), parser.parse(obj.type, obj.content)) as Message;
     }
 
     static contentClass(type : HubMessageType) : any {
@@ -196,13 +196,13 @@ export class HubMessage extends Message {
 
     private _hubMessageType : HubMessageType;
 
-    constructor(type : HubMessageType, date : Date, content : any) {
+    constructor(type : HubMessageType, timestamp : number, content : any) {
         // note that Map has doesn't seem to work
         const expectedContentClass = HubMessageContentClasses[type];
         if (!expectedContentClass) throw new Error('unsupported message type : ' + type);
         //const expectedContentClass = HubMessageContentClasses[type];
         expect(content).to.be.instanceOf(expectedContentClass);
-        super(HubMessageType[type] as string, date, content);
+        super(HubMessageType[type] as string, timestamp, content);
         this._hubMessageType = type;
     }
 

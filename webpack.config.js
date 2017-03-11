@@ -12,8 +12,8 @@ const helpers = require('./config/helpers');
 
 module.exports = {
     entry: {
-        "app": "./src/main.ts",
-        "vendor": "./src/vendor.ts"
+        "vendor": "./src/vendor.ts",
+        "app": "./src/main.ts"
     },
     output: {
         path: __dirname + "/dist/electron",

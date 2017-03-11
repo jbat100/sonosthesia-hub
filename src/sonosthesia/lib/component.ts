@@ -25,6 +25,8 @@ export class ComponentInfo extends Info {
 
     get channelSet() : InfoSet<ChannelInfo> { return this._channelSet; }
 
+    get channels() : ChannelInfo[] { return this.channelSet.elements(); }
+
     toJSON() : any {
         const obj : any = super.toJSON();
         obj['channels'] = this._channelSet.toJSON();
@@ -100,6 +102,8 @@ export class ChannelInfo extends Info {
 
     get parameterSet() : InfoSet<ParameterInfo> { return this._parameterSet; }
 
+    get parameters() : ParameterInfo[] { return this.parameterSet.elements(); }
+
     toJSON() : any {
         const obj = super.toJSON();
         obj.flow = ChannelFlow[this.flow]; // convert to string
@@ -117,9 +121,17 @@ export class ParameterInfo extends Info {
 
     applyJSON(obj) {
         super.applyJSON(obj);
-        expect(obj.defaultValue).to.be.a('number');
-        this._defaultValue = obj.defaultValue;
-        this._range = Range.newFromJSON(obj.range);
+        if (obj.defaultValue) {
+            expect(obj.defaultValue).to.be.a('number');
+            this._defaultValue = obj.defaultValue;
+        } else {
+            this._defaultValue = 0.0;
+        }
+        if (obj.range) {
+            this._range = Range.newFromJSON(obj.range);
+        } else {
+            this._range = new Range(0.0, 1.0);
+        }
     }
 
     get defaultValue() : number { return this._defaultValue; }
@@ -211,6 +223,13 @@ export class ChannelController extends BaseController<ChannelInfo> {
 
     get componentController() : ComponentController { return this._componentController; }
 
+    sendMessage(message : HubMessage) {
+        if (message.content.channel !== this.info.identifier) {
+            throw new Error('invalid message channel ' + message.content.channel);
+        }
+        this.componentController.sendMessage(message);
+    }
+
     validateParameterSelection(selection : ParameterSelection) {
         const result = this.info.parameterSet.has(selection.identifier);
         selection.valid = result;
@@ -236,6 +255,13 @@ export class ComponentController extends BaseController<ComponentInfo> {
     get messageObservable() : Rx.Observable<HubMessage> { return this._messageObservable; }
 
     get connection() : IConnection { return this._connection; }
+
+    sendMessage(message : HubMessage) {
+        if (message.content.component !== this.info.identifier) {
+            throw new Error('invalid message component ' + message.content.component);
+        }
+        this.connection.sendMessage(message);
+    }
 
     validateParameterSelection(selection : ParameterSelection) {
         if (!this.validateChannelSelection(selection.channelSelection)) {

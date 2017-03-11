@@ -25,6 +25,8 @@ import { NavigationComponent } from './navigation.component';
 
 import { RootSettingsComponent } from './components/settings/root.settings.component';
 import { RootGeneratorsComponent } from './components/generators/root.generators.component';
+import { RootMappingsComponent } from './components/mappings/root.mappings.component';
+import { RootComponentsComponent } from './components/components/root.components.component';
 
 const routes : Routes = [
     {
@@ -39,6 +41,14 @@ const routes : Routes = [
     {
         path: 'generators',
         component: RootGeneratorsComponent
+    },
+    {
+        path: 'mappings',
+        component: RootMappingsComponent
+    },
+    {
+        path: 'components',
+        component: RootComponentsComponent
     }
 ];
 
@@ -64,7 +74,9 @@ const routes : Routes = [
         // navigation components
 
         RootSettingsComponent,
-        RootGeneratorsComponent
+        RootGeneratorsComponent,
+        RootMappingsComponent,
+        RootComponentsComponent
 
     ],
     providers: [

@@ -18,7 +18,9 @@ export class NavigationComponent implements OnInit {
     public currentKey : string;
 
     readonly tabs = [
+        { key:'components' },
         { key:'generators' },
+        { key:'mappings' },
         { key:'settings' }
     ];
 

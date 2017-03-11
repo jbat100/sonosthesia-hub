@@ -184,44 +184,48 @@ export class ChannelMapping extends NativeClass {
         if (content.channel !== this._input.identifier)
             throw new Error('unexpected channel');
 
+        const instance : string = message.content.instance;
+
+        if (message.hubMessageType == HubMessageType.Create && instance) {
+            this._parameterMappings.forEach((mapping : ParameterMapping) => {
+                mapping.createInstanceMapper(instance);
+            });
+        }
+
         if (this._outputController) {
 
-            switch(message.hubMessageType) {
-                case HubMessageType.Create:
-                    break;
-                case HubMessageType.Destroy:
-                    break;
-                case HubMessageType.Control:
-                    break;
-                default:
-                    break;
-            }
+            // message should be coming from subscription to input channel so it should be a channel related
+
+            const parameters : Parameters = message.content.parameters;
+            const timestamp : number = message.timestamp;
+            const mappedParameters : Parameters = new Parameters();
+            this._parameterMappings.forEach((parameterMapping : ParameterMapping) => {
+                const values = parameters.getParameter(parameterMapping.input.identifier);
+                const sample = new ParameterSample(values, timestamp);
+                const processed = parameterMapping.process(sample, instance);
+                mappedParameters.setParameter(parameterMapping.output.identifier, processed.values);
+            });
+
+            const content = message.content as ChannelMessageContent;
+            const mappedContent = new (content.constructor as typeof ChannelMessageContent) (
+                this._output.componentSelection.identifier,
+                this._output.identifier,
+                content.instance,
+                null,
+                mappedParameters
+            );
+
+            const mappedMessage = new HubMessage(message.hubMessageType, message.timestamp, mappedContent);
+
+            this._outputController.sendMessage(message);
 
         }
 
-    }
-
-    private mapParameters(parameters : Parameters, instance : string, timestamp : number) : Parameters {
-        const mapped : Parameters = new Parameters();
-        this._parameterMappings.forEach((parameterMapping : ParameterMapping) => {
-            const sample = new ParameterSample(parameters.getParameter(parameterMapping.input.identifier), timestamp);
-            const processed = parameterMapping.process(sample, instance);
-            mapped.setParameter(parameterMapping.output.identifier, processed.values);
-        });
-        return mapped;
-    }
-
-    private mapMessage(message : HubMessage) : HubMessage {
-
-        const content = message.content as ChannelMessageContent;
-
-        const mappedContent = new (content.constructor as typeof ChannelMessageContent) (
-            this._output.componentSelection.identifier,
-            this._output.identifier,
-            content.instance,
-            null,
-            this.mapParameters(content.parameters, content.instance, message.date.getTime())
-        );
+        if (message.hubMessageType == HubMessageType.Destroy && instance) {
+            this._parameterMappings.forEach((mapping : ParameterMapping) => {
+                mapping.destroyInstanceMapper(instance);
+            });
+        }
 
     }
 

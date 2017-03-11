@@ -2,10 +2,11 @@
 // https://journal.artfuldev.com/write-tests-for-typescript-projects-with-mocha-and-chai-in-typescript-86e053bdb2b6#.ddi6y2q2a
 
 import 'mocha';
-
-import {ComponentInfo, ChannelInfo} from '../lib/component';
+import * as Rx from 'rxjs/Rx';
 import { expect } from 'chai';
 
+import {FileUtils} from '../lib/core'
+import {ComponentInfo, ChannelInfo} from '../lib/component';
 
 describe('Component tests', () => {
 
@@ -80,6 +81,19 @@ describe('Component tests', () => {
                     parameter: [invalidParameterInfo]
                 })
             }).to.throw;
+        });
+
+        it('should parse local component configuration file correctly', () => {
+            return FileUtils.readJSONFile('../../../config/local.component.json', {}).then((obj : any) => {
+                const component : ComponentInfo = ComponentInfo.newFromJSON(obj) as ComponentInfo;
+                const channels = component.channels;
+                expect(channels).to.have.length(2);
+                expect(channels[0].identifier).to.equal('channel1');
+                expect(channels[1].identifier).to.equal('channel2');
+                const parameters = channels[0].parameters;
+                expect(parameters[0].identifier).to.equal('parameter1a');
+                expect(parameters[1].identifier).to.equal('parameter1b');
+            });
         });
 
     });

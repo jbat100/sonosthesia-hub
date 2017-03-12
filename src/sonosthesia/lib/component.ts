@@ -1,6 +1,5 @@
 
 import * as Rx from 'rxjs/Rx';
-import 'rxjs/add/operator/map';
 
 import * as _ from "underscore";
 import {expect} from "chai";
@@ -187,21 +186,34 @@ export class ParameterSelection extends Selection {
 // a controller has an info (Info subclass), doing a generic class to centralise setup/teardown/update dynamics
 export class BaseController <T extends Info> extends NativeClass {
 
+    private _updatedSource = new Rx.BehaviorSubject<T>(null);
+    private _updated : Rx.Observable<T> = this._updatedSource.asObservable();
+
     constructor(private _info : T) {
         super();
     }
+
+    get updated() : Rx.Observable<T> { return this._updated; }
 
     get info() : T { return this._info; }
 
     set info(val : T) { this._info = val; }
 
+    // if you need to do stuff on update then override internalUpdate not update
     public update(info : T) {
         if (info && this._info && this._info.identifier !== info.identifier)
             throw new Error('the identifier specified in info must remain constant');
         this._info = info;
+        this.internalUpdate(info);
+        this._updatedSource.next(info);
     }
 
     public reload() {
+        this.internalUpdate(this.info);
+    }
+
+    // override this for customised info update
+    protected internalUpdate(info : T) {
 
     }
 
@@ -240,7 +252,9 @@ export class ChannelController extends BaseController<ChannelInfo> {
 
 export class ComponentController extends BaseController<ComponentInfo> {
 
-    private _channelControllers = new Map<string, ChannelController>();
+    private _channelControllerMap = new Map<string, ChannelController>();
+    private _channelControllerSource = new Rx.BehaviorSubject<ChannelController[]>([]);
+    private _channelControllers = this._channelControllerSource.asObservable();
 
     // an observable with only the messages addressed to this component
     private _messageObservable: Rx.Observable<HubMessage>;
@@ -251,6 +265,8 @@ export class ComponentController extends BaseController<ComponentInfo> {
             return message.content.component === this.info.identifier;
         });
     }
+
+    get channelControllers() : Rx.Observable<ChannelController[]> { return this._channelControllers; }
 
     get messageObservable() : Rx.Observable<HubMessage> { return this._messageObservable; }
 
@@ -273,26 +289,27 @@ export class ComponentController extends BaseController<ComponentInfo> {
     }
 
     validateChannelSelection(selection : ChannelSelection) {
-        const result =  this._channelControllers.has(selection.identifier);
+        const result =  this._channelControllerMap.has(selection.identifier);
         selection.valid = result;
         return result;
     }
 
     getChannelController(selection : ChannelSelection) : ChannelController {
-        return this._channelControllers.get(selection.identifier);
+        return this._channelControllerMap.get(selection.identifier);
     }
 
     update(info : ComponentInfo) {
         super.update(info);
         info.channelSet.elements().forEach((channelInfo : ChannelInfo) => {
-            let controller = this._channelControllers.get(channelInfo.identifier);
+            let controller = this._channelControllerMap.get(channelInfo.identifier);
             if (!controller) controller = new ChannelController(channelInfo, this);
             else controller.update(channelInfo);
         });
         // remove obsolete channel controllers, add required new channel controllers
-        _.difference(Array.from(this._channelControllers.keys()), this.info.channelSet.identifiers()).forEach((id : string) => {
-            this._channelControllers.delete(id);
+        _.difference(Array.from(this._channelControllerMap.keys()), this.info.channelSet.identifiers()).forEach((id : string) => {
+            this._channelControllerMap.delete(id);
         });
+        this._channelControllerSource.next(Array.from(this._channelControllerMap.values()));
     }
 
 }
@@ -307,9 +324,7 @@ export class ComponentManager extends NativeClass {
     private _componentControllerSource = new Rx.BehaviorSubject<ComponentController[]>([]);
     private _componentControllers = this._componentControllerSource.asObservable();
 
-    /**
-     * observable with the controller array subscribers will get the latest versions, useful for UI
-     */
+    //observable with the controller array subscribers will get the latest versions, useful for UI
     get componentControllers() : Rx.Observable<ComponentController[]> { return this._componentControllers; }
 
     // call register to associate component info with a connection, note there can be multiple components per connection

@@ -303,29 +303,38 @@ export class ComponentController extends BaseController<ComponentInfo> {
 
 export class ComponentManager extends NativeClass {
 
-    private _componentControllers = new Map<string, ComponentController>();
+    private _componentControllerMap = new Map<string, ComponentController>();
+    private _componentControllerSource = new Rx.BehaviorSubject<ComponentController[]>([]);
+    private _componentControllers = this._componentControllerSource.asObservable();
+
+    /**
+     * observable with the controller array subscribers will get the latest versions, useful for UI
+     */
+    get componentControllers() : Rx.Observable<ComponentController[]> { return this._componentControllers; }
 
     // call register to associate component info with a connection, note there can be multiple components per connection
     registerComponent(connection : IConnection, info : ComponentInfo) {
         if (!(info && info.identifier)) throw new Error('invalid identifier');
-        let componentController = this._componentControllers.get(info.identifier);
+        let componentController = this._componentControllerMap.get(info.identifier);
         if (componentController) {
             if (componentController.connection !== connection)
                 throw new Error('duplicate component declaration');
             componentController.update(info);
         } else {
             componentController = new ComponentController(info, connection);
-            this._componentControllers.set(info.identifier, componentController);
+            this._componentControllerMap.set(info.identifier, componentController);
         }
+        this.updateSource();
     }
     // in order to unregister a component, you must know its associated connection
     unregisterComponent(connection : IConnection, identifier : string) {
-        let componentController = this._componentControllers.get(identifier);
+        let componentController = this._componentControllerMap.get(identifier);
         if (!componentController)
             throw new Error('unknown component identifier : ' + identifier);
         if (componentController.connection !== connection)
             throw new Error('component ' + identifier + ' is not associated with connection');
-        this._componentControllers.delete(identifier);
+        this._componentControllerMap.delete(identifier);
+        this.updateSource();
     }
     // call clean whenever a connection ends
     clean(connection : IConnection) {
@@ -335,11 +344,12 @@ export class ComponentManager extends NativeClass {
         }).forEach((identifier : string) => {
             this.unregisterComponent(connection, identifier);
         });
+        this.updateSource();
     }
 
     // validate a component selection
     validateComponentSelection(selection : ComponentSelection) : boolean {
-        const result =  this._componentControllers.has(selection.identifier);
+        const result =  this._componentControllerMap.has(selection.identifier);
         selection.valid = result;
         return result;
     }
@@ -366,16 +376,20 @@ export class ComponentManager extends NativeClass {
 
     // get component or channel controllers based on selections
     getComponentController(selection : ComponentSelection) : ComponentController {
-        return this._componentControllers.get(selection.identifier);
+        return this._componentControllerMap.get(selection.identifier);
     }
     getComponentControllers(connection : IConnection) : ComponentController[] {
-        return Array.from(this._componentControllers.values()).filter((controller : ComponentController) => {
+        return Array.from(this._componentControllerMap.values()).filter((controller : ComponentController) => {
             return controller.connection === connection
         });
     }
     getChannelController(selection : ChannelSelection) {
         const componentController = this.getComponentController(selection.componentSelection);
         return componentController ? componentController.getChannelController(selection) : null;
+    }
+
+    private updateSource() {
+        this._componentControllerSource.next(Array.from(this._componentControllerMap.values()));
     }
 
 }

@@ -12,6 +12,44 @@ import {HubMessage} from "./messaging";
 
 const LineInputStream = require('line-input-stream');
 
+
+// simple loop-back connection, send a message and it receives it
+export class BaseConnection extends NativeClass {
+
+    readonly verbose = true;
+
+    private _messageSubject : Rx.Subject<Message> = new Rx.Subject<Message>();
+    private _messageObservable: Rx.Observable<Message> = this._messageSubject.asObservable();
+
+    private _identifier : string;
+
+    constructor(private _parser : MessageContentParser) {
+        super();
+        this._identifier = GUID.generate();
+    }
+
+    get tag() : string { return this.constructor.name + ' (' + this.identifier.substr(0, 10) + '...)'; }
+    get identifier() : string { return this._identifier; }
+    get connectionType() : string { return 'base'; }
+    get messageObservable() : Rx.Observable<Message> { return this._messageObservable; }
+    get parser() : MessageContentParser { return this._parser; }
+
+    protected get messageSubject() : Rx.Subject<Message> { return this._messageSubject; }
+
+}
+
+// simple loop-back connection, send a message and it receives it
+export class LocalConnection extends BaseConnection implements IConnection {
+
+    get connectionType() : string { return 'local'; }
+
+    sendMessage(message : Message) {
+        this.messageSubject.next(message);
+    }
+
+}
+
+
 /**
  * TCPConnector runs server side and spawns TCPConnection instances upon incoming socket connections
  */
@@ -39,7 +77,7 @@ export class TCPConnector extends NativeClass {
             if (this.server) return reject(new Error('connector is already started'));
             console.info(this.tag + ' start on port ' + port);
             this._server = net.createServer((socket) => {
-                const connection = new TCPConnection(this, socket, this.parser);
+                const connection = new TCPConnection(this.parser, this, socket);
                 this._connections.push(connection);
                 this.emitter.emit('connection', connection);
             });
@@ -100,22 +138,13 @@ export class TCPConnector extends NativeClass {
  */
 
 
-export class TCPConnection extends NativeClass implements IConnection {
-
-    readonly verbose = true;
+export class TCPConnection extends BaseConnection implements IConnection {
 
     private _lineInputStream : any;
 
-    private _messageSubject : Rx.Subject<Message> = new Rx.Subject<Message>();
-    private _messageObservable: Rx.Observable<Message> = this._messageSubject.asObservable();
+    constructor(_parser : MessageContentParser, private _connector : TCPConnector, private _socket : net.Socket) {
+        super(_parser);
 
-    private _identifier : string;
-
-    constructor(private _connector : TCPConnector,
-                private _socket : net.Socket,
-                private _parser : MessageContentParser) {
-        super();
-        this._identifier = GUID.generate();
         console.info(this.tag + ' initializing : ' + this.socket.remoteAddress +':'+ this.socket.remotePort);
 
         // destroy connection on socket close or error
@@ -138,7 +167,7 @@ export class TCPConnection extends NativeClass implements IConnection {
                 try {
                     //console.info(this.tag + ' parsed json');
                     const obj = JSON.parse(line);
-                    this._messageSubject.next(HubMessage.newFromJSON(obj, this.parser));
+                    this.messageSubject.next(HubMessage.newFromJSON(obj, this.parser));
                 } catch (err) {
                     console.error(this.tag + ' json parsing error : ' + err.stack);
                 }
@@ -150,13 +179,10 @@ export class TCPConnection extends NativeClass implements IConnection {
 
     }
 
-    get tag() : string { return this.constructor.name + ' (' + this.identifier.substr(0, 10) + '...)'; }
-    get identifier() : string { return this._identifier; }
     get jsonDelimiter() : string { return '__json_delimiter__'; }
-    get messageObservable() : Rx.Observable<Message> { return this._messageObservable; }
+    get connectionType() : string { return 'tcp'; }
     get socket() : net.Socket { return this._socket; }
     get connector() : TCPConnector { return this._connector; }
-    get parser() : MessageContentParser { return this._parser; }
 
     sendJSON(obj : any) {
         const str = this.jsonDelimiter + JSON.stringify(obj) + this.jsonDelimiter;

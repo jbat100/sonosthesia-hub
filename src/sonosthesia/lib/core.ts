@@ -18,7 +18,7 @@ export interface IConnection {
 
     identifier : string;
 
-    sendJSON(message : any);
+    connectionType: string;
 
     sendMessage(message : Message);
 

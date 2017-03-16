@@ -1,5 +1,5 @@
 <navigation [currentKey]="'components'">
     <div>
-
+        <component-detail *ngFor="controller in componentControllers | async" [componentcontroller]="controller"></component-detail>
     </div>
 </navigation>

@@ -1,1 +1,8 @@
-
+<div>
+    <div>
+        Component: {{componentController.info.identifier}} ({{componentController.connection.connectionType}})
+    </div>
+    <div>
+        <channel-detail *ngFor="controller in channelControllers | async" [channelcontroller]="controller"></channel-detail>
+    </div>
+</div>

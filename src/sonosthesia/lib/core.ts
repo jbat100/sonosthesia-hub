@@ -312,7 +312,8 @@ export class FileUtils extends NativeClass {
     // http://reactivex.io/rxjs/class/es6/Observable.js~Observable.html#static-method-bindNodeCallback
     // static readFileAsObservable = Rx.Observable.bindNodeCallback(fs.readFile);
 
-    static readFile(path : string, options : any) : Q.Promise<string> {
+    static readFile(path : string, options : any = null) : Q.Promise<string> {
+        if (options === null) options = {};
         return Q.Promise<string>((resolve, reject, notify) => {
             fs.readFile(path, options, (err, data) => {
                 if (err) return reject(err);
@@ -321,7 +322,8 @@ export class FileUtils extends NativeClass {
         });
     }
 
-    static readJSONFile(path : string, options : any) : Q.Promise<any> {
+    static readJSONFile(path : string, options : any = null) : Q.Promise<any> {
+        if (options === null) options = {};
         return this.readFile(path, options).then(data => {
             return JSON.parse(data);
         })

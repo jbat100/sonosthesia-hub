@@ -3,6 +3,9 @@
         Channel: {{channelController.info.identifier}}
     </div>
     <div>
-        <parameter-detail *ngFor="parameterInfo in channelController.info.parameters" [parameterInfo]="parameterInfo"></parameter-detail>
+        <parameter-detail
+                *ngFor="let info of channelController.info.parameters"
+                [parameterInfo]="info">
+        </parameter-detail>
     </div>
 </div>

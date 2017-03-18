@@ -21,13 +21,18 @@ export class RootComponentsComponent implements OnInit, OnDestroy {
 
     componentControllers : Rx.Observable<ComponentController[]>;
 
-    constructor(private _hubService : HubService) {
+    testList = ['bla', 'bli', 'blo'];
 
+    constructor(private _hubService : HubService) {
+        console.log(this.tag + ' constructor');
     }
 
     ngOnInit() {
+        console.log(this.tag + ' ngOnInit');
         this.subscription = this._hubService.hubManager.subscribe((hubManager : HubManager) => {
-            this.componentControllers = hubManager.componentManager.componentControllers;
+            const count = hubManager.componentManager.componentControllers.length;
+            console.log(this.tag + ' ngOnInit got hub manager with ' + count + ' component controllers');
+            this.componentControllers = hubManager.componentManager.componentControllersObservable;
         });
     }
 

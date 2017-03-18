@@ -10,6 +10,9 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const helpers = require('./config/helpers');
 
+// configuring electron apps for debug in webstorm is a bit tricky
+// https://blog.jetbrains.com/webstorm/2016/05/getting-started-with-electron-in-webstorm/
+
 module.exports = {
     entry: {
         "vendor": "./src/vendor.ts",
@@ -106,6 +109,7 @@ module.exports = {
 
     // ways around the 'cannot resolve 'net', or all the other node modules
     // https://github.com/request/request/issues/1529
-    target: 'node'
+    target: 'node',
     //node: {console: true, fs: 'empty', net: 'empty', tls: 'empty'}
+    devtool: 'source-map'
 };

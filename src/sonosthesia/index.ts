@@ -8,8 +8,7 @@
 // https://github.com/Microsoft/TypeScript-Handbook/blob/master/pages/declaration%20files/Introduction.md
 //  
 
-// import * as component from './lib/component';
-
+export * from './lib/core';
 export * from './lib/component';
 export * from './lib/configuration';
 export * from './lib/connector';

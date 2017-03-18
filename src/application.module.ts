@@ -21,12 +21,24 @@ import { RootComponent } from './root.component';
 import { MenuComponent } from './menu.component';
 import { NavigationComponent } from './navigation.component';
 
-// sub-root components, loaded by navigation
+// settings sub components
 
 import { RootSettingsComponent } from './components/settings/root.settings.component';
+
+// settings sub components
+
 import { RootGeneratorsComponent } from './components/generators/root.generators.component';
+
+// settings sub components
+
 import { RootMappingsComponent } from './components/mappings/root.mappings.component';
+
+// settings sub components
+
 import { RootComponentsComponent } from './components/components/root.components.component';
+import {
+    ComponentDetailComponent, ChannelDetailComponent, ParameterDetailComponent
+} from './components/components/component.detail.component';
 
 const routes : Routes = [
     {
@@ -71,12 +83,20 @@ const routes : Routes = [
         MenuComponent,
         NavigationComponent,
 
-        // navigation components
-
+        // sonosthesia settings
         RootSettingsComponent,
+
+        // sonosthesia generators
         RootGeneratorsComponent,
+
+        // sonosthesia mappings
         RootMappingsComponent,
-        RootComponentsComponent
+
+        // sonosthesia components
+        RootComponentsComponent,
+        ComponentDetailComponent,
+        ChannelDetailComponent,
+        ParameterDetailComponent
 
     ],
     providers: [

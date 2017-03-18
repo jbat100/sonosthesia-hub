@@ -1,5 +1,11 @@
 <navigation [currentKey]="'components'">
     <div>
-        <component-detail *ngFor="controller in componentControllers | async" [componentcontroller]="controller"></component-detail>
+        <component-detail
+            *ngFor="let controller of componentControllersObservable | async"
+            [componentController]="controller">
+        </component-detail>
+        <!--div *ngFor="let test of testList">
+            {{test}}
+        </div-->
     </div>
 </navigation>

@@ -322,20 +322,28 @@ export class ComponentManager extends NativeClass {
 
     private _componentControllerMap = new Map<string, ComponentController>();
     private _componentControllerSource = new Rx.BehaviorSubject<ComponentController[]>([]);
-    private _componentControllers = this._componentControllerSource.asObservable();
+    private _componentControllersObservable = this._componentControllerSource.asObservable();
 
     //observable with the controller array subscribers will get the latest versions, useful for UI
-    get componentControllers() : Rx.Observable<ComponentController[]> { return this._componentControllers; }
+    get componentControllersObservable() : Rx.Observable<ComponentController[]> {
+        return this._componentControllersObservable;
+    }
+
+    get componentControllers() : ComponentController[] {
+        return this._componentControllerSource.getValue();
+    }
 
     // call register to associate component info with a connection, note there can be multiple components per connection
     registerComponent(connection : IConnection, info : ComponentInfo) {
         if (!(info && info.identifier)) throw new Error('invalid identifier');
         let componentController = this._componentControllerMap.get(info.identifier);
         if (componentController) {
+            console.log(this.tag + ' updating component ' + info.identifier);
             if (componentController.connection !== connection)
                 throw new Error('duplicate component declaration');
             componentController.update(info);
         } else {
+            console.log(this.tag + ' registering component ' + info.identifier);
             componentController = new ComponentController(info, connection);
             this._componentControllerMap.set(info.identifier, componentController);
         }

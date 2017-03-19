@@ -2,11 +2,13 @@
 
 import * as Rx from 'rxjs/Rx';
 
-import {Component, OnInit, OnDestroy} from '@angular/core';
+import {NgZone, Component, OnInit, OnDestroy} from '@angular/core';
 
 import { HubService } from '../../services/hub.service';
-import { ComponentController } from "../../sonosthesia/lib/component";
-import { HubManager } from "../../sonosthesia/lib/hub";
+
+import {
+    ComponentController, HubManager
+} from "../../sonosthesia";
 
 
 @Component({
@@ -19,26 +21,44 @@ export class RootComponentsComponent implements OnInit, OnDestroy {
 
     subscription : Rx.Subscription;
 
-    componentControllers : Rx.Observable<ComponentController[]>;
+    componentControllers : ComponentController[];
 
     testList = ['bla', 'bli', 'blo'];
 
-    constructor(private _hubService : HubService) {
+    constructor(private _zone : NgZone, private _hubService : HubService) {
         console.log(this.tag + ' constructor');
+        this.componentControllers = [];
     }
 
     ngOnInit() {
         console.log(this.tag + ' ngOnInit');
         this.subscription = this._hubService.hubManager.subscribe((hubManager : HubManager) => {
-            const count = hubManager.componentManager.componentControllers.length;
-            console.log(this.tag + ' ngOnInit got hub manager with ' + count + ' component controllers');
-            this.componentControllers = hubManager.componentManager.componentControllersObservable;
+            if (hubManager) {
+                const count = hubManager.componentManager.componentControllers.length;
+                console.warn(this.tag + ' ngOnInit got hub manager with ' + count + ' component controllers');
+                //this.componentControllers = hubManager.componentManager.componentControllersObservable;
+                // test
+                hubManager.componentManager.componentControllersObservable.subscribe((controllers : ComponentController[]) => {
+                    // https://angular.io/docs/ts/latest/api/core/index/NgZone-class.html, running without zone doesn't update
+                    this._zone.run(() => { this.componentControllers = controllers; });
+                    console.log(this.tag + ' ngOnInit test subscription got ' + controllers.length + ' controllers');
+                }, err => {
+                    console.error(this.tag + ' component controllers subscription error ' + err);
+                });
+            } else {
+                this.componentControllers = [];
+                console.warn(this.tag + ' ngOnInit got null hub manager');
+            }
+
+        }, err => {
+            this.componentControllers = [];
+            console.error(this.tag + ' hub manager subscription error ' + err);
         });
     }
 
     ngOnDestroy() {
         this.subscription.unsubscribe();
         this.subscription = null;
-        this.componentControllers = null;
+        this.componentControllers = [];
     }
 }

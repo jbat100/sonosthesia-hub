@@ -186,14 +186,14 @@ export class ParameterSelection extends Selection {
 // a controller has an info (Info subclass), doing a generic class to centralise setup/teardown/update dynamics
 export class BaseController <T extends Info> extends NativeClass {
 
-    private _updatedSource = new Rx.BehaviorSubject<T>(null);
-    private _updated : Rx.Observable<T> = this._updatedSource.asObservable();
+    private _infoSource = new Rx.BehaviorSubject<T>(null);
+    private _infoObservable : Rx.Observable<T> = this._infoSource.asObservable();
 
     constructor(private _info : T) {
         super();
     }
 
-    get updated() : Rx.Observable<T> { return this._updated; }
+    get infoObservable() : Rx.Observable<T> { return this._infoObservable; }
 
     get info() : T { return this._info; }
 
@@ -205,7 +205,7 @@ export class BaseController <T extends Info> extends NativeClass {
             throw new Error('the identifier specified in info must remain constant');
         this._info = info;
         this.internalUpdate(info);
-        this._updatedSource.next(info);
+        this._infoSource.next(info);
     }
 
     public reload() {
@@ -254,7 +254,7 @@ export class ComponentController extends BaseController<ComponentInfo> {
 
     private _channelControllerMap = new Map<string, ChannelController>();
     private _channelControllerSource = new Rx.BehaviorSubject<ChannelController[]>([]);
-    private _channelControllers = this._channelControllerSource.asObservable();
+    private _channelControllersObservable = this._channelControllerSource.asObservable();
 
     // an observable with only the messages addressed to this component
     private _messageObservable: Rx.Observable<HubMessage>;
@@ -264,9 +264,16 @@ export class ComponentController extends BaseController<ComponentInfo> {
         this._messageObservable = this.connection.messageObservable.filter((message, idx) => {
             return message.content.component === this.info.identifier;
         });
+        this.updateChannelControllerSource();
     }
 
-    get channelControllers() : Rx.Observable<ChannelController[]> { return this._channelControllers; }
+    get channelControllersObservable() : Rx.Observable<ChannelController[]> {
+        return this._channelControllersObservable;
+    }
+
+    get channelControllers() : ChannelController[] {
+        return this._channelControllerSource.getValue();
+    }
 
     get messageObservable() : Rx.Observable<HubMessage> { return this._messageObservable; }
 
@@ -309,6 +316,11 @@ export class ComponentController extends BaseController<ComponentInfo> {
         _.difference(Array.from(this._channelControllerMap.keys()), this.info.channelSet.identifiers()).forEach((id : string) => {
             this._channelControllerMap.delete(id);
         });
+        this.updateChannelControllerSource();
+    }
+
+    private updateChannelControllerSource() {
+        console.log(this.tag + ' update channel controller source ' + this._channelControllerMap.size);
         this._channelControllerSource.next(Array.from(this._channelControllerMap.values()));
     }
 
@@ -323,6 +335,11 @@ export class ComponentManager extends NativeClass {
     private _componentControllerMap = new Map<string, ComponentController>();
     private _componentControllerSource = new Rx.BehaviorSubject<ComponentController[]>([]);
     private _componentControllersObservable = this._componentControllerSource.asObservable();
+
+    constructor() {
+        super();
+        this.updateComponentControllerSource();
+    }
 
     //observable with the controller array subscribers will get the latest versions, useful for UI
     get componentControllersObservable() : Rx.Observable<ComponentController[]> {
@@ -347,7 +364,7 @@ export class ComponentManager extends NativeClass {
             componentController = new ComponentController(info, connection);
             this._componentControllerMap.set(info.identifier, componentController);
         }
-        this.updateSource();
+        this.updateComponentControllerSource();
     }
     // in order to unregister a component, you must know its associated connection
     unregisterComponent(connection : IConnection, identifier : string) {
@@ -357,7 +374,7 @@ export class ComponentManager extends NativeClass {
         if (componentController.connection !== connection)
             throw new Error('component ' + identifier + ' is not associated with connection');
         this._componentControllerMap.delete(identifier);
-        this.updateSource();
+        this.updateComponentControllerSource();
     }
     // call clean whenever a connection ends
     clean(connection : IConnection) {
@@ -367,7 +384,7 @@ export class ComponentManager extends NativeClass {
         }).forEach((identifier : string) => {
             this.unregisterComponent(connection, identifier);
         });
-        this.updateSource();
+        this.updateComponentControllerSource();
     }
 
     // validate a component selection
@@ -411,7 +428,8 @@ export class ComponentManager extends NativeClass {
         return componentController ? componentController.getChannelController(selection) : null;
     }
 
-    private updateSource() {
+    private updateComponentControllerSource() {
+        console.log(this.tag + ' update component controller source ' + this._componentControllerMap.size);
         this._componentControllerSource.next(Array.from(this._componentControllerMap.values()));
     }
 

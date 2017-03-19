@@ -29,11 +29,13 @@ export class ComponentDetailComponent implements OnInit, OnDestroy {
 
     // components can update their channels on the fly (by sending a new component description message)
     // using an observable allows to react to changes easily
-    channelControllers : Rx.Observable<ChannelController[]>;
 
-    componentInfo : Rx.Observable<ComponentInfo>;
+    channelControllers : ChannelController[];
+    componentInfo : ComponentInfo;
 
     private _componentController : ComponentController;
+    private _controllerSubscription : Rx.Subscription;
+    private _infoSubscription : Rx.Subscription;
 
     ngOnInit() {
         this.linkComponentController(this.componentController);
@@ -44,14 +46,35 @@ export class ComponentDetailComponent implements OnInit, OnDestroy {
     }
 
     private linkComponentController(componentController : ComponentController) {
+        console.log(this.tag + ' linkComponentController : ' + componentController);
+
+        this.channelControllers = null;
+        this.componentInfo = null;
+
+        if (this._controllerSubscription) {
+            this._controllerSubscription.unsubscribe();
+            this._controllerSubscription = null;
+        }
+
+        if (this._infoSubscription) {
+            this._infoSubscription.unsubscribe();
+            this._infoSubscription = null;
+        }
+
         if (componentController) {
-            this.channelControllers = componentController.channelControllers;
-            this.componentInfo = componentController.updated;
-        } else {
-            this.channelControllers = null;
-            this.componentInfo = null;
+            this._controllerSubscription = componentController.channelControllersObservable
+                .subscribe((controllers : ChannelController[]) => {
+                this.channelControllers = controllers;
+            }, err => {
+                console.log(this.tag + ' channel controllers subscription error : ' + err);
+            });
+            this._infoSubscription = componentController.infoObservable
+                .subscribe((info : ComponentInfo) => {
+                this.componentInfo = info;
+            });
         }
     }
+
 }
 
 @Component({
@@ -70,7 +93,7 @@ export class ChannelDetailComponent implements OnInit, OnDestroy {
     }
     get channelController() : ChannelController { return this._channelController; }
 
-    channelInfo : Rx.Observable<ChannelInfo>;
+    channelInfo : ChannelInfo;
 
     private _channelController : ChannelController;
 
@@ -83,10 +106,11 @@ export class ChannelDetailComponent implements OnInit, OnDestroy {
     }
 
     private linkChannelController(channelController : ChannelController) {
-        if (!!channelController) {
-            this.channelInfo = this.channelController.updated;
-        } else {
-            this.channelController = null;
+        this.channelInfo = null;
+        if (channelController) {
+            this.channelController.infoObservable.subscribe((info : ChannelInfo) => {
+                this.channelInfo = info;
+            });
         }
     }
 }

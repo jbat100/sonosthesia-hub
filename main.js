@@ -14,7 +14,7 @@ let win;
 
 function createWindow () {
     // Create the browser window.
-    win = new BrowserWindow({width: 1200, height: 1000, autoHideMenuBar:true});
+    win = new BrowserWindow({width: 2800, height: 1500, autoHideMenuBar:true});
 
     // and load the index.html of the app.
     win.loadURL(url.format({

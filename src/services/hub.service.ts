@@ -1,11 +1,10 @@
 
 import * as Q from 'q';
 
+import * as Rx from 'rxjs/Rx';
+
 import { Injectable } from '@angular/core';
 import { ConfigurationService } from './configuration.service';
-
-import {Observable} from 'rxjs/Observable';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
 import {
     HubManager, HubConfiguration, FileUtils, ComponentInfo, LocalConnection,
@@ -20,19 +19,21 @@ export class HubService {
     readonly tag = 'HubService';
 
     // we want the hub manager to be a behaviour so that wa can make it available when async setup is done
-    private _hubManagerSource = new BehaviorSubject<HubManager>(null);
+    private _hubManagerSource = new Rx.BehaviorSubject<HubManager>(null);
     private _hubManager = this._hubManagerSource.asObservable();
 
     private _done = false;
 
     // component config paths will be loaded to the hubManager's componentManager
     private _componentConfigPaths = [
-        '../../config/local.component.json'
+        'F:/Sonosthesia/sonosthesia-hub/config/local.component.json'
     ];
 
     private _localConnection = new LocalConnection(new HubMessageContentParser());
 
     constructor(private _configurationService: ConfigurationService) {
+
+        //console.log(this.tag + ' __dirname' + __dirname);
 
         this._configurationService.configuration.subscribe((configuration : HubConfiguration) => {
             if (!this._done) {
@@ -46,23 +47,28 @@ export class HubService {
                             return FileUtils.readJSONFile(path).then((obj : any) => {
                                 const componentInfo = ComponentInfo.newFromJSON(obj) as ComponentInfo;
                                 manager.componentManager.registerComponent(this._localConnection, componentInfo);
+                            }).catch(err => {
+                                console.error(this.tag + ' failed to load component config file ' + path + ', err : ' + err);
                             });
                         })
                     );
                 }).then(() => {
-                    // bradcast to observable subscribers
+                    // broadcast to observable subscribers
+                    console.warn(this.tag + ' hub manager created');
                     this._hubManagerSource.next(manager);
                 }).catch(err => {
                     console.error(this.tag + ' hub manager creation error : ' + err);
                 });
             } else {
-                console.error("configuration observable updated when hub manager is already created");
+                console.error('configuration observable infoObservable when hub manager is already created');
             }
+        }, err => {
+            console.error('configuration observable err ' + err);
         });
 
     }
 
-    get hubManager() : Observable<HubManager> { return this._hubManager; }
+    get hubManager() : Rx.Observable<HubManager> { return this._hubManager; }
 
 
 }

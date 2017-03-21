@@ -188,10 +188,7 @@ export class BaseController <T extends Info> extends NativeClass {
 
     private _infoSource = new Rx.BehaviorSubject<T>(null);
     private _infoObservable : Rx.Observable<T> = this._infoSource.asObservable();
-
-    constructor(private _info : T) {
-        super();
-    }
+    private _info : T;
 
     get infoObservable() : Rx.Observable<T> { return this._infoObservable; }
 
@@ -224,10 +221,10 @@ export class ChannelController extends BaseController<ChannelInfo> {
     // an observable with only the messages addressed to this channel
     private _messageObservable: Rx.Observable<HubMessage>;
 
-    constructor(info : ChannelInfo, private _componentController : ComponentController) {
-        super(info);
+    constructor(private _componentController : ComponentController) {
+        super();
         this._messageObservable = this._componentController.connection.messageObservable.filter((message, idx) => {
-            return message.content.channel === this.info.identifier;
+            return this.info && message.content.channel === this.info.identifier;
         });
     }
 
@@ -259,10 +256,10 @@ export class ComponentController extends BaseController<ComponentInfo> {
     // an observable with only the messages addressed to this component
     private _messageObservable: Rx.Observable<HubMessage>;
 
-    constructor(info : ComponentInfo, private _connection : IConnection) {
-        super(info);
+    constructor(private _connection : IConnection) {
+        super();
         this._messageObservable = this.connection.messageObservable.filter((message, idx) => {
-            return message.content.component === this.info.identifier;
+            return this.info && message.content.component === this.info.identifier;
         });
         this.updateChannelControllerSource();
     }
@@ -305,12 +302,15 @@ export class ComponentController extends BaseController<ComponentInfo> {
         return this._channelControllerMap.get(selection.identifier);
     }
 
-    update(info : ComponentInfo) {
-        super.update(info);
+    protected internalUpdate(info : ComponentInfo) {
+        super.internalUpdate(info);
         info.channelSet.elements().forEach((channelInfo : ChannelInfo) => {
             let controller = this._channelControllerMap.get(channelInfo.identifier);
-            if (!controller) controller = new ChannelController(channelInfo, this);
-            else controller.update(channelInfo);
+            if (!controller) {
+                controller = new ChannelController(this);
+                this._channelControllerMap.set(channelInfo.identifier, controller);
+            }
+            controller.update(channelInfo);
         });
         // remove obsolete channel controllers, add required new channel controllers
         _.difference(Array.from(this._channelControllerMap.keys()), this.info.channelSet.identifiers()).forEach((id : string) => {
@@ -319,7 +319,7 @@ export class ComponentController extends BaseController<ComponentInfo> {
         this.updateChannelControllerSource();
     }
 
-    private updateChannelControllerSource() {
+    protected updateChannelControllerSource() {
         console.log(this.tag + ' update channel controller source ' + this._channelControllerMap.size);
         this._channelControllerSource.next(Array.from(this._channelControllerMap.values()));
     }
@@ -358,12 +358,12 @@ export class ComponentManager extends NativeClass {
             console.log(this.tag + ' updating component ' + info.identifier);
             if (componentController.connection !== connection)
                 throw new Error('duplicate component declaration');
-            componentController.update(info);
         } else {
             console.log(this.tag + ' registering component ' + info.identifier);
-            componentController = new ComponentController(info, connection);
+            componentController = new ComponentController(connection);
             this._componentControllerMap.set(info.identifier, componentController);
         }
+        componentController.update(info);
         this.updateComponentControllerSource();
     }
     // in order to unregister a component, you must know its associated connection

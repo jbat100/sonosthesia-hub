@@ -31,7 +31,7 @@ export class RootComponentsComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        console.log(this.tag + ' ngOnInit');
+        //console.log(this.tag + ' ngOnInit');
         this.subscription = this._hubService.hubManager.subscribe((hubManager : HubManager) => {
             if (hubManager) {
                 const count = hubManager.componentManager.componentControllers.length;
@@ -41,13 +41,13 @@ export class RootComponentsComponent implements OnInit, OnDestroy {
                 hubManager.componentManager.componentControllersObservable.subscribe((controllers : ComponentController[]) => {
                     // https://angular.io/docs/ts/latest/api/core/index/NgZone-class.html, running without zone doesn't update
                     this._zone.run(() => { this.componentControllers = controllers; });
-                    console.log(this.tag + ' ngOnInit test subscription got ' + controllers.length + ' controllers');
+                    //console.log(this.tag + ' ngOnInit test subscription got ' + controllers.length + ' controllers');
                 }, err => {
                     console.error(this.tag + ' component controllers subscription error ' + err);
                 });
             } else {
                 this.componentControllers = [];
-                console.warn(this.tag + ' ngOnInit got null hub manager');
+                //console.warn(this.tag + ' ngOnInit got null hub manager');
             }
 
         }, err => {

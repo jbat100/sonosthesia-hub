@@ -46,7 +46,8 @@ export class ComponentDetailComponent implements OnInit, OnDestroy {
     }
 
     private linkComponentController(componentController : ComponentController) {
-        console.log(this.tag + ' linkComponentController : ' + componentController);
+
+        //console.log(this.tag + ' linkComponentController : ' + componentController);
 
         this.channelControllers = null;
         this.componentInfo = null;
@@ -64,9 +65,10 @@ export class ComponentDetailComponent implements OnInit, OnDestroy {
         if (componentController) {
             this._controllerSubscription = componentController.channelControllersObservable
                 .subscribe((controllers : ChannelController[]) => {
+                //console.log(this.tag + ' channel controllers subscription update with ' + controllers.length + ' controllers');
                 this.channelControllers = controllers;
             }, err => {
-                console.log(this.tag + ' channel controllers subscription error : ' + err);
+                console.error(this.tag + ' channel controllers subscription error : ' + err);
             });
             this._infoSubscription = componentController.infoObservable
                 .subscribe((info : ComponentInfo) => {

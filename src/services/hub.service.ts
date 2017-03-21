@@ -48,7 +48,7 @@ export class HubService {
                                 const componentInfo = ComponentInfo.newFromJSON(obj) as ComponentInfo;
                                 manager.componentManager.registerComponent(this._localConnection, componentInfo);
                             }).catch(err => {
-                                console.error(this.tag + ' failed to load component config file ' + path + ', err : ' + err);
+                                console.error(this.tag + ' failed to load component config file ' + path + ', err : ' + err.stack);
                             });
                         })
                     );

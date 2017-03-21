@@ -3,10 +3,22 @@
 import * as Math from 'mathjs';
 import * as Rx from 'rxjs/Rx';
 
-import {ParameterSelection} from './component';
+import {ParameterSelection, ChannelSelection} from './component';
 import {NativeClass} from "./core";
 
 
+export class MessageGenerator extends NativeClass {
+
+    private _channel = new ChannelSelection(null, null);
+
+    constructor() {
+        super();
+    }
+
+
+}
+
+// don't think this is actually useful, we don't need to generate parameter value independently
 export class ParameterGenerator extends NativeClass {
 
     private _startTime : number;

@@ -260,15 +260,24 @@ export class Selection {
 
     private _valid : boolean;
 
-    constructor(private _identifier : string = null) {
-        this._identifier = _identifier;
-        this._valid = false;
+    private _identifierSubject = new Rx.BehaviorSubject<string>(null);
+    private _identifierObservable : Rx.Observable<string> = this._identifierSubject.asObservable();
+
+    private _validSubject = new Rx.BehaviorSubject<boolean>(false);
+    private _validObservable : Rx.Observable<boolean> = this._validSubject.asObservable();
+
+    constructor(_identifier : string = null) {
+        this._identifierSubject.next(_identifier)
+        this._validSubject.next(false);
     }
 
-    get identifier() : string { return this._identifier; }
-    set identifier(identifier : string) { this._identifier = identifier; }
-    get valid() : boolean { return this._valid; }
-    set valid(valid : boolean) { this._valid = valid; }
+    get identifierObservable() : Rx.Observable<string> { return this._identifierObservable; }
+    get identifier() : string { return this._identifierSubject.getValue(); }
+    set identifier(identifier : string) { this._identifierSubject.next(identifier); }
+
+    get validObservable() : Rx.Observable<boolean> { return this._validObservable; }
+    get valid() : boolean { return this._validSubject.getValue(); }
+    set valid(valid : boolean) { this._validSubject.next(valid); }
 
 }
 

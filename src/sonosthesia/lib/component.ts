@@ -221,10 +221,14 @@ export class ChannelController extends BaseController<ChannelInfo> {
     // an observable with only the messages addressed to this channel
     private _messageObservable: Rx.Observable<HubMessage>;
 
+    private _messageCount = 0;
+
     constructor(private _componentController : ComponentController) {
         super();
         this._messageObservable = this._componentController.connection.messageObservable.filter((message, idx) => {
             return this.info && message.content.channel === this.info.identifier;
+        }).do((message : HubMessage) => {
+            this._messageCount++;
         });
     }
 
@@ -256,10 +260,14 @@ export class ComponentController extends BaseController<ComponentInfo> {
     // an observable with only the messages addressed to this component
     private _messageObservable: Rx.Observable<HubMessage>;
 
+    private _messageCount = 0;
+
     constructor(private _connection : IConnection) {
         super();
-        this._messageObservable = this.connection.messageObservable.filter((message, idx) => {
+        this._messageObservable = this.connection.messageObservable.filter((message : HubMessage, idx) => {
             return this.info && message.content.component === this.info.identifier;
+        }).do((message : HubMessage) => {
+            this._messageCount++;
         });
         this.updateChannelControllerSource();
     }
@@ -320,7 +328,7 @@ export class ComponentController extends BaseController<ComponentInfo> {
     }
 
     protected updateChannelControllerSource() {
-        console.log(this.tag + ' update channel controller source ' + this._channelControllerMap.size);
+        //console.log(this.tag + ' update channel controller source ' + this._channelControllerMap.size);
         this._channelControllerSource.next(Array.from(this._channelControllerMap.values()));
     }
 
@@ -429,7 +437,7 @@ export class ComponentManager extends NativeClass {
     }
 
     private updateComponentControllerSource() {
-        console.log(this.tag + ' update component controller source ' + this._componentControllerMap.size);
+        //console.log(this.tag + ' update component controller source ' + this._componentControllerMap.size);
         this._componentControllerSource.next(Array.from(this._componentControllerMap.values()));
     }
 

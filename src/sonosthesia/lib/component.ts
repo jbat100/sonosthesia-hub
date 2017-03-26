@@ -447,9 +447,6 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
         this.channelController.sendMessage(message);
     }
 
-
-
-
 }
 
 // ---------------------------------------------------------------------------------------------------------------------

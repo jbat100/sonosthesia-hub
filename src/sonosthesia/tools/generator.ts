@@ -126,7 +126,7 @@ const generator = generators[options.type]();
 
 client.connect(options.port, options.address, () => {
     console.log('Connected');
-    const connection = new TCPConnection(null, client, parser);
+    const connection = new TCPConnection(parser, null, client);
     generate(connection, generator).then(() => { console.log('done'); }).catch(err => {
         console.log('Ended with error ' + err.stack);
     });

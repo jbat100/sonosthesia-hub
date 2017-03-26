@@ -208,6 +208,7 @@ export class HubMessage extends Message {
 
     get hubMessageType() : HubMessageType { return this._hubMessageType; }
 
+
 }
 
 export class HubMessageContentParser extends MessageContentParser {

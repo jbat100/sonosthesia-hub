@@ -3,52 +3,42 @@
 import * as Math from 'mathjs';
 import * as Rx from 'rxjs/Rx';
 
-import {ParameterSelection, ChannelSelection} from './component';
-import {NativeClass} from "./core";
+import {ParameterSelection, ChannelSelection, IComponentSelectionValidator} from './component';
+import {NativeClass, IMessageSender} from "./core";
 
 
-export class MessageGenerator extends NativeClass {
-
-    private _channel = new ChannelSelection(null, null);
-
-    constructor() {
-        super();
-    }
-
-
+export enum GeneratorState {
+    IDLE,
+    RUNNING
 }
 
-// don't think this is actually useful, we don't need to generate parameter value independently
-export class ParameterGenerator extends NativeClass {
+export class PeriodicGenerator extends NativeClass {
 
     private _startTime : number;
-    private _started : boolean;
     private _subscription : Rx.Subscription;
+    private _stateSubject = new Rx.BehaviorSubject<GeneratorState>(GeneratorState.IDLE);
+    private _stateObservable = this._stateSubject.asObservable();
+    private _cycles = 0;
 
-    private _valueSubject : Rx.Subject<number>;
-    private _valueObservable = this._valueSubject.asObservable();
-
-    constructor(private _parameterSelection : ParameterSelection, private _engine : GeneratorEngine, private _period : number) {
+    constructor(private _period : number) {
         super();
     }
 
-    get valueObservable() : Rx.Observable<number> { return this._valueObservable; }
+    get state() : Rx.Observable<GeneratorState> { return this._stateObservable; }
 
     get period() : number { return this._period; }
 
     set period(val : number) { this._period = val; }
-
-    get engine() : GeneratorEngine { return this._engine; }
-
-    set engine(val : GeneratorEngine) { this._engine = val; }
 
     start() {
         if (this._subscription) this._subscription.unsubscribe();
         this._startTime = Date.now();
         this._subscription = Rx.Observable.interval(this.period).subscribe((index : number) => {
             const elapsed = Date.now() - this._startTime;
-            this._valueSubject.next(this._engine.generate(elapsed));
+            this._cycles++;
+            this.generate(elapsed, this._cycles);
         });
+        this._stateSubject.next(GeneratorState.RUNNING);
     }
 
     stop() {
@@ -56,14 +46,32 @@ export class ParameterGenerator extends NativeClass {
             this._subscription.unsubscribe();
             this._subscription = null;
         }
+        this._stateSubject.next(GeneratorState.IDLE);
     }
 
+    // abstract method
+    protected generate(time : number, cycles : number) { }
+
 }
+
+
 
 export class GeneratorEngine extends NativeClass {
 
     public generate(time : number) : number {
         return 0.0;
+    }
+
+}
+
+export class ConstantEngine extends NativeClass {
+
+    constructor(public value : number) {
+        super();
+    }
+
+    public generate(time : number) : number {
+        return this.value;
     }
 
 }
@@ -82,6 +90,13 @@ export class PrimitiveEngine extends GeneratorEngine {
         return 0.0;
     }
 
+}
+
+export class SineEngine extends PrimitiveEngine {
+
+    protected raw(time : number) : number {
+        return Math.sin(time);
+    }
 }
 
 export class SawtoothEngine extends PrimitiveEngine {

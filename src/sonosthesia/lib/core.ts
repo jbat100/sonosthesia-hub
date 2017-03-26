@@ -9,19 +9,16 @@ import * as Rx from 'rxjs/Rx';
 import * as uuid from 'node-uuid';
 
 
-
-export interface IConnection {
-
-    // http://stackoverflow.com/questions/12838248/is-it-possible-to-use-getters-setters-in-interface-definition
-
-    messageObservable : Rx.Observable<Message>;
-
-    identifier : string;
-
-    connectionType: string;
-
+export interface IMessageSender {
     sendMessage(message : Message);
+}
 
+
+export interface IConnection extends IMessageSender {
+    // http://stackoverflow.com/questions/12838248/is-it-possible-to-use-getters-setters-in-interface-definition
+    messageObservable : Rx.Observable<Message>;
+    identifier : string;
+    connectionType: string;
 }
 
 export enum ConnectorState {
@@ -266,18 +263,27 @@ export class Selection {
     private _validSubject = new Rx.BehaviorSubject<boolean>(false);
     private _validObservable : Rx.Observable<boolean> = this._validSubject.asObservable();
 
+    private _changeSubject = new Rx.Subject<void>();
+    private _changeObservable : Rx.Observable<void> = this._changeSubject.asObservable();
+
     constructor(_identifier : string = null) {
-        this._identifierSubject.next(_identifier)
+        this._identifierSubject.next(_identifier);
         this._validSubject.next(false);
     }
 
     get identifierObservable() : Rx.Observable<string> { return this._identifierObservable; }
     get identifier() : string { return this._identifierSubject.getValue(); }
-    set identifier(identifier : string) { this._identifierSubject.next(identifier); }
+    set identifier(identifier : string) {
+        this._identifierSubject.next(identifier);
+        this._changeSubject.next();
+    }
 
     get validObservable() : Rx.Observable<boolean> { return this._validObservable; }
     get valid() : boolean { return this._validSubject.getValue(); }
     set valid(valid : boolean) { this._validSubject.next(valid); }
+
+    // change observable is usefull in the case of composed selections (eg Paramater/Channel/Component)
+    get changeObservable() : Rx.Observable<void> { return this._changeObservable; }
 
 }
 

@@ -4,8 +4,9 @@ import * as Rx from 'rxjs/Rx';
 import * as _ from "underscore";
 import {expect} from "chai";
 
-import {NativeClass, Info, InfoSet, Selection, Range, IConnection} from "./core";
-import {HubMessage} from "./messaging";
+import {NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID} from "./core";
+import {HubMessage, Parameters, HubMessageType} from "./messaging";
+import {PeriodicGenerator, SineEngine, GeneratorEngine} from "./generator";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Info classes represent the declarations of available components (and their channels) made by connections, they are
@@ -165,6 +166,11 @@ export class ChannelSelection extends Selection {
 
     get componentSelection() { return this._componentSelection; }
 
+    // change fires if either the channel or the component selection changes
+    get changeObservable() : Rx.Observable<void> {
+        return Rx.Observable.merge(super.changeObservable, this._componentSelection.changeObservable);
+    }
+
 }
 
 export class ParameterSelection extends Selection {
@@ -178,7 +184,28 @@ export class ParameterSelection extends Selection {
 
     get channelSelection() { return this._channelSelection; }
 
+    // change fires if either the channel or the channel selection changes
+    get changeObservable() : Rx.Observable<void> {
+        return Rx.Observable.merge(super.changeObservable, this._channelSelection.changeObservable);
+    }
+
 }
+
+// validator interfaces, keep coupling down by not imposing a specific validator type
+
+export interface IParameterSelectionValidator {
+    validateParameterSelection(selection : ParameterSelection) : boolean;
+}
+
+export interface IChannelSelectionValidator extends IParameterSelectionValidator {
+    validateChannelSelection(selection : ChannelSelection) : boolean;
+}
+
+export interface IComponentSelectionValidator extends IChannelSelectionValidator {
+    validateComponentSelection(selection : ComponentSelection) : boolean
+}
+
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 //
@@ -216,7 +243,7 @@ export class BaseController <T extends Info> extends NativeClass {
 
 }
 
-export class ChannelController extends BaseController<ChannelInfo> {
+export class ChannelController extends BaseController<ChannelInfo> implements IParameterSelectionValidator {
 
     // an observable with only the messages addressed to this channel
     private _messageObservable: Rx.Observable<HubMessage>;
@@ -243,7 +270,7 @@ export class ChannelController extends BaseController<ChannelInfo> {
         this.componentController.sendMessage(message);
     }
 
-    validateParameterSelection(selection : ParameterSelection) {
+    validateParameterSelection(selection : ParameterSelection) : boolean {
         const result = this.info.parameterSet.has(selection.identifier);
         selection.valid = result;
         return result;
@@ -251,7 +278,8 @@ export class ChannelController extends BaseController<ChannelInfo> {
 
 }
 
-export class ComponentController extends BaseController<ComponentInfo> {
+
+export class ComponentController extends BaseController<ComponentInfo> implements IChannelSelectionValidator  {
 
     private _channelControllerMap = new Map<string, ChannelController>();
     private _channelControllerSource = new Rx.BehaviorSubject<ChannelController[]>([]);
@@ -291,7 +319,7 @@ export class ComponentController extends BaseController<ComponentInfo> {
         this.connection.sendMessage(message);
     }
 
-    validateParameterSelection(selection : ParameterSelection) {
+    validateParameterSelection(selection : ParameterSelection) : boolean {
         if (!this.validateChannelSelection(selection.channelSelection)) {
             selection.valid = false;
             return false;
@@ -300,7 +328,7 @@ export class ComponentController extends BaseController<ComponentInfo> {
         return channelController.validateParameterSelection(selection);
     }
 
-    validateChannelSelection(selection : ChannelSelection) {
+    validateChannelSelection(selection : ChannelSelection) : boolean {
         const result =  this._channelControllerMap.has(selection.identifier);
         selection.valid = result;
         return result;
@@ -335,10 +363,100 @@ export class ComponentController extends BaseController<ComponentInfo> {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+// Message generator
+
+export enum ComponentMessageGeneratorMode {
+    STATIC,
+    DYNAMIC
+}
+
+// message generator can have a default engine and overrides per parameter
+// consider having an instance message generator being created/destroyed on the
+// fly for multiple simultaneaous generators, or maybe better to allow the user to
+// create multiple overlapping ComponentMessageGenerator. In time perhaps more
+// complex generator types such as arpegiators could be created (although that
+// maybe be a better fit for a channel processor)
+
+export class ComponentMessageGenerator extends PeriodicGenerator {
+
+    private _channelSelection = new ChannelSelection(null, null);
+
+    private _defaultEngine : GeneratorEngine = new SineEngine(1.0, 1.0, 0.0);
+    private _engines = new Map<string, GeneratorEngine>(); // parameter identifier as key
+    private _channelController : ChannelController;
+    private _selectionSubscription : Rx.Subscription;
+    private _currentInstance : string;
+    private _instanceCycles = 10;
+
+    constructor(period : number, private _manager : ComponentManager) {
+        super(period);
+        // TODO: provide a clean way to unsubscribe, teardown/destroy kind of thing
+        this._selectionSubscription = this._channelSelection.changeObservable.subscribe(() => {
+            this._channelController = this.manager.getChannelController(this.channelSelection);
+        });
+    }
+
+    get manager() : ComponentManager { return this._manager; }
+
+    get channelSelection() : ChannelSelection { return this._channelSelection; }
+
+    get channelController() : ChannelController { return this._channelController; }
+
+    protected generate(time : number, cycles : number) {
+        if (this.channelController) {
+            // if we have a multiple of instance cycles, create a new instance
+            if (this._instanceCycles > 0 && cycles % this._instanceCycles == 0) {
+                // destroy current instance if it exists
+                if (this._currentInstance) {
+                    this.sendMessage(HubMessageType.Destroy, this._currentInstance, this.generateParameters(time));
+                }
+                // create an instance
+                this._currentInstance = GUID.generate();
+                this.sendMessage(HubMessageType.Create, this._currentInstance, this.generateParameters(time));
+            }
+            // if a current instance exists, send a control message to it
+            if (this._currentInstance) {
+                this.sendMessage(HubMessageType.Control, this._currentInstance, this.generateParameters(time));
+            }
+        } else {
+            console.error(this.tag + ' could not generate message, no channel controller');
+        }
+    }
+
+    protected generateParameters(time : number) : Parameters {
+        const parameters = new Parameters();
+        this.channelController.info.parameters.forEach((parameterInfo : ParameterInfo) => {
+            // single value parameter samples for now
+            let engine = this._engines.get(parameterInfo.identifier);
+            if (!engine) engine = this._defaultEngine;
+            parameters.setParameter(parameterInfo.identifier, [engine.generate(time)])
+        });
+        return parameters;
+    }
+
+    protected sendMessage(messageType : HubMessageType, instance : string, parameters : Parameters) {
+        const ContentClass = HubMessage.contentClass(messageType);
+        const content = new ContentClass (
+            this.channelSelection.componentSelection.identifier,
+            this.channelSelection.identifier,
+            instance,
+            null,
+            parameters
+        );
+        const message = new HubMessage(messageType, null, content);
+        this.channelController.sendMessage(message);
+    }
+
+
+
+
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 // Note, allows multiple component declarations per connection (keyed by identifier).
 // Cannot have duplicate component identifiers
 
-export class ComponentManager extends NativeClass {
+export class ComponentManager extends NativeClass implements IComponentSelectionValidator  {
 
     private _componentControllerMap = new Map<string, ComponentController>();
     private _componentControllerSource = new Rx.BehaviorSubject<ComponentController[]>([]);
@@ -442,5 +560,6 @@ export class ComponentManager extends NativeClass {
     }
 
 }
+
 
 

@@ -36,7 +36,7 @@ export class RootComponentsComponent implements OnInit, OnDestroy {
             if (hubManager) {
                 const count = hubManager.componentManager.componentControllers.length;
                 console.warn(this.tag + ' ngOnInit got hub manager with ' + count + ' component controllers');
-                //this.componentControllers = hubManager.componentManager.componentControllersObservable;
+                //this.componentControllers = hubManager.manager.componentControllersObservable;
                 // test
                 hubManager.componentManager.componentControllersObservable.subscribe((controllers : ComponentController[]) => {
                     // https://angular.io/docs/ts/latest/api/core/index/NgZone-class.html, running without zone doesn't update

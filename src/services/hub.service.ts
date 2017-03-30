@@ -24,7 +24,7 @@ export class HubService {
 
     private _done = false;
 
-    // component config paths will be loaded to the hubManager's componentManager
+    // component config paths will be loaded to the hubManager's manager
     private _componentConfigPaths = [
         'F:/Sonosthesia/sonosthesia-hub/config/local.component.json'
     ];

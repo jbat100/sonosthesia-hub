@@ -239,6 +239,10 @@ export class InfoSet <T extends Info> {
         this._elements = [];
     }
 
+    getElement(identifier : string) : T {
+        return this._elements.find((element : T) => { return element.identifier === identifier; });
+    }
+
     identifiers() : string[] {
         return this._elements.map((element : T) => { return element.identifier; })
     }
@@ -248,7 +252,7 @@ export class InfoSet <T extends Info> {
     }
 
     has(identifier : string) : boolean {
-        return !!this._elements.find((element : T) => { return element.identifier === identifier; })
+        return !!this._elements.find((element : T) => { return element.identifier === identifier; });
     }
 
 }

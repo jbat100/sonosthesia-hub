@@ -1,10 +1,16 @@
 
+// --------------------------- ANGULAR -----------------------------
+
 import {NgModule}      from '@angular/core';
 import {BrowserModule} from '@angular/platform-browser';
 import {RouterModule, Routes}  from '@angular/router';
 
+// --------------------------- EXTERNAL -----------------------------
 
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgPipesModule } from 'ngx-pipes';
+
+// --------------------------- SONOSTHESIA -----------------------------
 
 // services
 
@@ -67,6 +73,7 @@ const routes : Routes = [
 
 @NgModule({
     imports: [
+        NgPipesModule,
         BrowserModule,
         RouterModule.forRoot(routes),
         NgbModule.forRoot()

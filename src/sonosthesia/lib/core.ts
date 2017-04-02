@@ -162,18 +162,20 @@ export class Declarable extends NativeClass {
     }
 }
 
+export interface ISerialisableJSON {
+
+    applyJSON(obj:any);
+
+    toJSON() : any;
+
+}
+
 /**
  * Abstract class for info (usually declared by JSON network interfaces)
  */
-export class Info extends NativeClass {
+export class Identifier extends NativeClass {
 
-    private _identifier : string;
-
-    static newFromJSON(obj : any) {
-        const instance = new this();
-        instance.applyJSON(obj);
-        return instance;
-    }
+    protected _identifier : string;
 
     constructor() {
         super();
@@ -182,7 +184,18 @@ export class Info extends NativeClass {
 
     get identifier() : string { return this._identifier; }
 
-    applyJSON(obj:any) {
+
+}
+
+export class Info extends Identifier implements ISerialisableJSON {
+
+    static newFromJSON(obj : any) {
+        const instance = new this();
+        instance.applyJSON(obj);
+        return instance;
+    }
+
+    applyJSON(obj : any) {
         expect(obj.identifier).to.be.a('string');
         this._identifier = obj.identifier;
     }
@@ -190,9 +203,10 @@ export class Info extends NativeClass {
     toJSON() : any {
         return _.pick(this, 'identifier');
     }
+
 }
 
-// used for common case of set of elements
+// used for common case of set of elements, used for JSON parsing, for managing lists of things use ListManager
 // http://stackoverflow.com/questions/17382143/how-to-create-a-new-object-from-type-parameter-in-generic-class-in-typescript
 // looks redundant but I don't see any other way, generics info does not compile down to javascript so we have to pass in the
 // constructor used to build the info objects
@@ -254,6 +268,55 @@ export class InfoSet <T extends Info> {
     has(identifier : string) : boolean {
         return !!this._elements.find((element : T) => { return element.identifier === identifier; });
     }
+
+}
+
+// List manager is used for all the things where wa have a UI list with a create/plus button and each item has
+// a delete button, it differs from info set:
+// - refer to elements by index not identifier
+// - elements have behaviour, info subclasses should not
+// - constructors may receive arguments so constructing is left to others
+// - order matters, items can be inserted at specific index
+// - can be observed
+
+export class ListManager <T> {
+
+    private _elements : T[];
+
+    private _elementsSource = new Rx.BehaviorSubject([]);
+    private _elementsObservable = this._elementsSource.asObservable();
+
+    private updateElementSource() {
+        this._elementsSource.next(Array.from(this._elements));
+    }
+
+    appendElement(element : T) {
+        this._elements.push(element);
+        this.updateElementSource();
+    }
+
+    addElementAtIndex(element : T, index : number) {
+        this._elements.splice(index, 0, element);
+        this.updateElementSource();
+    }
+
+    removeElement(index : number) {
+        this._elements.splice(index, 1);
+        this.updateElementSource();
+    }
+
+    removeAllElements() {
+        this._elements = [];
+        this.updateElementSource();
+    }
+
+    getElement(index : number) : T {
+        return this._elements[index];
+    }
+
+    get elements() : T[] { return Array.from(this._elements); }
+
+    get elementsObservable() : Rx.Observable<T[]> { return this._elementsObservable; }
 
 }
 

@@ -6,12 +6,10 @@ import {
 } from '@angular/core';
 
 import {
-    ComponentManager, ComponentSelection, ChannelSelection, ParameterSelection, ComponentController, ChannelController,
+    ComponentManager, ComponentSelection, ChannelSelection, ParameterSelection, ComponentController,
     ChannelInfo, ComponentInfo, ParameterInfo
 } from "../../sonosthesia/lib/component";
 
-import {HubService} from "../../services/hub.service";
-import {HubManager} from "../../sonosthesia/lib/hub";
 
 
 @Component({

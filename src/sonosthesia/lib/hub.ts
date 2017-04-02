@@ -6,6 +6,7 @@ import {HubConfiguration, ConnectorType} from './configuration';
 import {ComponentManager} from "./component";
 import {HubMessage, HubMessageContentParser} from "./messaging";
 import {TCPConnector} from "./connector";
+import {GeneratorManager} from "./generator";
 
 
 export class HubManager extends NativeClass {
@@ -15,6 +16,7 @@ export class HubManager extends NativeClass {
     private _subscriptions = new Map<string, Rx.Disposable>();
 
     private _componentManager = new ComponentManager();
+    private _generatorManager = new GeneratorManager();
 
     constructor(private _configuration : HubConfiguration) {
         super();
@@ -22,6 +24,7 @@ export class HubManager extends NativeClass {
 
     get configuration() { return this._configuration; }
     get componentManager() { return this._componentManager; }
+    get generatorManager() { return this._generatorManager; }
     get connector() { return this._connector; }
 
     public setup() : Q.Promise<void> {

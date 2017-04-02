@@ -4,7 +4,7 @@ import * as Math from 'mathjs';
 import * as Rx from 'rxjs/Rx';
 
 import {ParameterSelection, ChannelSelection, IComponentSelectionValidator} from './component';
-import {NativeClass, IMessageSender} from "./core";
+import {NativeClass, IMessageSender, ListManager} from "./core";
 
 
 export enum GeneratorState {
@@ -12,7 +12,13 @@ export enum GeneratorState {
     RUNNING
 }
 
-export class PeriodicGenerator extends NativeClass {
+export interface IGenerator {
+    stateObservable : Rx.Observable<GeneratorState>;
+    start();
+    stop();
+}
+
+export class PeriodicGenerator extends NativeClass implements IGenerator {
 
     private _startTime : number;
     private _subscription : Rx.Subscription;
@@ -24,7 +30,7 @@ export class PeriodicGenerator extends NativeClass {
         super();
     }
 
-    get state() : Rx.Observable<GeneratorState> { return this._stateObservable; }
+    get stateObservable() : Rx.Observable<GeneratorState> { return this._stateObservable; }
 
     get period() : number { return this._period; }
 
@@ -51,6 +57,10 @@ export class PeriodicGenerator extends NativeClass {
 
     // abstract method
     protected generate(time : number, cycles : number) { }
+
+}
+
+export class GeneratorManager extends ListManager<IGenerator> {
 
 }
 

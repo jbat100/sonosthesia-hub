@@ -1,5 +1,11 @@
 <navigation [currentKey]="'generators'">
     <div>
-        Root generators
+
+        <button (click)="onCreate($event)" type="button" class="btn btn-primary">Add</button>
+
+        <div *ngFor="let generator of componentMessageGeneratorsObservable | async">
+            <generator-detail [generator]="generator"></generator-detail>
+        </div>
+
     </div>
 </navigation>

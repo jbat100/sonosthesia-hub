@@ -4,7 +4,7 @@ import * as Rx from 'rxjs/Rx';
 import * as _ from "underscore";
 import {expect} from "chai";
 
-import {NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID} from "./core";
+import {NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, ListManager} from "./core";
 import {HubMessage, Parameters, HubMessageType} from "./messaging";
 import {PeriodicGenerator, SineEngine, GeneratorEngine} from "./generator";
 
@@ -362,6 +362,9 @@ export class ComponentController extends BaseController<ComponentInfo> implement
 
 }
 
+
+
+
 // ---------------------------------------------------------------------------------------------------------------------
 // Message generator
 
@@ -448,6 +451,8 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
     }
 
 }
+
+
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Note, allows multiple component declarations per connection (keyed by identifier).
@@ -557,6 +562,4 @@ export class ComponentManager extends NativeClass implements IComponentSelection
     }
 
 }
-
-
 

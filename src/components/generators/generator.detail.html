@@ -1,0 +1,28 @@
+
+<div>
+
+    <div [ngSwitch]="runningObservable | async">
+
+        <div *ngSwitchCase="false">
+            <button (click)="onStart($event)"
+                    type="button"
+                    class="btn btn-primary">Start</button>
+            <div class="badge badge-default">Idle</div>
+        </div>
+
+        <div *ngSwitchCase="true">
+            <button (click)="onStop($event)"
+                    type="button"
+                    class="btn btn-primary">Stop</button>
+            <div class="badge badge-primary">Running</div>
+        </div>
+
+    </div>
+
+    <channel-selection [manager]="generator.manager" [selection]="generator.channelSelection"></channel-selection>
+
+</div>
+
+
+
+

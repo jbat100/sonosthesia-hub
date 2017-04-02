@@ -1,5 +1,3 @@
-<!-- http://stackoverflow.com/questions/33700266/how-can-i-get-new-selection-in-select-in-angular-2 -->
-
-<select [ngModel]="selectedIdentifier" (ngModelChange)="onChange($event)" name="sel2">
-    <option [ngValue]="controller" *ngFor="let i of componentControllers">{{controller.info.identifier}}</option>
+<select [ngModel]="identifier" (ngModelChange)="onSelection($event)" name="componentSelect">
+    <option [ngValue]="candidate" *ngFor="let candidate of candidates">{{candidate}}</option>
 </select>

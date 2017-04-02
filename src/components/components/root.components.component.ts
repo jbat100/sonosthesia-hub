@@ -19,11 +19,9 @@ export class RootComponentsComponent implements OnInit, OnDestroy {
 
     readonly tag = 'RootComponentsComponent';
 
-    subscription : Rx.Subscription;
-
     componentControllers : ComponentController[];
 
-    testList = ['bla', 'bli', 'blo'];
+    private subscription : Rx.Subscription;
 
     constructor(private _zone : NgZone, private _hubService : HubService) {
         console.log(this.tag + ' constructor');
@@ -49,7 +47,6 @@ export class RootComponentsComponent implements OnInit, OnDestroy {
                 this.componentControllers = [];
                 //console.warn(this.tag + ' ngOnInit got null hub manager');
             }
-
         }, err => {
             this.componentControllers = [];
             console.error(this.tag + ' hub manager subscription error ' + err);

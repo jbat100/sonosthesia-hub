@@ -281,7 +281,7 @@ export class InfoSet <T extends Info> {
 
 export class ListManager <T> {
 
-    private _elements : T[];
+    private _elements : T[] = [];
 
     private _elementsSource = new Rx.BehaviorSubject([]);
     private _elementsObservable = this._elementsSource.asObservable();

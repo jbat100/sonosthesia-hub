@@ -1,4 +1,4 @@
 <component-selection [manager]="manager" [selection]="selection.componentSelection"></component-selection>
-<select [ngModel]="identifier" (ngModelChange)="onSelection($event)" name="channelSelect">
+<select [(ngModel)]="identifier" (ngModelChange)="onSelection($event)" name="channelSelect">
     <option [ngValue]="candidate" *ngFor="let candidate of candidates">{{candidate}}</option>
 </select>

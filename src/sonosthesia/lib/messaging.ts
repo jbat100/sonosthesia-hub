@@ -191,7 +191,8 @@ export class HubMessage extends Message {
     }
 
     static contentClass(type : HubMessageType) : any {
-        return HubMessageContentClasses.get(type);
+        // note .get does not work for some obscure reason
+        return HubMessageContentClasses[type];
     }
 
     private _hubMessageType : HubMessageType;
@@ -207,7 +208,6 @@ export class HubMessage extends Message {
     }
 
     get hubMessageType() : HubMessageType { return this._hubMessageType; }
-
 
 }
 

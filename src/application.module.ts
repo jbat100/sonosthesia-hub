@@ -1,9 +1,10 @@
 
 // --------------------------- ANGULAR -----------------------------
 
-import {NgModule}      from '@angular/core';
-import {BrowserModule} from '@angular/platform-browser';
-import {RouterModule, Routes}  from '@angular/router';
+import { NgModule }      from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { RouterModule, Routes }  from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 // --------------------------- EXTERNAL -----------------------------
 
@@ -31,20 +32,24 @@ import { NavigationComponent } from './navigation.component';
 
 import { RootSettingsComponent } from './components/settings/root.settings.component';
 
-// settings sub components
+// generator sub components
 
 import { RootGeneratorsComponent } from './components/generators/root.generators.component';
+import { GeneratorDetailComponent } from './components/generators/generator.detail.component';
 
 // settings sub components
 
 import { RootMappingsComponent } from './components/mappings/root.mappings.component';
 
-// settings sub components
+// component sub components
 
 import { RootComponentsComponent } from './components/components/root.components.component';
 import {
     ComponentDetailComponent, ChannelDetailComponent, ParameterDetailComponent
 } from './components/components/component.detail.component';
+import {
+    ComponentSelectionComponent, ChannelSelectionComponent, ParameterSelectionComponent
+} from './components/components/component.selector.component';
 
 const routes : Routes = [
     {
@@ -70,11 +75,15 @@ const routes : Routes = [
     }
 ];
 
+// need the forms module for ngModel
+// http://jsconfig.com/solution-cant-bind-ngmodel-since-isnt-known-property-input/
+
 
 @NgModule({
     imports: [
         NgPipesModule,
         BrowserModule,
+        FormsModule,
         RouterModule.forRoot(routes),
         NgbModule.forRoot()
     ],
@@ -95,6 +104,7 @@ const routes : Routes = [
 
         // sonosthesia generators
         RootGeneratorsComponent,
+        GeneratorDetailComponent,
 
         // sonosthesia mappings
         RootMappingsComponent,
@@ -103,7 +113,10 @@ const routes : Routes = [
         RootComponentsComponent,
         ComponentDetailComponent,
         ChannelDetailComponent,
-        ParameterDetailComponent
+        ParameterDetailComponent,
+        ComponentSelectionComponent,
+        ChannelSelectionComponent,
+        ParameterSelectionComponent
 
     ],
     providers: [

@@ -4,6 +4,7 @@ import * as Rx from 'rxjs/Rx';
 import {Component, NgZone, OnInit, OnDestroy} from '@angular/core';
 
 import {HubService} from "../../services/hub.service";
+
 import {IGenerator} from "../../sonosthesia/lib/generator";
 import {HubManager} from "../../sonosthesia/lib/hub";
 import {ComponentMessageGenerator} from "../../sonosthesia/lib/component";

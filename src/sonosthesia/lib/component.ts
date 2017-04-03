@@ -439,15 +439,20 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
 
     protected sendMessage(messageType : HubMessageType, instance : string, parameters : Parameters) {
         const ContentClass = HubMessage.contentClass(messageType);
-        const content = new ContentClass (
-            this.channelSelection.componentSelection.identifier,
-            this.channelSelection.identifier,
-            instance,
-            null,
-            parameters
-        );
-        const message = new HubMessage(messageType, null, content);
-        this.channelController.sendMessage(message);
+        if (ContentClass) {
+            const content = new ContentClass (
+                this.channelSelection.componentSelection.identifier,
+                this.channelSelection.identifier,
+                instance,
+                null,
+                parameters
+            );
+            const message = new HubMessage(messageType, null, content);
+            this.channelController.sendMessage(message);
+        } else {
+            console.error(this.tag + ' no content class for hub message type : ' + HubMessageType[messageType]);
+        }
+
     }
 
 }

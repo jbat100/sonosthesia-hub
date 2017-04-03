@@ -44,6 +44,7 @@ export class LocalConnection extends BaseConnection implements IConnection {
     get connectionType() : string { return 'local'; }
 
     sendMessage(message : Message) {
+        console.log(this.tag + ' sending message of type : ' + message.type);
         this.messageSubject.next(message);
     }
 

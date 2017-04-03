@@ -34,10 +34,12 @@ module.exports = {
              *
              * See: https://github.com/s-panferov/awesome-typescript-loader
              * See: https://github.com/TheLarkInn/angular2-template-loader
+             *
+             * https://github.com/jkuri/ng2-datepicker/issues/136
              */
             {
                 test: /\.ts$/,
-                exclude: /node_modules/,
+                exclude: [/node_modules\/(?!(ng2-.+|ngx-.+))/],
                 loaders: [
                     'awesome-typescript-loader',
                     'angular2-template-loader',

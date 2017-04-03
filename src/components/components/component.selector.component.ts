@@ -76,6 +76,9 @@ export class ChannelSelectionComponent implements OnInit, OnDestroy {
     @Input()
     selection : ChannelSelection;
 
+    @Input()
+    showComponent : boolean = false;
+
     componentController : ComponentController;
 
     identifier : string;
@@ -144,6 +147,12 @@ export class ParameterSelectionComponent implements OnDestroy {
 
     @Input()
     selection : ParameterSelection;
+
+    @Input()
+    showComponent : boolean = false;
+
+    @Input()
+    showChannel : boolean = false;
 
     componentController : ComponentController;
 

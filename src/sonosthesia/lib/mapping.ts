@@ -1,7 +1,7 @@
 
 import * as Rx from 'rxjs/Rx';
 
-import { NativeClass } from './core';
+import {NativeClass, ListManager} from './core';
 
 import { ParameterSample, ParameterOperator, ParameterProcessorChain } from './processing';
 import { ComponentManager, ChannelSelection, ParameterSelection, ChannelController } from './component';
@@ -116,14 +116,16 @@ export class ChannelMapping extends NativeClass {
 
     private _inputSubscription : Rx.Subscription;
 
-    constructor(private _manager : MappingManager) {
+    constructor(private _mappingManager : MappingManager, private _componentManager : ComponentManager) {
         super();
         this._input = new ChannelSelection(null, null);
         this._output = new ChannelSelection(null, null);
         this._parameterMappings = [];
     }
 
-    get manager() : MappingManager { return this._manager; }
+    get componentManager() : ComponentManager { return this._componentManager; }
+
+    get mappingManager() : MappingManager { return this._mappingManager; }
 
     get input() : ChannelSelection { return this._input; }
 
@@ -155,8 +157,8 @@ export class ChannelMapping extends NativeClass {
 
         // update controllers for input and output channel selections
 
-        this._inputController = this.manager.componentManager.getChannelController(this.input);
-        this._outputController = this.manager.componentManager.getChannelController(this.output);
+        this._inputController = this.componentManager.getChannelController(this.input);
+        this._outputController = this.componentManager.getChannelController(this.output);
 
         if (this._inputSubscription) {
             this._inputSubscription.unsubscribe();
@@ -232,12 +234,7 @@ export class ChannelMapping extends NativeClass {
 
 }
 
-export class MappingManager extends NativeClass {
+export class MappingManager extends ListManager<ChannelMapping> {
 
-    constructor(private _componentManager : ComponentManager) {
-        super();
-    }
-
-    get componentManager() { return this._componentManager; }
 
 }

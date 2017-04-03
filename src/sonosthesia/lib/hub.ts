@@ -1,4 +1,4 @@
-import * as _ from "underscore";
+
 import * as Q from "q";
 
 import {NativeClass, IConnector, IConnection} from "./core";
@@ -7,6 +7,7 @@ import {ComponentManager} from "./component";
 import {HubMessage, HubMessageContentParser} from "./messaging";
 import {TCPConnector} from "./connector";
 import {GeneratorManager} from "./generator";
+import {MappingManager} from "./mapping";
 
 
 export class HubManager extends NativeClass {
@@ -17,14 +18,16 @@ export class HubManager extends NativeClass {
 
     private _componentManager = new ComponentManager();
     private _generatorManager = new GeneratorManager();
+    private _mappingManager = new MappingManager();
 
     constructor(private _configuration : HubConfiguration) {
         super();
     }
 
-    get configuration() { return this._configuration; }
-    get componentManager() { return this._componentManager; }
-    get generatorManager() { return this._generatorManager; }
+    get configuration() : HubConfiguration { return this._configuration; }
+    get componentManager() : ComponentManager { return this._componentManager; }
+    get generatorManager() : GeneratorManager { return this._generatorManager; }
+    get mappingManager() : MappingManager { return this._mappingManager; }
     get connector() { return this._connector; }
 
     public setup() : Q.Promise<void> {
@@ -75,7 +78,7 @@ export class HubManager extends NativeClass {
         });
     }
 
-    // used to handle the setup of incomming connector connections, registration and message routing mostly
+    // used to handle the setup of incoming connector connections, registration and message routing mostly
     private setupConnection(connection : IConnection) {
         this._connections[connection.identifier] = connection;
         this._subscriptions[connection.identifier] = connection.messageObservable.subscribe((message : HubMessage) => {

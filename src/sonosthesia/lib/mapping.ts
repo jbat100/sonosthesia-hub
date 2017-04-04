@@ -109,7 +109,10 @@ export class ChannelMapping extends NativeClass {
 
     private _input : ChannelSelection;
     private _output : ChannelSelection;
+
     private _parameterMappings : ParameterMapping[];
+    private _parameterMappingsSource = new Rx.BehaviorSubject<ParameterMapping[]>([]);
+    private _parameterMappingsObservable = this._parameterMappingsSource.asObservable();
 
     private _inputController : ChannelController;
     private _outputController : ChannelController;
@@ -146,10 +149,12 @@ export class ChannelMapping extends NativeClass {
             //parameterMapping
             this._parameterMappings.push(parameterMapping);
         }
+        this._parameterMappingsSource.next(this._parameterMappings);
     }
 
     removeParameterMapping(index : number) {
         this._parameterMappings.splice(index, 1);
+        this._parameterMappingsSource.next(this._parameterMappings);
     }
 
     // call reload when the input/output selection changes

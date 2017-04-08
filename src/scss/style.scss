@@ -5,7 +5,7 @@
   * Root (between the top and bottom bars)
   */
 
-.root-canvas {
+.root {
   background: white;
   display: flex;
   height: 100%;
@@ -14,19 +14,28 @@
 }
 
 .root-top-bar {
-  text-align: center;
-  height: 30px;
-  background: indianred;
+  //text-align: center;
+  height: 60px;
+  background: #98c4e8;
+  border-bottom: 2px solid darkgray;
+  flex-direction: row;
   flex-shrink: 0;
   overflow-y: hidden;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: left;
+  justify-content: left;
 }
 
-.root-main {
+.root-content {
   flex-grow: 1;
   display: flex;
-  flex-direction: row;
-  justify-content: inherit;
+  flex-direction: column;
+  //overflow-y: scroll;
   overflow-y: hidden;
+  padding: 10px;
 }
 
 .root-bottom-bar {
@@ -38,61 +47,21 @@
 }
 
 /**---------------------------------------------------------------------------------------------------------------------
-  * Main (between the top and bottom bars)
+  * Bars
   */
 
-.main-navigation {
-  border-right: 2px solid darkgray;
-  padding: 10px;
-  text-align: center;
-  width: 160px;
-  flex-shrink: 0;
-  background: white;
-  flex-direction: column;
-  align-items: center;
-  overflow-y: scroll;
-}
-
-// TODO: make main content and inspector scrollable http://stackoverflow.com/questions/21515042/scrolling-a-flexbox-with-overflowing-content
-
-.main-container {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.main-header {
-  flex-shrink: 0;
-}
-
-.main-footer {
-  flex-shrink: 0;
-}
-
-.main-body {
-  padding: 10px;
+.main-bar-item {
   text-align: left;
   flex-grow: 1;
-  background: #dcdbd8;
-  overflow-y: scroll;
+  overflow-y: hidden;
 }
 
-.main-inspector {
-  padding: 10px;
-  text-align: center;
-  width: 0;
-  background: darkgray;
-  overflow-y: scroll;
+.secondary-bar-item {
+  text-align: left;
+  flex-shrink: 0;
+  overflow-y: hidden;
 }
 
-/**
-  * UTILS
-  */
-
-.no-vertical-margin {
-  margin-bottom: 0;
-  margin-top: 0;
-}
 
 /**---------------------------------------------------------------------------------------------------------------------
   * Header

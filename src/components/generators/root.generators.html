@@ -1,12 +1,15 @@
 
-<div>
+<div class="root">
 
-    <button-navigation [currentKey]="'generators'"></button-navigation>
+    <div class="root-top-bar">
+        <button-navigation class="main-bar-item" [currentKey]="'generators'"></button-navigation>
+        <button class="seconday-bar-item" (click)="onCreate($event)" type="button" class="btn btn-primary">Add</button>
+    </div>
 
-    <button (click)="onCreate($event)" type="button" class="btn btn-primary">Add</button>
-
-    <div *ngFor="let generator of componentMessageGeneratorsObservable | async">
-        <generator-detail [generator]="generator"></generator-detail>
+    <div class="root-content">
+        <div *ngFor="let generator of componentMessageGeneratorsObservable | async">
+            <generator-detail [generator]="generator"></generator-detail>
+        </div>
     </div>
 
 </div>

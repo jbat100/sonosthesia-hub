@@ -26,7 +26,9 @@ import {TitleCasePipe} from './pipes';
 
 import { RootComponent } from './root.component';
 import { MenuComponent } from './menu.component';
-import { NavigationComponent } from './navigation.component';
+import {
+    TabNavigationComponent, ButtonNavigationComponent
+} from './components/navigation/navigation.component';
 
 // settings sub components
 
@@ -50,6 +52,7 @@ import {
 import {
     ComponentSelectionComponent, ChannelSelectionComponent, ParameterSelectionComponent
 } from './components/components/component.selector.component';
+import {NavigationService} from "./services/navigation.service";
 
 const routes : Routes = [
     {
@@ -88,28 +91,21 @@ const routes : Routes = [
         NgbModule.forRoot()
     ],
     declarations: [
-
-        // pipes
-
+        // pipes --------------------------------------
         TitleCasePipe,
-
-        // root components
-
+        // root components ----------------------------
         RootComponent,
         MenuComponent,
-        NavigationComponent,
-
-        // sonosthesia settings
+        TabNavigationComponent,
+        ButtonNavigationComponent,
+        // sonosthesia settings -----------------------
         RootSettingsComponent,
-
-        // sonosthesia generators
+        // sonosthesia generators ---------------------
         RootGeneratorsComponent,
         GeneratorDetailComponent,
-
-        // sonosthesia mappings
+        // sonosthesia mappings -----------------------
         RootMappingsComponent,
-
-        // sonosthesia components
+        // sonosthesia components ---------------------
         RootComponentsComponent,
         ComponentDetailComponent,
         ChannelDetailComponent,
@@ -117,13 +113,11 @@ const routes : Routes = [
         ComponentSelectionComponent,
         ChannelSelectionComponent,
         ParameterSelectionComponent
-
     ],
     providers: [
-
         ConfigurationService,
-        HubService
-
+        HubService,
+        NavigationService
     ],
     bootstrap: [
         RootComponent
@@ -131,9 +125,6 @@ const routes : Routes = [
 })
 export class ApplicationModule { 
 
-    constructor()
-    {
-
-    }
+    constructor() { }
 
 }

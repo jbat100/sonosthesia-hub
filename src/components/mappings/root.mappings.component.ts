@@ -5,6 +5,7 @@ import {Component, NgZone, OnInit, OnDestroy} from '@angular/core';
 import {ChannelMapping} from "../../sonosthesia/lib/mapping";
 import {HubManager} from "../../sonosthesia/lib/hub";
 import {HubService} from "../../services/hub.service";
+import {ListIterator} from "../../sonosthesia/lib/core";
 
 
 @Component({
@@ -15,7 +16,7 @@ export class RootMappingsComponent implements OnInit, OnDestroy {
 
     readonly tag = 'RootMappingsComponent';
 
-    mappingsObservable : Rx.Observable<ChannelMapping[]>;
+    mappingsObservable : Rx.Observable<ListIterator<ChannelMapping>>;
 
     private _subscription : Rx.Subscription;
     private _hubManager : HubManager;

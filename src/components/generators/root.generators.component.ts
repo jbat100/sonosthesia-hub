@@ -1,13 +1,14 @@
 
 import * as Rx from 'rxjs/Rx';
 
-import {Component, NgZone, OnInit, OnDestroy} from '@angular/core';
+import { Component, NgZone, OnInit, OnDestroy } from '@angular/core';
 
-import {HubService} from "../../services/hub.service";
+import { HubService } from "../../services/hub.service";
 
-import {IGenerator} from "../../sonosthesia/lib/generator";
-import {HubManager} from "../../sonosthesia/lib/hub";
-import {ComponentMessageGenerator} from "../../sonosthesia/lib/component";
+import { IGenerator } from "../../sonosthesia/lib/generator";
+import { HubManager } from "../../sonosthesia/lib/hub";
+import { ComponentMessageGenerator } from "../../sonosthesia/lib/component";
+import { ListIterator } from "../../sonosthesia/lib/core";
 
 
 @Component({
@@ -18,7 +19,7 @@ export class RootGeneratorsComponent implements OnInit, OnDestroy {
 
     readonly tag = 'RootGeneratorsComponent';
 
-    generatorsObservable : Rx.Observable<IGenerator[]>;
+    generatorsObservable : Rx.Observable<ListIterator<IGenerator>>;
 
     // filtered generatorsObservable
     componentMessageGeneratorsObservable : Rx.Observable<ComponentMessageGenerator[]>;
@@ -31,7 +32,7 @@ export class RootGeneratorsComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        //console.log(this.tag + ' ngOnInit');
+        console.log(this.tag + ' ngOnInit');
         this._subscription = this._hubService.hubManager.subscribe((hubManager : HubManager) => {
             this._hubManager = hubManager;
             if (this._hubManager) {
@@ -40,15 +41,16 @@ export class RootGeneratorsComponent implements OnInit, OnDestroy {
                     this.generatorsObservable = this._hubManager.generatorManager.elementsObservable;
                     // mapped observable with only the component message generators left in the array, consider making this
                     // a utility
-                    this.componentMessageGeneratorsObservable = this.generatorsObservable.map((generators : IGenerator[]) => {
-                        console.log(this.tag + ' generator observable fired');
-                        // map and filter the actual array received by the observable
-                        return generators.map((generator : IGenerator) => {
-                            return generator as ComponentMessageGenerator;
-                        }).filter((generator : ComponentMessageGenerator) => {
-                            return generator != null;
-                        }) as ComponentMessageGenerator[];
-                    });
+                    this.componentMessageGeneratorsObservable =
+                        this.generatorsObservable.map((generators : ListIterator<IGenerator>) => {
+                            console.log(this.tag + ' generator observable fired');
+                            // map and filter the actual array received by the observable
+                            return Array.from(generators).map((generator : IGenerator) => {
+                                return generator as ComponentMessageGenerator;
+                            }).filter((generator : ComponentMessageGenerator) => {
+                                return generator != null;
+                            }) as ComponentMessageGenerator[];
+                        });
                 });
             } else {
                 this.generatorsObservable = null;

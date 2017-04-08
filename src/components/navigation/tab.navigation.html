@@ -4,7 +4,7 @@
             <div>
 
                 <ngb-tabset type="pills" (tabChange)="tabChange($event)" [activeId]="currentKey">
-                    <ngb-tab *ngFor="let tab of tabs" [id]="tab.key" [title]="tab.key | titleCase">
+                    <ngb-tab *ngFor="let tab of targets" [id]="tab.key" [title]="tab.key | titleCase">
                         <template ngbTabContent></template>
                     </ngb-tab>
                 </ngb-tabset>

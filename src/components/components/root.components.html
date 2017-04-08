@@ -1,4 +1,8 @@
-<navigation [currentKey]="'components'">
+
+<div>
+
+    <button-navigation [currentKey]="'components'"></button-navigation>
+
     <div>
         <component-detail
                 *ngFor="let controller of componentControllers"
@@ -8,4 +12,5 @@
             {{test}}
         </div-->
     </div>
-</navigation>
+
+</div>

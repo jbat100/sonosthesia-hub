@@ -1,0 +1,5 @@
+<div class="btn-group" data-toggle="buttons">
+    <label *ngFor="let key of keys" class="btn btn-primary" [class.active]="model[key]">
+        <input type="checkbox" [ngModel]="model[key]" (ngModelChange)="onChange(key, $event)"> {{key | titleCase}}
+    </label>
+</div>

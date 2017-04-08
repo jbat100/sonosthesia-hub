@@ -278,16 +278,44 @@ export class InfoSet <T extends Info> {
 // - constructors may receive arguments so constructing is left to others
 // - order matters, items can be inserted at specific index
 // - can be observed
+// - implements iterator pattern https://basarat.gitbooks.io/typescript/docs/iterators.html
+// - going through some legth to prevent direct element access without sacrificing performance with iteration
+
+export class ListIterator <T> implements IterableIterator<T> {
+
+    private _pointer = 0;
+
+    constructor(private _elements: T[]) {}
+
+    public next(): IteratorResult<T> {
+        if (this._pointer < this._elements.length) {
+            return {
+                done: false,
+                value: this._elements[this._pointer++]
+            }
+        } else {
+            return {
+                done: true,
+                value: null
+            }
+        }
+    }
+
+    [Symbol.iterator](): IterableIterator<T> {
+        return this;
+    }
+
+}
 
 export class ListManager <T> {
 
     private _elements : T[] = [];
 
-    private _elementsSource = new Rx.BehaviorSubject([]);
+    private _elementsSource = new Rx.BehaviorSubject<ListIterator<T>>(this.elementIterator);
     private _elementsObservable = this._elementsSource.asObservable();
 
     private updateElementSource() {
-        this._elementsSource.next(Array.from(this._elements));
+        this._elementsSource.next( this.elementIterator );
     }
 
     appendElement(element : T) {
@@ -314,9 +342,12 @@ export class ListManager <T> {
         return this._elements[index];
     }
 
+    // use only if a copy is required, otherwise use the iterator (for ... of ... {})
     get elements() : T[] { return Array.from(this._elements); }
 
-    get elementsObservable() : Rx.Observable<T[]> { return this._elementsObservable; }
+    get elementIterator() : ListIterator <T> { return new ListIterator <T> (this._elements); }
+
+    get elementsObservable() : Rx.Observable<ListIterator<T>> { return this._elementsObservable; }
 
 }
 

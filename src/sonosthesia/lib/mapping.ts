@@ -5,7 +5,7 @@ import {NativeClass, ListManager} from './core';
 
 import { ParameterSample, ParameterOperator, ParameterProcessorChain } from './processing';
 import { ComponentManager, ChannelSelection, ParameterSelection, ChannelController } from './component';
-import {HubMessage, HubMessageType, Parameters, ChannelMessageContent} from "./messaging";
+import { HubMessage, HubMessageType, Parameters, ChannelMessageContent } from "./messaging";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Mapper actually carries out the mapping process for a given parameter mapping for a given channel or instance
@@ -14,32 +14,37 @@ export class Mapper extends NativeClass {
 
     private _processorChain : ParameterProcessorChain;
 
-    constructor(private _operators : ParameterOperator[]) {
+    constructor(private _operatorManager : ParameterOperatorManager) {
         super();
-        this._processorChain = new ParameterProcessorChain(this._operators);
+        this._processorChain = new ParameterProcessorChain(this._operatorManager.elements);
     }
+
+    get operatorManager() : ParameterOperatorManager { return this._operatorManager; }
+
+    get processorChain() : ParameterProcessorChain { return this._processorChain; }
 
     reset() {
-        this.reload(this._operators);
+        this.reload(this._operatorManager);
     }
 
-    reload(operators : ParameterOperator[]) {
-        this._operators = operators;
-        this._processorChain = new ParameterProcessorChain(this._operators);
+    reload(operatorManager : ParameterOperatorManager) {
+        this._operatorManager = operatorManager;
+        this._processorChain = new ParameterProcessorChain(this.operatorManager.elements);
     }
 
     process(sample : ParameterSample) : ParameterSample {
-        return this._processorChain.process(sample);
+        return this.processorChain.process(sample);
     }
 
 }
 
+export class ParameterOperatorManager extends ListManager<ParameterOperator> { }
 
 export class ParameterMapping extends NativeClass {
 
     private _input : ParameterSelection;
     private _output : ParameterSelection;
-    private _operators : ParameterOperator[];
+    private _operatorManager = new ParameterOperatorManager();
 
     private _staticMapper = new Mapper(null);
     private _instanceMappers = new Map<string, Mapper>();
@@ -48,17 +53,16 @@ export class ParameterMapping extends NativeClass {
         super();
         this._input = new ParameterSelection(null, null, null);
         this._output = new ParameterSelection(null, null, null);
-        this._operators = [];
     }
 
-    get operators() { return this._operators; }
+    get operatorManager() : ParameterOperatorManager { return this._operatorManager; }
 
     get input() { return this._input; }
 
     get output() { return this._output; }
 
     createInstanceMapper(instance : string) {
-        this._instanceMappers[instance] = new Mapper(this._operators)
+        this._instanceMappers[instance] = new Mapper(this.operatorManager);
     }
 
     destroyInstanceMapper(instance : string) {
@@ -78,19 +82,6 @@ export class ParameterMapping extends NativeClass {
         }
     }
 
-    getOperator(index) {
-        return this._operators[index];
-    }
-
-    addOperator(operator, index) {
-        NativeClass.checkInstanceClass(operator, ParameterOperator);
-        this._operators.splice(index, 0, operator);
-    }
-
-    removeOperator(index) {
-        this._operators.splice(index, 1);
-    }
-
     reset() {
         this._staticMapper.reset();
         this._instanceMappers.forEach((mapper) => { mapper.reset(); });
@@ -99,36 +90,38 @@ export class ParameterMapping extends NativeClass {
 
     // reload with the current parameter mapping operators
     reload() {
-        this._staticMapper.reload(this._operators);
-        this._instanceMappers.forEach((mapper) => { mapper.reload(this._operators); });
+        this._staticMapper.reload(this.operatorManager);
+        this._instanceMappers.forEach((mapper) => { mapper.reload(this.operatorManager); });
     }
 }
 
+
+export class ParameterMappingManager extends ListManager<ParameterMapping> { }
 
 export class ChannelMapping extends NativeClass {
 
     private _input : ChannelSelection;
     private _output : ChannelSelection;
 
-    private _parameterMappings : ParameterMapping[];
-    private _parameterMappingsSource = new Rx.BehaviorSubject<ParameterMapping[]>([]);
-    private _parameterMappingsObservable = this._parameterMappingsSource.asObservable();
+    private _parameterMappingManager = new ParameterMappingManager();
 
     private _inputController : ChannelController;
     private _outputController : ChannelController;
 
     private _inputSubscription : Rx.Subscription;
 
+    // TODO implement automap (pass parameters with the same identifier through with identity mapping)
+    private _automap : boolean = false;
+
     constructor(private _mappingManager : MappingManager, private _componentManager : ComponentManager) {
         super();
         this._input = new ChannelSelection(null, null);
         this._output = new ChannelSelection(null, null);
-        this._parameterMappings = [];
     }
 
     get componentManager() : ComponentManager { return this._componentManager; }
 
-    get mappingManager() : MappingManager { return this._mappingManager; }
+    get parameterMappingManager() : ParameterMappingManager { return this._parameterMappingManager; }
 
     get input() : ChannelSelection { return this._input; }
 
@@ -142,19 +135,6 @@ export class ChannelMapping extends NativeClass {
     set output(selection : ChannelSelection) {
         this._output = selection;
         this.reload();
-    }
-
-    addParameterMapping(parameterMapping : ParameterMapping) {
-        if (parameterMapping) {
-            //parameterMapping
-            this._parameterMappings.push(parameterMapping);
-        }
-        this._parameterMappingsSource.next(this._parameterMappings);
-    }
-
-    removeParameterMapping(index : number) {
-        this._parameterMappings.splice(index, 1);
-        this._parameterMappingsSource.next(this._parameterMappings);
     }
 
     // call reload when the input/output selection changes
@@ -194,9 +174,9 @@ export class ChannelMapping extends NativeClass {
         const instance : string = message.content.instance;
 
         if (message.hubMessageType == HubMessageType.Create && instance) {
-            this._parameterMappings.forEach((mapping : ParameterMapping) => {
-                mapping.createInstanceMapper(instance);
-            });
+            for (let parameterMapping of this.parameterMappingManager.elementIterator) {
+                parameterMapping.createInstanceMapper(instance);
+            }
         }
 
         if (this._outputController) {
@@ -206,12 +186,12 @@ export class ChannelMapping extends NativeClass {
             const parameters : Parameters = message.content.parameters;
             const timestamp : number = message.timestamp;
             const mappedParameters : Parameters = new Parameters();
-            this._parameterMappings.forEach((parameterMapping : ParameterMapping) => {
+            for (let parameterMapping of this.parameterMappingManager.elementIterator) {
                 const values = parameters.getParameter(parameterMapping.input.identifier);
                 const sample = new ParameterSample(values, timestamp);
                 const processed = parameterMapping.process(sample, instance);
                 mappedParameters.setParameter(parameterMapping.output.identifier, processed.values);
-            });
+            }
 
             const content = message.content as ChannelMessageContent;
             const mappedContent = new (content.constructor as typeof ChannelMessageContent) (
@@ -224,14 +204,14 @@ export class ChannelMapping extends NativeClass {
 
             const mappedMessage = new HubMessage(message.hubMessageType, message.timestamp, mappedContent);
 
-            this._outputController.sendMessage(message);
+            this._outputController.sendMessage(mappedMessage);
 
         }
 
         if (message.hubMessageType == HubMessageType.Destroy && instance) {
-            this._parameterMappings.forEach((mapping : ParameterMapping) => {
-                mapping.destroyInstanceMapper(instance);
-            });
+            for (let parameterMapping of this.parameterMappingManager.elementIterator) {
+                parameterMapping.destroyInstanceMapper(instance);
+            }
         }
 
     }

@@ -311,11 +311,11 @@ export class ListManager <T> {
 
     private _elements : T[] = [];
 
-    private _elementsSource = new Rx.BehaviorSubject<ListIterator<T>>(this.elementIterator);
+    private _elementsSource = new Rx.BehaviorSubject<T[]>([]);
     private _elementsObservable = this._elementsSource.asObservable();
 
     private updateElementSource() {
-        this._elementsSource.next( this.elementIterator );
+        this._elementsSource.next( this.elements );
     }
 
     appendElement(element : T) {
@@ -347,7 +347,7 @@ export class ListManager <T> {
 
     get elementIterator() : ListIterator <T> { return new ListIterator <T> (this._elements); }
 
-    get elementsObservable() : Rx.Observable<ListIterator<T>> { return this._elementsObservable; }
+    get elementsObservable() : Rx.Observable<T[]> { return this._elementsObservable; }
 
 }
 

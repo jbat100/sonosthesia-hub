@@ -16,7 +16,7 @@ export class RootMappingsComponent implements OnInit, OnDestroy {
 
     readonly tag = 'RootMappingsComponent';
 
-    mappingsObservable : Rx.Observable<ListIterator<ChannelMapping>>;
+    mappingsObservable : Rx.Observable<ChannelMapping[]>;
 
     private _subscription : Rx.Subscription;
     private _hubManager : HubManager;

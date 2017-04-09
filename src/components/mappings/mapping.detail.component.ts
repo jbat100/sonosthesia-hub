@@ -6,7 +6,6 @@ import {
 } from '@angular/core';
 
 import { ChannelMapping, ParameterMapping } from "../../sonosthesia/lib/mapping";
-import { ListIterator } from "../../sonosthesia/lib/core";
 import { ParameterOperator } from "../../sonosthesia/lib/processing";
 
 
@@ -14,14 +13,14 @@ import { ParameterOperator } from "../../sonosthesia/lib/processing";
     selector: 'channel-mapping',
     templateUrl: 'channel-mapping.html'
 })
-export class ChannelMappingComponent implements OnInit, OnDestroy {
+export class ChannelMappingComponent implements OnInit {
 
     readonly tag = 'ChannelMappingComponent';
 
     @Input()
     channelMapping : ChannelMapping;
 
-    parameterMappings : Rx.Observable<ListIterator<ParameterMapping>>;
+    parameterMappings : Rx.Observable<ParameterMapping[]>;
 
     ngOnInit() {
         if (this.channelMapping) {
@@ -29,8 +28,10 @@ export class ChannelMappingComponent implements OnInit, OnDestroy {
         }
     }
 
-    ngOnDestroy() {
-
+    onCreateParameterMapping() {
+        // autoselect sensible parameter input/output selection for the new component
+        const parameterMapping = new ParameterMapping(this.channelMapping);
+        parameterMapping
     }
 
 }
@@ -39,14 +40,14 @@ export class ChannelMappingComponent implements OnInit, OnDestroy {
     selector: 'parameter-mapping',
     templateUrl: 'parameter.mapping.html'
 })
-export class ParameterMappingComponent implements OnInit, OnDestroy {
+export class ParameterMappingComponent implements OnInit {
 
     readonly tag = 'ParameterMappingComponent';
 
     @Input()
     parameterMapping : ParameterMapping;
 
-    parameterOperators : Rx.Observable<ListIterator<ParameterOperator>>;
+    parameterOperators : Rx.Observable<ParameterOperator[]>;
 
     ngOnInit() {
         if (this.parameterMapping) {
@@ -54,7 +55,7 @@ export class ParameterMappingComponent implements OnInit, OnDestroy {
         }
     }
 
-    ngOnDestroy() {
+    onCreateParameterOperator() {
 
     }
 

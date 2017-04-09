@@ -171,6 +171,10 @@ export class ChannelSelection extends Selection {
         return Rx.Observable.merge(super.changeObservable, this._componentSelection.changeObservable);
     }
 
+    applyChannelSelection(channelSelection : ChannelSelection) {
+        this.identifier = channelSelection.identifier;
+        this.componentSelection.identifier = channelSelection.componentSelection.identifier;
+    }
 }
 
 export class ParameterSelection extends Selection {

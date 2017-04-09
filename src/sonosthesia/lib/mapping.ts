@@ -42,18 +42,33 @@ export class ParameterOperatorManager extends ListManager<ParameterOperator> { }
 
 export class ParameterMapping extends NativeClass {
 
+    private _channelMapping : ChannelMapping;
+    private _channelReloadSubscription : Rx.Subscription;
+
     private _input : ParameterSelection;
     private _output : ParameterSelection;
+
     private _operatorManager = new ParameterOperatorManager();
 
     private _staticMapper = new Mapper(null);
     private _instanceMappers = new Map<string, Mapper>();
 
-    constructor() {
+    constructor(channelMapping : ChannelMapping) {
         super();
+        this._channelMapping = channelMapping;
+
         this._input = new ParameterSelection(null, null, null);
         this._output = new ParameterSelection(null, null, null);
+
+        // listen to changes on the channel mapping and update the parameter selectio accordingly
+
+        this._channelReloadSubscription = this.channelMapping.reloadObservable.subscribe(() => {
+
+        });
+
     }
+
+    get channelMapping() : ChannelMapping { return this._channelMapping; }
 
     get operatorManager() : ParameterOperatorManager { return this._operatorManager; }
 
@@ -93,15 +108,35 @@ export class ParameterMapping extends NativeClass {
         this._staticMapper.reload(this.operatorManager);
         this._instanceMappers.forEach((mapper) => { mapper.reload(this.operatorManager); });
     }
+
+    teardown() {
+        if (this._channelReloadSubscription) {
+            this._channelReloadSubscription.unsubscribe();
+            this._channelReloadSubscription = null;
+        }
+    }
 }
 
 
-export class ParameterMappingManager extends ListManager<ParameterMapping> { }
+
+export class ParameterMappingManager extends ListManager<ParameterMapping> {
+
+    // automatically teardown element before removing it
+    onRemove(mapping : ParameterMapping) {
+        if (mapping) mapping.teardown();
+    }
+
+}
 
 export class ChannelMapping extends NativeClass {
 
     private _input : ChannelSelection;
     private _output : ChannelSelection;
+
+    private _routeChange : Rx.Observable<void>;
+
+    private _reloadSource = new Rx.Subject<void>();
+    private _reloadObservable = this._reloadSource.asObservable();
 
     private _parameterMappingManager = new ParameterMappingManager();
 
@@ -109,6 +144,7 @@ export class ChannelMapping extends NativeClass {
     private _outputController : ChannelController;
 
     private _inputSubscription : Rx.Subscription;
+    private _routeSubscription : Rx.Subscription;
 
     // TODO implement automap (pass parameters with the same identifier through with identity mapping)
     private _automap : boolean = false;
@@ -117,7 +153,15 @@ export class ChannelMapping extends NativeClass {
         super();
         this._input = new ChannelSelection(null, null);
         this._output = new ChannelSelection(null, null);
+        this._routeChange = Rx.Observable.merge(this.input.changeObservable, this.output.changeObservable);
+
+        // every time there is a route change
+
+        this._routeSubscription = this._routeChange.subscribe(() => { this.reload(); });
     }
+
+    // merges the change event of the input and output selection
+    get reloadObservable() : Rx.Observable<void> { return this._reloadObservable; }
 
     get componentManager() : ComponentManager { return this._componentManager; }
 
@@ -127,34 +171,23 @@ export class ChannelMapping extends NativeClass {
 
     get output() : ChannelSelection { return this._output; }
 
-    set input(selection : ChannelSelection) {
-        this._input = selection;
-        this.reload();
-    }
-
-    set output(selection : ChannelSelection) {
-        this._output = selection;
-        this.reload();
-    }
-
     // call reload when the input/output selection changes
     reload() {
+
+        this.cancelInputSubscription();
 
         // update controllers for input and output channel selections
 
         this._inputController = this.componentManager.getChannelController(this.input);
         this._outputController = this.componentManager.getChannelController(this.output);
 
-        if (this._inputSubscription) {
-            this._inputSubscription.unsubscribe();
-            this._inputSubscription = null;
-        }
-
         if (this._inputController) {
             this._inputSubscription = this._inputController.messageObservable.subscribe((message : HubMessage) => {
                 this.process(message);
             });
         }
+
+        this._reloadSource.next();
 
     }
 
@@ -213,13 +246,37 @@ export class ChannelMapping extends NativeClass {
                 parameterMapping.destroyInstanceMapper(instance);
             }
         }
-
     }
 
+    teardown() {
+        this.cancelInputSubscription();
+        this.cancelRouteSubscription();
+    }
 
+    private cancelInputSubscription() {
+        if (this._inputSubscription) {
+            this._inputSubscription.unsubscribe();
+            this._inputSubscription = null;
+        }
+    }
+
+    private cancelRouteSubscription() {
+        if (this._routeSubscription) {
+            this._routeSubscription.unsubscribe();
+            this._routeSubscription = null;
+        }
+    }
 }
+
+// it should be the MappingManager's job to
+// - listen to component information changes on the component
+// - trigger selection (parameter/channel) validation for the mappings on changes
+
 
 export class MappingManager extends ListManager<ChannelMapping> {
 
+    onRemove(mapping : ChannelMapping) {
+        if (mapping) mapping.teardown();
+    }
 
 }

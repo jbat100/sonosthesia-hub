@@ -80,8 +80,8 @@ export class ButtonNavigationComponent implements OnInit {
         // oooo map with side effects, i'm bad...
         this.keys = targets.map((target : any) => {
             this.model[target.key] = target.key == this.currentKey;
-            return target.key; })
-        ;
+            return target.key;
+        });
     }
 
     onChange(key, state) {

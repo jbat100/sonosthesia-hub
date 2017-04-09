@@ -318,27 +318,42 @@ export class ListManager <T> {
         this._elementsSource.next( this.elements );
     }
 
+    // PROTECTED hooks to do things on element add/remove
+
+    protected onAdd(element : T) { }
+
+    protected onRemove(element : T) { }
+
+    // PUBLIC
+
     appendElement(element : T) {
+        this.onAdd(element);
         this._elements.push(element);
         this.updateElementSource();
     }
 
     addElementAtIndex(element : T, index : number) {
+        if (index >= this._elements.length) return this.appendElement(element);
+        this.onAdd(element);
         this._elements.splice(index, 0, element);
         this.updateElementSource();
     }
 
     removeElement(index : number) {
+        if (index >= this._elements.length) return;
+        this.onRemove(this._elements[index]);
         this._elements.splice(index, 1);
         this.updateElementSource();
     }
 
     removeAllElements() {
+        this._elements.forEach((element : T) => { this.onRemove(element); });
         this._elements = [];
         this.updateElementSource();
     }
 
     getElement(index : number) : T {
+        if (index >= this._elements.length) return null;
         return this._elements[index];
     }
 

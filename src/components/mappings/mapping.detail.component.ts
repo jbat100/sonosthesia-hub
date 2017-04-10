@@ -5,6 +5,8 @@ import {
     Component, OnInit, OnDestroy, Input
 } from '@angular/core';
 
+import { ParameterOperatorService } from "../../services/operator.service";
+
 import { ChannelMapping, ParameterMapping } from "../../sonosthesia/lib/mapping";
 import { ParameterOperator } from "../../sonosthesia/lib/processing";
 
@@ -31,7 +33,11 @@ export class ChannelMappingComponent implements OnInit {
     onCreateParameterMapping() {
         // autoselect sensible parameter input/output selection for the new component
         const parameterMapping = new ParameterMapping(this.channelMapping);
-        parameterMapping
+        this.channelMapping.parameterMappingManager.appendElement(parameterMapping);
+    }
+
+    onDestroyParameterMapping(index : number) {
+        this.channelMapping.parameterMappingManager.removeElement(index);
     }
 
 }
@@ -49,14 +55,34 @@ export class ParameterMappingComponent implements OnInit {
 
     parameterOperators : Rx.Observable<ParameterOperator[]>;
 
+    availableOperatorNames : string[];
+
+    constructor(private _operatorService : ParameterOperatorService) { }
+
     ngOnInit() {
+
+        // http://stackoverflow.com/questions/12802317/passing-class-as-parameter-causes-is-not-newable-error
+
+        this.availableOperatorNames = this._operatorService.operatorNames();
+
         if (this.parameterMapping) {
             this.parameterOperators = this.parameterMapping.operatorManager.elementsObservable;
         }
     }
 
-    onCreateParameterOperator() {
+    onCreateParameterOperator(name : string) {
+        const operatorType : typeof ParameterOperator = this._operatorService.operatorTypeForName(name);
+        if (operatorType) {
+            const operator = new operatorType();
+            this.parameterMapping.operatorManager.appendElement(operator);
 
+        } else {
+            console.error(this.tag + ' no operator type for name ' + name);
+        }
+    }
+
+    onDestroyParameterOperator(index : number) {
+        this.parameterMapping.operatorManager.removeElement(index);
     }
 
 }

@@ -27,7 +27,11 @@ export class ParameterSample extends NativeClass {
 
 export class ParameterOperator extends NativeClass {
 
-    static get name() { return ''; }
+    static get name() : string { return ''; }
+
+    // I have trouble believing there isn't a better way to do this but can't find one...
+
+    get name() : string { return (this.constructor as any).name; }
 
 }
 
@@ -46,12 +50,42 @@ export class StatelessParameterOperator extends ParameterOperator {
 class StatelessValueOperator extends StatelessParameterOperator {
 
     process(sample : ParameterSample) : ParameterSample {
-        const values : number[] = _.map(sample.values, value => { return this._processValue(value); });
+        const values : number[] = _.map(sample.values, value => { return this.processValue(value); });
         return new ParameterSample(values, sample.timestamp);
     }
 
-    _processValue( value : number ) : number {
+    protected processValue( value : number ) : number {
         throw new Error('not implemented');
+    }
+
+}
+
+export class ScaleValueOperator extends StatelessValueOperator {
+
+    static get name() { return 'scale'; }
+
+    private _scale = 1.0;
+
+    get scale() { return this._scale; }
+    set scale(val) { this._scale = val; }
+
+    protected processValue( value : number ) : number {
+        return value * this._scale;
+    }
+
+}
+
+export class OffsetValueOperator extends StatelessValueOperator {
+
+    static get name() { return 'offset'; }
+
+    private _offset = 0.0;
+
+    get offset() { return this._offset; }
+    set offset(val) { this._offset = val; }
+
+    protected processValue( value : number ) : number {
+        return value + this._offset;
     }
 
 }

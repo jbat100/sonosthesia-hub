@@ -3,10 +3,11 @@
 
     <div class="root-top-bar">
         <button-navigation class="main-bar-item" [currentKey]="'mappings'"></button-navigation>
+        <button class="secondary-bar-item" (click)="onCreate($event)" type="button" class="btn btn-primary">Add</button>
     </div>
 
     <div class="root-content">
-        Root mappings
+        <channel-mapping *ngFor="let mapping of mappingsObservable | async" [channelMapping]="mapping"></channel-mapping>
     </div>
 
 </div>

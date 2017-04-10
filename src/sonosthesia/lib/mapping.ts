@@ -63,7 +63,8 @@ export class ParameterMapping extends NativeClass {
         // listen to changes on the channel mapping and update the parameter selectio accordingly
 
         this._channelReloadSubscription = this.channelMapping.reloadObservable.subscribe(() => {
-
+            this.input.channelSelection.applyChannelSelection(this.channelMapping.input);
+            this.output.channelSelection.applyChannelSelection(this.channelMapping.output);
         });
 
     }

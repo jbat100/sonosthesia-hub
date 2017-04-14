@@ -1,0 +1,32 @@
+<div class="default-content-panel">
+
+    <button (click)="deleteRequest.emit($event)"
+            type="button"
+            class="btn btn-primary"> Delete </button>
+
+    <div>
+
+        <div>Input</div>
+
+        <channel-selection [manager]="channelMapping.componentManager"
+                           [selection]="channelMapping.input"
+                           [showComponent]="true">
+        </channel-selection>
+
+        <div>Output</div>
+
+        <channel-selection [manager]="channelMapping.componentManager"
+                           [selection]="channelMapping.output"
+                           [showComponent]="true">
+        </channel-selection>
+
+    </div>
+
+    <button (click)="onCreateParameterMapping($event)"
+            type="button"
+            class="btn btn-primary"> Add Parameter Mapping </button>
+
+    <parameter-mapping *ngFor="let parameterMapping of parameterMappings | async"
+                       [parameterMapping]="parameterMapping"> </parameter-mapping>
+
+</div>

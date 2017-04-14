@@ -16,24 +16,22 @@ export class Mapper extends NativeClass {
 
     constructor(private _operatorManager : ParameterOperatorManager) {
         super();
-        this._processorChain = new ParameterProcessorChain(this._operatorManager.elements);
+        this._operatorManager.elementsObservable.subscribe((operators : ParameterOperator[]) => {
+            this._processorChain = new ParameterProcessorChain(operators);
+        });
     }
 
     get operatorManager() : ParameterOperatorManager { return this._operatorManager; }
 
     get processorChain() : ParameterProcessorChain { return this._processorChain; }
 
-    reset() {
-        this.reload(this._operatorManager);
-    }
-
-    reload(operatorManager : ParameterOperatorManager) {
-        this._operatorManager = operatorManager;
-        this._processorChain = new ParameterProcessorChain(this.operatorManager.elements);
-    }
-
     process(sample : ParameterSample) : ParameterSample {
-        return this.processorChain.process(sample);
+        if (this.processorChain) return this.processorChain.process(sample);
+        else return sample;
+    }
+
+    reset() {
+
     }
 
 }
@@ -50,7 +48,7 @@ export class ParameterMapping extends NativeClass {
 
     private _operatorManager = new ParameterOperatorManager();
 
-    private _staticMapper = new Mapper(null);
+    private _staticMapper = new Mapper(this._operatorManager);
     private _instanceMappers = new Map<string, Mapper>();
 
     constructor(channelMapping : ChannelMapping) {
@@ -70,6 +68,8 @@ export class ParameterMapping extends NativeClass {
     }
 
     get channelMapping() : ChannelMapping { return this._channelMapping; }
+
+    get componentManager() : ComponentManager { return this.channelMapping.componentManager; }
 
     get operatorManager() : ParameterOperatorManager { return this._operatorManager; }
 
@@ -102,12 +102,6 @@ export class ParameterMapping extends NativeClass {
         this._staticMapper.reset();
         this._instanceMappers.forEach((mapper) => { mapper.reset(); });
         this._instanceMappers.clear();
-    }
-
-    // reload with the current parameter mapping operators
-    reload() {
-        this._staticMapper.reload(this.operatorManager);
-        this._instanceMappers.forEach((mapper) => { mapper.reload(this.operatorManager); });
     }
 
     teardown() {

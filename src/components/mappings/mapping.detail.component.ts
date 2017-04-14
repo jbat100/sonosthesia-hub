@@ -2,7 +2,7 @@
 import * as Rx from 'rxjs/Rx';
 
 import {
-    Component, OnInit, OnDestroy, Input
+    Component, OnInit, Input, Output, EventEmitter
 } from '@angular/core';
 
 import { ParameterOperatorService } from "../../services/operator.service";
@@ -13,7 +13,7 @@ import { ParameterOperator } from "../../sonosthesia/lib/processing";
 
 @Component({
     selector: 'channel-mapping',
-    templateUrl: 'channel-mapping.html'
+    templateUrl: 'channel.mapping.html'
 })
 export class ChannelMappingComponent implements OnInit {
 
@@ -21,6 +21,9 @@ export class ChannelMappingComponent implements OnInit {
 
     @Input()
     channelMapping : ChannelMapping;
+
+    @Output()
+    deleteRequest = new EventEmitter();
 
     parameterMappings : Rx.Observable<ParameterMapping[]>;
 
@@ -49,6 +52,9 @@ export class ChannelMappingComponent implements OnInit {
 export class ParameterMappingComponent implements OnInit {
 
     readonly tag = 'ParameterMappingComponent';
+
+    @Output()
+    deleteRequest = new EventEmitter();
 
     @Input()
     parameterMapping : ParameterMapping;

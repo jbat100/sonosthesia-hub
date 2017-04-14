@@ -1,0 +1,25 @@
+<div class="inverse-default-content-panel">
+
+    <div>
+
+        <div>Input</div>
+
+        <parameter-selection [manager]="parameterMapping.componentManager"
+                             [selection]="parameterMapping.input">
+        </parameter-selection>
+
+        <div>Output</div>
+
+        <parameter-selection [manager]="parameterMapping.componentManager"
+                             [selection]="parameterMapping.output">
+        </parameter-selection>
+
+    </div>
+
+    <button (click)="onCreateParameterOperator($event)" type="button" class="btn btn-primary">Add</button>
+
+    <parameter-operator *ngFor="let parameterOperator of parameterOperators | async"
+                        [parameterOperator]="parameterOperator">
+    </parameter-operator>
+
+</div>

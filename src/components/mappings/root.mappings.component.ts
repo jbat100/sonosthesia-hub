@@ -17,9 +17,10 @@ export class RootMappingsComponent implements OnInit, OnDestroy {
     readonly tag = 'RootMappingsComponent';
 
     mappingsObservable : Rx.Observable<ChannelMapping[]>;
+    hubManager : HubManager;
 
     private _subscription : Rx.Subscription;
-    private _hubManager : HubManager;
+
 
     constructor(private _zone : NgZone, private _hubService : HubService) {
         console.log(this.tag + ' constructor');
@@ -28,14 +29,14 @@ export class RootMappingsComponent implements OnInit, OnDestroy {
     ngOnInit() {
         //console.log(this.tag + ' ngOnInit');
         this._subscription = this._hubService.hubManager.subscribe((hubManager : HubManager) => {
-            this._hubManager = hubManager;
-            if (this._hubManager) {
-                this._zone.run(() => {
-                    this.mappingsObservable = this._hubManager.mappingManager.elementsObservable;
-                });
-            } else {
-                this.mappingsObservable = null;
-            }
+            this.hubManager = hubManager;
+            this._zone.run(() => {
+                if (this.hubManager) {
+                    this.mappingsObservable = this.hubManager.mappingManager.elementsObservable;
+                } else {
+                    this.mappingsObservable = null;
+                }
+            });
         });
     }
 
@@ -45,9 +46,16 @@ export class RootMappingsComponent implements OnInit, OnDestroy {
 
     onCreate() {
         console.log(this.tag + ' onCreate');
-        if (this._hubManager) {
-            const mapping = new ChannelMapping(this._hubManager.mappingManager, this._hubManager.componentManager);
-            this._hubManager.mappingManager.appendElement(mapping);
+        if (this.hubManager) {
+            const mapping = new ChannelMapping(this.hubManager.mappingManager, this.hubManager.componentManager);
+            this.hubManager.mappingManager.appendElement(mapping);
+        }
+    }
+
+    onDelete(index : number) {
+        console.log(this.tag + ' onDelete ' + index);
+        if (this.hubManager) {
+            this.hubManager.mappingManager.removeElement(index);
         }
     }
 

@@ -1,4 +1,17 @@
 <div>
     <!-- unless it causes performance issues, have a switch based on operator type -->
-    Operator {{parameterOperator.constructor.name}}
+    Operator {{parameterOperator.name}}
+
+    <div [ngSwitch]="parameterOperator.name">
+
+        <div *ngSwitchCase="'offset'">
+            Offset interface
+        </div>
+
+        <div *ngSwitchCase="'scale'">
+            Scale interface
+        </div>
+
+    </div>
+
 </div>

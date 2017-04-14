@@ -17,6 +17,8 @@ import { NgPipesModule } from 'ngx-pipes';
 
 import { ConfigurationService } from './services/configuration.service';
 import { HubService } from './services/hub.service';
+import { NavigationService } from "./services/navigation.service";
+import { ParameterOperatorService } from "./services/operator.service";
 
 // pipes
 
@@ -29,6 +31,8 @@ import { MenuComponent } from './menu.component';
 import {
     TabNavigationComponent, ButtonNavigationComponent
 } from './components/navigation/navigation.component';
+
+
 
 // settings sub components
 
@@ -46,13 +50,21 @@ import { RootMappingsComponent } from './components/mappings/root.mappings.compo
 // component sub components
 
 import { RootComponentsComponent } from './components/components/root.components.component';
+
 import {
     ComponentDetailComponent, ChannelDetailComponent, ParameterDetailComponent
 } from './components/components/component.detail.component';
+
 import {
     ComponentSelectionComponent, ChannelSelectionComponent, ParameterSelectionComponent
 } from './components/components/component.selector.component';
-import {NavigationService} from "./services/navigation.service";
+
+
+import {
+    ChannelMappingComponent, ParameterMappingComponent
+} from "./components/mappings/mapping.detail.component";
+import {ParameterOperatorComponent} from "./components/processing/parameter.operator.component";
+
 
 const routes : Routes = [
     {
@@ -105,6 +117,9 @@ const routes : Routes = [
         GeneratorDetailComponent,
         // sonosthesia mappings -----------------------
         RootMappingsComponent,
+        ChannelMappingComponent,
+        ParameterMappingComponent,
+        ParameterOperatorComponent,
         // sonosthesia components ---------------------
         RootComponentsComponent,
         ComponentDetailComponent,
@@ -117,7 +132,8 @@ const routes : Routes = [
     providers: [
         ConfigurationService,
         HubService,
-        NavigationService
+        NavigationService,
+        ParameterOperatorService
     ],
     bootstrap: [
         RootComponent

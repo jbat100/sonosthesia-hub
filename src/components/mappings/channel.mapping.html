@@ -1,8 +1,23 @@
-<div class="default-content-panel">
+<div class="content-panel-1">
+
 
     <div class="bar-container bar-vertical-margin">
 
-        <div class="bar-center-space"></div>
+        <div class="bar-label bar-title h5">Input</div>
+
+        <channel-selection [manager]="channelMapping.componentManager"
+                           [selection]="channelMapping.input"
+                           [showComponent]="true"
+                           class="bar-field">
+        </channel-selection>
+
+        <div class="bar-label bar-title h5">Output</div>
+
+        <channel-selection [manager]="channelMapping.componentManager"
+                           [selection]="channelMapping.output"
+                           [showComponent]="true"
+                           class="bar-field">
+        </channel-selection>
 
         <button (click)="deleteRequest.emit($event)"
                 type="button"
@@ -11,32 +26,6 @@
         <button (click)="onCreateParameterMapping($event)"
                 type="button"
                 class="btn btn-primary secondary-bar-item"> Add Parameter Mapping </button>
-
-    </div>
-
-    <div class="bar-container bar-vertical-margin">
-
-        <div class="bar-label bar-title h4">Input</div>
-
-        <channel-selection [manager]="channelMapping.componentManager"
-                           [selection]="channelMapping.input"
-                           [showComponent]="true"
-                           [labeled]="true"
-                           class="bar-field">
-        </channel-selection>
-
-    </div>
-
-    <div class="bar-container bar-vertical-margin">
-
-        <div class="bar-label bar-title h4">Output</div>
-
-        <channel-selection [manager]="channelMapping.componentManager"
-                           [selection]="channelMapping.output"
-                           [showComponent]="true"
-                           [labeled]="true"
-                           class="bar-field">
-        </channel-selection>
 
     </div>
 

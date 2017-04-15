@@ -14,6 +14,8 @@
             name="parameterSelect"
             class="custom-select bar-field">
 
+        <option value="" disabled selected>Select parameter...</option>
+
         <option [ngValue]="candidate"
                 *ngFor="let candidate of candidates">{{candidate}}</option>
 

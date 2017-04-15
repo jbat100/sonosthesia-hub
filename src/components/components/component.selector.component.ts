@@ -43,15 +43,23 @@ export class ComponentSelectionComponent implements OnInit, OnDestroy {
     constructor(private _zone : NgZone) { }
 
     ngOnInit() {
+        //console.warn(this.tag + ' ngOnInit ');
+        this.identifier = this.selection.identifier || "";
         this.subscription = this.manager.componentControllersObservable.subscribe((controllers : ComponentController[]) => {
             this._zone.run(() => {
-                this.candidates = controllers.map((controller: ComponentController) => { return controller.info.identifier; });
-                if (this.identifier && this.candidates.indexOf(this.identifier) == -1) { this.identifier = null; }
+                this.candidates = controllers.map((controller: ComponentController) => {
+                    return controller.info.identifier;
+                });
+                if (this.identifier && this.candidates.indexOf(this.identifier) == -1) {
+                    //console.log(this.tag + ' ' + this.identifier + ' is no longer available');
+                    this.identifier = null;
+                }
             });
         });
     }
 
     ngOnDestroy() {
+        console.warn(this.tag + ' ngOnDestroy');
         if (this.subscription) this.subscription.unsubscribe();
     }
 
@@ -99,6 +107,7 @@ export class ChannelSelectionComponent implements OnInit, OnDestroy {
     constructor(private _zone : NgZone) { }
 
     ngOnInit() {
+        this.identifier = this.selection.identifier || "";
         // refresh candidates when the component controllers array is changed
         this.componentControllerSubscription = this.manager.componentControllersObservable.subscribe((controllers : ComponentController[]) => {
             this._zone.run(() => { this.relink(); });
@@ -123,7 +132,7 @@ export class ChannelSelectionComponent implements OnInit, OnDestroy {
             this.componentInfoSubscription = this.componentController.infoObservable.subscribe((componentInfo : ComponentInfo) => {
                 this._zone.run(() => {
                     this.candidates = componentInfo.channels.map((channelInfo : ChannelInfo) => { return channelInfo.identifier; });
-                    if (this.identifier && this.candidates.indexOf(this.identifier) == -1) { this.identifier = null; }
+                    if (this.identifier && this.candidates.indexOf(this.identifier) == -1) { this.identifier = ""; }
                 });
             });
         }
@@ -177,6 +186,7 @@ export class ParameterSelectionComponent implements OnDestroy {
     constructor(private _zone : NgZone) { }
 
     ngOnInit() {
+        this.identifier = this.selection.identifier || "";
         // refresh candidates when the component controllers array is changed
         this.componentControllerSubscription = this.manager.componentControllersObservable.subscribe((controllers : ComponentController[]) => {
             this._zone.run(() => { this.relinkComponent(); });
@@ -203,7 +213,7 @@ export class ParameterSelectionComponent implements OnDestroy {
                 this._zone.run(() => {
                     const channelInfo : ChannelInfo = componentInfo.channelSet.getElement(this.selection.channelSelection.identifier);
                     this.candidates = this.candidates = channelInfo.parameters.map((parameterInfo : ParameterInfo) => { return parameterInfo.identifier; });
-                    if (this.identifier && this.candidates.indexOf(this.identifier) == -1) { this.identifier = null; }
+                    if (this.identifier && this.candidates.indexOf(this.identifier) == -1) { this.identifier = ""; }
                 });
             });
         }

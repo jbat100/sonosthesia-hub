@@ -9,8 +9,10 @@
             name="componentSelect"
             class="custom-select bar-field">
 
-        <option [ngValue]="candidate"
-                *ngFor="let candidate of candidates">{{candidate}}</option>
+        <option value="" disabled selected>Select component...</option>
+
+        <option *ngFor="let candidate of candidates"
+                [ngValue]="candidate">{{candidate}}</option>
 
     </select>
 

@@ -15,66 +15,25 @@ import {
     selector: 'component-detail',
     templateUrl: 'component.detail.html'
 })
-export class ComponentDetailComponent implements OnInit, OnDestroy {
+export class ComponentDetailComponent implements OnInit {
 
     readonly tag = 'ComponentDetailComponent';
 
     // https://angular.io/docs/ts/latest/cookbook/component-communication.html
     @Input()
-    set componentController(componentController : ComponentController) {
-        this._componentController = componentController;
-        this.linkComponentController(this.componentController);
-    }
-    get componentController() : ComponentController { return this._componentController; }
+    componentController : ComponentController;
 
     // components can update their channels on the fly (by sending a new component description message)
     // using an observable allows to react to changes easily
 
-    channelControllers : ChannelController[];
-    componentInfo : ComponentInfo;
-
-    private _componentController : ComponentController;
-    private _controllerSubscription : Rx.Subscription;
-    private _infoSubscription : Rx.Subscription;
+    channelControllers : Rx.Observable<ChannelController[]>;
+    componentIdentifier : Rx.Observable<string>;
 
     ngOnInit() {
-        this.linkComponentController(this.componentController);
-    }
-
-    ngOnDestroy() {
-        this.linkComponentController(null);
-    }
-
-    private linkComponentController(componentController : ComponentController) {
-
-        //console.log(this.tag + ' linkComponentController : ' + componentController);
-
-        this.channelControllers = null;
-        this.componentInfo = null;
-
-        if (this._controllerSubscription) {
-            this._controllerSubscription.unsubscribe();
-            this._controllerSubscription = null;
-        }
-
-        if (this._infoSubscription) {
-            this._infoSubscription.unsubscribe();
-            this._infoSubscription = null;
-        }
-
-        if (componentController) {
-            this._controllerSubscription = componentController.channelControllersObservable
-                .subscribe((controllers : ChannelController[]) => {
-                //console.log(this.tag + ' channel controllers subscription update with ' + controllers.length + ' controllers');
-                this.channelControllers = controllers;
-            }, err => {
-                console.error(this.tag + ' channel controllers subscription error : ' + err);
-            });
-            this._infoSubscription = componentController.infoObservable
-                .subscribe((info : ComponentInfo) => {
-                this.componentInfo = info;
-            });
-        }
+        this.channelControllers = this.componentController.channelControllersObservable;
+        this.componentIdentifier = this.componentController.infoObservable.map((info : ComponentInfo) => {
+           return info.identifier;
+        });
     }
 
 }

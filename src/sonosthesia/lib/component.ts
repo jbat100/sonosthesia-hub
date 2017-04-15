@@ -252,14 +252,18 @@ export class ChannelController extends BaseController<ChannelInfo> implements IP
     // an observable with only the messages addressed to this channel
     private _messageObservable: Rx.Observable<HubMessage>;
 
-    private _messageCount = 0;
+    private _incomingCountSource = new Rx.BehaviorSubject<number>(0);
+    private _incomingCountObservable = this._incomingCountSource.asObservable();
+
+    private _outgoingCountSource = new Rx.BehaviorSubject<number>(0);
+    private _outgoingCountObservable = this._outgoingCountSource.asObservable();
 
     constructor(private _componentController : ComponentController) {
         super();
         this._messageObservable = this._componentController.connection.messageObservable.filter((message, idx) => {
             return this.info && message.content.channel === this.info.identifier;
         }).do((message : HubMessage) => {
-            this._messageCount++;
+            this._incomingCountSource.next(this._incomingCountSource.getValue() + 1);
         });
     }
 
@@ -267,10 +271,15 @@ export class ChannelController extends BaseController<ChannelInfo> implements IP
 
     get componentController() : ComponentController { return this._componentController; }
 
+    get incomingCountObservable() : Rx.Observable<number> { return this._incomingCountObservable; }
+
+    get outgoingCountObservable() : Rx.Observable<number> { return this._outgoingCountObservable; }
+
     sendMessage(message : HubMessage) {
         if (message.content.channel !== this.info.identifier) {
             throw new Error('invalid message channel ' + message.content.channel);
         }
+        this._outgoingCountSource.next(this._outgoingCountSource.getValue() + 1);
         this.componentController.sendMessage(message);
     }
 

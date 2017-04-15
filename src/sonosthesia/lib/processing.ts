@@ -66,8 +66,14 @@ export class ScaleValueOperator extends StatelessValueOperator {
 
     private _scale = 1.0;
 
-    get scale() { return this._scale; }
-    set scale(val) { this._scale = val; }
+    get scale() {
+        console.log(this.tag + ' get scale ' + this._scale);
+        return this._scale;
+    }
+    set scale(val) {
+        console.log(this.tag + ' set scale' + val);
+        this._scale = val;
+    }
 
     protected processValue( value : number ) : number {
         return value * this._scale;
@@ -81,8 +87,12 @@ export class OffsetValueOperator extends StatelessValueOperator {
 
     private _offset = 0.0;
 
-    get offset() { return this._offset; }
-    set offset(val) { this._offset = val; }
+    get offset() {
+        return this._offset;
+    }
+    set offset(val) {
+        this._offset = val;
+    }
 
     protected processValue( value : number ) : number {
         return value + this._offset;

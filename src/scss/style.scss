@@ -189,7 +189,7 @@ select {
   //box-shadow: 10px 10px 16px -7px rgba(0,0,0,0.75);
 }
 
-.content-panel-1 {
+.content-panel-3 {
   @extend .content-panel;
   //background-color: #f7f8fa;
   background-color: #eaeaea;
@@ -200,7 +200,7 @@ select {
   background-color: #b8b8b9;
 }
 
-.content-panel-3 {
+.content-panel-1 {
   @extend .content-panel;
   background-color: #8c8c8d;
 }
@@ -332,4 +332,9 @@ select {
 
 .vertical-space {
   margin-top: 10px;
+}
+
+.slider-space {
+  padding-left: 20px;
+  padding-right: 20px;
 }

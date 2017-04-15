@@ -89,6 +89,7 @@ export class ParameterMappingComponent implements OnInit {
     }
 
     onDestroyParameterOperator(index : number) {
+        console.log(this.tag + ' onDestroyParameterOperator ' + index);
         this.parameterMapping.operatorManager.removeElement(index);
     }
 

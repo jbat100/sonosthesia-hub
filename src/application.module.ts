@@ -10,7 +10,7 @@ import { FormsModule } from '@angular/forms';
 
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NgPipesModule } from 'ngx-pipes';
-import { SelectModule } from 'ng2-select';
+import { NouisliderModule } from 'ng2-nouislider';
 
 // --------------------------- SONOSTHESIA -----------------------------
 
@@ -60,11 +60,15 @@ import {
     ComponentSelectionComponent, ChannelSelectionComponent, ParameterSelectionComponent
 } from './components/components/component.selector.component';
 
+// mapping sub components
 
 import {
     ChannelMappingComponent, ParameterMappingComponent
 } from "./components/mappings/mapping.detail.component";
-import {ParameterOperatorComponent} from "./components/processing/parameter.operator.component";
+
+import {
+    ParameterOperatorContainerComponent, ScaleValueOperatorComponent, OffsetValueOperatorComponent
+} from "./components/processing/parameter.operator.component";
 
 
 const routes : Routes = [
@@ -98,7 +102,7 @@ const routes : Routes = [
 @NgModule({
     imports: [
         NgPipesModule,
-        SelectModule,
+        NouisliderModule,
         BrowserModule,
         FormsModule,
         RouterModule.forRoot(routes),
@@ -121,7 +125,9 @@ const routes : Routes = [
         RootMappingsComponent,
         ChannelMappingComponent,
         ParameterMappingComponent,
-        ParameterOperatorComponent,
+        ParameterOperatorContainerComponent,
+        ScaleValueOperatorComponent,
+        OffsetValueOperatorComponent,
         // sonosthesia components ---------------------
         RootComponentsComponent,
         ComponentDetailComponent,

@@ -6,6 +6,7 @@ import { ApplicationModule } from './application.module';
 // https://github.com/AngularClass/angular2-webpack-starter/wiki/How-to-include-SCSS-in-components
 
 import 'bootstrap/dist/css/bootstrap.css';
+import 'nouislider/distribute/nouislider.min.css';
 
 import './scss/style.scss';
 

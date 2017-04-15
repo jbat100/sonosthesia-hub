@@ -1,5 +1,4 @@
-<div class="content-panel-1">
-
+<div class="content-panel-3">
 
     <div class="bar-container bar-vertical-margin">
 
@@ -32,5 +31,7 @@
     <parameter-mapping *ngFor="let parameterMapping of parameterMappings | async"
                        [parameterMapping]="parameterMapping"
                        (deleteRequest)="onDestroyParameterMapping(index)"> </parameter-mapping>
+
+    <div class="vertical-space"></div>
 
 </div>

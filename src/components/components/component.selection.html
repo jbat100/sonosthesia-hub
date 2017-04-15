@@ -1,3 +1,17 @@
-<select [(ngModel)]="identifier" (ngModelChange)="onSelection($event)" name="componentSelect">
-    <option [ngValue]="candidate" *ngFor="let candidate of candidates">{{candidate}}</option>
-</select>
+
+<div class="bar-container">
+
+
+    <div *ngIf="labeled" class="bar-label">Component</div>
+
+    <select [ngModel]="identifier"
+            (ngModelChange)="onSelection($event)"
+            name="componentSelect"
+            class="custom-select bar-field">
+
+        <option [ngValue]="candidate"
+                *ngFor="let candidate of candidates">{{candidate}}</option>
+
+    </select>
+
+</div>

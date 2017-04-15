@@ -1,32 +1,47 @@
 <div class="default-content-panel">
 
-    <button (click)="deleteRequest.emit($event)"
-            type="button"
-            class="btn btn-primary"> Delete </button>
+    <div class="bar-container bar-vertical-margin">
 
-    <div>
+        <div class="bar-center-space"></div>
 
-        <div>Input</div>
+        <button (click)="deleteRequest.emit($event)"
+                type="button"
+                class="btn btn-primary secondary-bar-item"> Delete </button>
+
+        <button (click)="onCreateParameterMapping($event)"
+                type="button"
+                class="btn btn-primary secondary-bar-item"> Add Parameter Mapping </button>
+
+    </div>
+
+    <div class="bar-container bar-vertical-margin">
+
+        <div class="bar-label bar-title h4">Input</div>
 
         <channel-selection [manager]="channelMapping.componentManager"
                            [selection]="channelMapping.input"
-                           [showComponent]="true">
-        </channel-selection>
-
-        <div>Output</div>
-
-        <channel-selection [manager]="channelMapping.componentManager"
-                           [selection]="channelMapping.output"
-                           [showComponent]="true">
+                           [showComponent]="true"
+                           [labeled]="true"
+                           class="bar-field">
         </channel-selection>
 
     </div>
 
-    <button (click)="onCreateParameterMapping($event)"
-            type="button"
-            class="btn btn-primary"> Add Parameter Mapping </button>
+    <div class="bar-container bar-vertical-margin">
+
+        <div class="bar-label bar-title h4">Output</div>
+
+        <channel-selection [manager]="channelMapping.componentManager"
+                           [selection]="channelMapping.output"
+                           [showComponent]="true"
+                           [labeled]="true"
+                           class="bar-field">
+        </channel-selection>
+
+    </div>
 
     <parameter-mapping *ngFor="let parameterMapping of parameterMappings | async"
-                       [parameterMapping]="parameterMapping"> </parameter-mapping>
+                       [parameterMapping]="parameterMapping"
+                       (deleteRequest)="onDestroyParameterMapping(index)"> </parameter-mapping>
 
 </div>

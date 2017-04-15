@@ -1,25 +1,40 @@
 <div class="inverse-default-content-panel">
 
-    <div>
+    <div class="bar-container">
 
-        <div>Input</div>
-
-        <parameter-selection [manager]="parameterMapping.componentManager"
-                             [selection]="parameterMapping.input">
-        </parameter-selection>
-
-        <div>Output</div>
+        <div class="bar-label h5">Input</div>
 
         <parameter-selection [manager]="parameterMapping.componentManager"
-                             [selection]="parameterMapping.output">
+                             [selection]="parameterMapping.input"
+                             class="bar-field">
         </parameter-selection>
+
+        <div class="bar-label h5">Output</div>
+
+        <parameter-selection [manager]="parameterMapping.componentManager"
+                             [selection]="parameterMapping.output"
+                             class="bar-field">
+        </parameter-selection>
+
+        <div class="bar-label h5">Operators</div>
+
+        <select [(ngModel)]="selectedOperatorName" class="custom-select bar-field">
+
+            <option [ngValue]="name" *ngFor="let name of availableOperatorNames">{{name}}</option>
+
+        </select>
+
+        <button (click)="onCreateParameterOperator(selectedOperatorName)"
+                type="button"
+                class="btn btn-primary bar-label">Add</button>
 
     </div>
 
-    <button (click)="onCreateParameterOperator($event)" type="button" class="btn btn-primary">Add</button>
+
 
     <parameter-operator *ngFor="let parameterOperator of parameterOperators | async"
-                        [parameterOperator]="parameterOperator">
+                        [parameterOperator]="parameterOperator"
+                        (deleteRequest)="onDestroyParameterOperator(index)">
     </parameter-operator>
 
 </div>

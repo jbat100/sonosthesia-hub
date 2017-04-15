@@ -47,7 +47,7 @@ export class StatelessParameterOperator extends ParameterOperator {
  * Subclasses should override _processValue
  */
 
-class StatelessValueOperator extends StatelessParameterOperator {
+export class StatelessValueOperator extends StatelessParameterOperator {
 
     process(sample : ParameterSample) : ParameterSample {
         const values : number[] = _.map(sample.values, value => { return this.processValue(value); });
@@ -95,7 +95,7 @@ export class OffsetValueOperator extends StatelessValueOperator {
  * Subclasses should override _processArray
  */
 
-class StatelessArrayOperator extends StatelessParameterOperator {
+export class StatelessArrayOperator extends StatelessParameterOperator {
 
     process(sample : ParameterSample) : ParameterSample {
         const values : number[] = this._processArray(sample.values);
@@ -179,9 +179,9 @@ export class StatefulParameterProcessor extends ParameterProcessor {
 export class ParameterProcessorFactory extends NativeClass {
 
     static newProcessorWithOperator(operator : ParameterOperator) : ParameterProcessor {
-        if (operator.constructor === StatelessArrayOperator) {
+        if (operator instanceof StatelessParameterOperator) {
             return new StatelessParameterProcessor(operator);
-        } else if (operator.constructor === StatefulParameterOperator) {
+        } else if (operator instanceof StatefulParameterOperator) {
             return new StatefulParameterProcessor(operator);
         } else {
             throw new Error('unsupported operator');

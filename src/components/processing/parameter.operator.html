@@ -1,17 +1,21 @@
-<div>
+<div class="bar-container bar-vertical-margin">
     <!-- unless it causes performance issues, have a switch based on operator type -->
-    Operator {{parameterOperator.name}}
+    <div class="bar-label">{{parameterOperator.name | titleCase}}</div>
 
-    <div [ngSwitch]="parameterOperator.name">
+    <div class="bar-container" [ngSwitch]="parameterOperator.name">
 
-        <div *ngSwitchCase="'offset'">
+        <div *ngSwitchCase="'offset'" class="bar-field">
             Offset interface
         </div>
 
-        <div *ngSwitchCase="'scale'">
+        <div *ngSwitchCase="'scale'" class="bar-field">
             Scale interface
         </div>
 
     </div>
+
+    <button (click)="deleteRequest.emit($event)"
+            type="button"
+            class="btn btn-primary bar-label"> Delete </button>
 
 </div>

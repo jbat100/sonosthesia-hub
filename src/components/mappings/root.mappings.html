@@ -8,7 +8,8 @@
 
     <div class="root-content">
         <channel-mapping *ngFor="let mapping of mappingsObservable | async"
-                         [channelMapping]="mapping" (deleteRequest)="onDelete(index)">
+                         [channelMapping]="mapping"
+                         (deleteRequest)="onDelete(index)">
         </channel-mapping>
     </div>
 

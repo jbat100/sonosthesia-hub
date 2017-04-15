@@ -28,6 +28,9 @@ export class ComponentSelectionComponent implements OnInit, OnDestroy {
     @Input()
     manager : ComponentManager;
 
+    @Input()
+    labeled : boolean = false;
+
     identifier : string;
     candidates : string[];
 
@@ -78,6 +81,9 @@ export class ChannelSelectionComponent implements OnInit, OnDestroy {
 
     @Input()
     showComponent : boolean = false;
+
+    @Input()
+    labeled : boolean = false;
 
     componentController : ComponentController;
 
@@ -153,6 +159,9 @@ export class ParameterSelectionComponent implements OnDestroy {
 
     @Input()
     showChannel : boolean = false;
+
+    @Input()
+    labeled : boolean = false;
 
     componentController : ComponentController;
 

@@ -2,7 +2,7 @@
 import * as Rx from 'rxjs/Rx';
 
 import {
-    Component, OnInit, OnDestroy, Input
+    Component, Input, Output, EventEmitter
 } from '@angular/core';
 
 import {ParameterOperator} from "../../sonosthesia/lib/processing";
@@ -11,19 +11,15 @@ import {ParameterOperator} from "../../sonosthesia/lib/processing";
     selector: 'parameter-operator',
     templateUrl: 'parameter.operator.html'
 })
-export class ParameterOperatorComponent implements OnInit, OnDestroy {
+export class ParameterOperatorComponent {
 
     readonly tag = 'ParameterOperatorComponent';
+
+    @Output()
+    deleteRequest = new EventEmitter();
 
     @Input()
     parameterOperator : ParameterOperator;
 
-    ngOnInit() {
-
-    }
-
-    ngOnDestroy() {
-
-    }
 
 }

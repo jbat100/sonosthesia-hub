@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { NgPipesModule } from 'ngx-pipes';
+import { SelectModule } from 'ng2-select';
 
 // --------------------------- SONOSTHESIA -----------------------------
 
@@ -97,6 +98,7 @@ const routes : Routes = [
 @NgModule({
     imports: [
         NgPipesModule,
+        SelectModule,
         BrowserModule,
         FormsModule,
         RouterModule.forRoot(routes),

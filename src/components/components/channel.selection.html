@@ -1,4 +1,23 @@
-<component-selection [manager]="manager" [selection]="selection.componentSelection"></component-selection>
-<select [(ngModel)]="identifier" (ngModelChange)="onSelection($event)" name="channelSelect">
-    <option [ngValue]="candidate" *ngFor="let candidate of candidates">{{candidate}}</option>
-</select>
+
+<div class="bar-container">
+
+    <component-selection *ngIf="showComponent"
+                         [manager]="manager"
+                         [selection]="selection.componentSelection"
+                         [labeled]="labeled"
+                         class="bar-field"></component-selection>
+
+    <div *ngIf="labeled" class="bar-label">Channel</div>
+
+    <select [ngModel]="identifier"
+            (ngModelChange)="onSelection($event)"
+            name="channelSelect"
+            class="custom-select bar-field">
+
+        <option [ngValue]="candidate"
+                *ngFor="let candidate of candidates">{{candidate}}</option>
+
+    </select>
+
+</div>
+

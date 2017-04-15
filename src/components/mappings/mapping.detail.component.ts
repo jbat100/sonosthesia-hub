@@ -62,6 +62,7 @@ export class ParameterMappingComponent implements OnInit {
     parameterOperators : Rx.Observable<ParameterOperator[]>;
 
     availableOperatorNames : string[];
+    selectedOperatorName : string;
 
     constructor(private _operatorService : ParameterOperatorService) { }
 

@@ -27,6 +27,7 @@
     "gulp": "^3.9.1",
     "line-input-stream": "^1.0.1",
     "mathjs": "^3.9.3",
+    "ng2-select": "^1.2.0",
     "ngx-pipes": "^1.4.7",
     "node-uuid": "^1.4.7",
     "photonkit": "^0.1.2",

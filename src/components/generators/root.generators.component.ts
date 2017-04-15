@@ -61,7 +61,7 @@ export class RootGeneratorsComponent implements OnInit, OnDestroy, AfterViewInit
     onCreate() {
         console.log(this.tag + ' onCreate');
         if (this._hubManager) {
-            const generator = new ComponentMessageGenerator(0.1, this._hubManager.componentManager);
+            const generator = new ComponentMessageGenerator(1000, this._hubManager.componentManager);
             this._hubManager.generatorManager.appendElement(generator);
         }
     }

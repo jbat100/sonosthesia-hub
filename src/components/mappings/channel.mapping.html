@@ -18,6 +18,8 @@
                            class="bar-field">
         </channel-selection>
 
+        <div class="bar-label">{{channelMapping.messageCountObservable | async}}</div>
+
         <button (click)="deleteRequest.emit($event)"
                 type="button"
                 class="btn btn-primary secondary-bar-item"> Delete </button>

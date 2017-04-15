@@ -38,6 +38,7 @@ export class PeriodicGenerator extends NativeClass implements IGenerator {
 
     start() {
         if (this._subscription) this._subscription.unsubscribe();
+        console.log(this.tag + ' starting generator with period ' + this.period + ' ms');
         this._startTime = Date.now();
         this._subscription = Rx.Observable.interval(this.period).subscribe((index : number) => {
             const elapsed = Date.now() - this._startTime;

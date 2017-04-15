@@ -1,25 +1,33 @@
 
 <div class="content-panel-1">
 
-    <div [ngSwitch]="runningObservable | async">
+    <div class="bar-container">
 
-        <div *ngSwitchCase="false">
-            <button (click)="onStart($event)"
-                    type="button"
-                    class="btn btn-primary">Start</button>
-            <div class="badge badge-default">Idle</div>
+        <div class="bar-field">
+            <channel-selection [manager]="generator.manager"
+                               [selection]="generator.channelSelection"
+                               [showComponent]="true"></channel-selection>
         </div>
 
-        <div *ngSwitchCase="true">
-            <button (click)="onStop($event)"
-                    type="button"
-                    class="btn btn-primary">Stop</button>
-            <div class="badge badge-primary">Running</div>
+        <div class="bar-label" [ngSwitch]="runningObservable | async">
+
+            <div *ngSwitchCase="false">
+                <button (click)="onStart($event)"
+                        type="button"
+                        class="btn btn-primary">Start</button>
+                <div class="badge badge-default">Idle</div>
+            </div>
+
+            <div *ngSwitchCase="true">
+                <button (click)="onStop($event)"
+                        type="button"
+                        class="btn btn-primary">Stop</button>
+                <div class="badge badge-primary">Running</div>
+            </div>
+
         </div>
 
     </div>
-
-    <channel-selection [manager]="generator.manager" [selection]="generator.channelSelection"></channel-selection>
 
 </div>
 

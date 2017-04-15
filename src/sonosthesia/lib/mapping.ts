@@ -58,11 +58,12 @@ export class ParameterMapping extends NativeClass {
         this._input = new ParameterSelection(null, null, null);
         this._output = new ParameterSelection(null, null, null);
 
+        this.applyChannelSelection();
+
         // listen to changes on the channel mapping and update the parameter selectio accordingly
 
         this._channelReloadSubscription = this.channelMapping.reloadObservable.subscribe(() => {
-            this.input.channelSelection.applyChannelSelection(this.channelMapping.input);
-            this.output.channelSelection.applyChannelSelection(this.channelMapping.output);
+            this.applyChannelSelection();
         });
 
     }
@@ -110,6 +111,11 @@ export class ParameterMapping extends NativeClass {
             this._channelReloadSubscription = null;
         }
     }
+
+    private applyChannelSelection() {
+        this.input.channelSelection.applyChannelSelection(this.channelMapping.input);
+        this.output.channelSelection.applyChannelSelection(this.channelMapping.output);
+    }
 }
 
 
@@ -141,6 +147,9 @@ export class ChannelMapping extends NativeClass {
     private _inputSubscription : Rx.Subscription;
     private _routeSubscription : Rx.Subscription;
 
+    private _messageCountSource = new Rx.BehaviorSubject<number>(0);
+    private _messageCountObservable = this._messageCountSource.asObservable();
+
     // TODO implement automap (pass parameters with the same identifier through with identity mapping)
     private _automap : boolean = false;
 
@@ -157,6 +166,8 @@ export class ChannelMapping extends NativeClass {
 
     // merges the change event of the input and output selection
     get reloadObservable() : Rx.Observable<void> { return this._reloadObservable; }
+
+    get messageCountObservable() : Rx.Observable<number> { return this._messageCountObservable; }
 
     get componentManager() : ComponentManager { return this._componentManager; }
 
@@ -241,6 +252,8 @@ export class ChannelMapping extends NativeClass {
                 parameterMapping.destroyInstanceMapper(instance);
             }
         }
+
+        this._messageCountSource.next(this._messageCountSource.getValue() + 1);
     }
 
     teardown() {

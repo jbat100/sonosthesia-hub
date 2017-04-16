@@ -1,0 +1,7 @@
+
+<select [ngModel]="value"
+        (ngModelChange)="onSelection($event)"
+        class="custom-select bar-field select-space">
+    <option *ngFor="let item of enumType | enumkeys" [ngValue]="item.value">{{item.value}}</option>
+</select>
+

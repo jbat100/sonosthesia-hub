@@ -30,9 +30,9 @@
 
     </div>
 
-    <parameter-mapping *ngFor="let parameterMapping of parameterMappings | async"
+    <parameter-mapping *ngFor="let parameterMapping of parameterMappings | async; let i = index;"
                        [parameterMapping]="parameterMapping"
-                       (deleteRequest)="onDestroyParameterMapping(index)"> </parameter-mapping>
+                       (deleteRequest)="onDestroyParameterMapping(i)"> </parameter-mapping>
 
     <div class="vertical-space"></div>
 

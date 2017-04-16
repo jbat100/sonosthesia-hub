@@ -6,7 +6,10 @@ import {
     Component, OnInit, Input
 } from '@angular/core';
 
-import {ComponentMessageGenerator, ComponentManager} from "../../sonosthesia/lib/component";
+import {
+    ComponentMessageGenerator, ComponentManager,
+    ComponentMessageGeneratorFlow
+} from "../../sonosthesia/lib/component";
 
 import { GeneratorState } from "../../sonosthesia/lib/generator";
 
@@ -24,6 +27,8 @@ export class GeneratorDetailComponent implements OnInit {
 
     runningObservable : Rx.Observable<boolean>;
 
+    flowEnumType = ComponentMessageGeneratorFlow;
+
     ngOnInit() {
         this.runningObservable = this.generator.stateObservable.map((state : GeneratorState) => {
             return state === GeneratorState.RUNNING;
@@ -38,6 +43,11 @@ export class GeneratorDetailComponent implements OnInit {
     onStop(event) {
         event.preventDefault();
         this.generator.stop();
+    }
+
+    onSelectedFlow(key : number) {
+        console.log(this.tag + ' selected flow ' + key);
+        this.generator.flow = key as ComponentMessageGeneratorFlow;
     }
 
 }

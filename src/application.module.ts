@@ -23,7 +23,7 @@ import { ParameterOperatorService } from "./services/operator.service";
 
 // pipes
 
-import {TitleCasePipe} from './pipes';
+import {TitleCasePipe, EnumKeysPipe} from './pipes';
 
 // root components
 
@@ -69,6 +69,7 @@ import {
 import {
     ParameterOperatorContainerComponent, ScaleValueOperatorComponent, OffsetValueOperatorComponent
 } from "./components/processing/parameter.operator.component";
+import {EnumSelectComponent} from "./components/common/common.component";
 
 
 const routes : Routes = [
@@ -111,6 +112,9 @@ const routes : Routes = [
     declarations: [
         // pipes --------------------------------------
         TitleCasePipe,
+        EnumKeysPipe,
+        // common components --------------------------
+        EnumSelectComponent,
         // root components ----------------------------
         RootComponent,
         MenuComponent,

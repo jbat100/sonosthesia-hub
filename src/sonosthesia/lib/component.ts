@@ -2,11 +2,11 @@
 import * as Rx from 'rxjs/Rx';
 
 import * as _ from "underscore";
-import {expect} from "chai";
+import { expect} from "chai";
 
-import {NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, ListManager} from "./core";
-import {HubMessage, Parameters, HubMessageType} from "./messaging";
-import {PeriodicGenerator, SineEngine, GeneratorEngine} from "./generator";
+import { NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID } from "./core";
+import { HubMessage, Parameters, HubMessageType } from "./messaging";
+import { PeriodicGenerator, SineEngine, GeneratorEngine } from "./generator";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Info classes represent the declarations of available components (and their channels) made by connections, they are
@@ -250,7 +250,9 @@ export class BaseController <T extends Info> extends NativeClass {
 export class ChannelController extends BaseController<ChannelInfo> implements IParameterSelectionValidator {
 
     // an observable with only the messages addressed to this channel
-    private _messageObservable: Rx.Observable<HubMessage>;
+    private _incomingMessageSource = new Rx.Subject<HubMessage>();
+    private _incomingMessageObservable = this._incomingMessageSource.asObservable();
+    private _componentMessageSubscription : Rx.Subscription;
 
     private _incomingCountSource = new Rx.BehaviorSubject<number>(0);
     private _incomingCountObservable = this._incomingCountSource.asObservable();
@@ -260,14 +262,15 @@ export class ChannelController extends BaseController<ChannelInfo> implements IP
 
     constructor(private _componentController : ComponentController) {
         super();
-        this._messageObservable = this._componentController.connection.messageObservable.filter((message, idx) => {
+        // get an
+        this._componentMessageSubscription = this.componentController.incomingMessageObservable.filter((message, idx) => {
             return this.info && message.content.channel === this.info.identifier;
-        }).do((message : HubMessage) => {
-            this._incomingCountSource.next(this._incomingCountSource.getValue() + 1);
+        }).subscribe((message : HubMessage) => {
+            this.processIncomingMessage(message);
         });
     }
 
-    get messageObservable() : Rx.Observable<HubMessage> { return this._messageObservable; }
+    get incomingMessageObservable() : Rx.Observable<HubMessage> { return this._incomingMessageObservable; }
 
     get componentController() : ComponentController { return this._componentController; }
 
@@ -275,18 +278,33 @@ export class ChannelController extends BaseController<ChannelInfo> implements IP
 
     get outgoingCountObservable() : Rx.Observable<number> { return this._outgoingCountObservable; }
 
-    sendMessage(message : HubMessage) {
+    sendOutgoingMessage(message : HubMessage) {
         if (message.content.channel !== this.info.identifier) {
             throw new Error('invalid message channel ' + message.content.channel);
         }
+        this.componentController.sendOutgoingMessage(message);
         this._outgoingCountSource.next(this._outgoingCountSource.getValue() + 1);
-        this.componentController.sendMessage(message);
+    }
+
+    processIncomingMessage(message : HubMessage) {
+        if (message.content.channel !== this.info.identifier) {
+            throw new Error('invalid message channel ' + message.content.channel);
+        }
+        this._incomingMessageSource.next(message);
+        this._incomingCountSource.next(this._incomingCountSource.getValue() + 1);
     }
 
     validateParameterSelection(selection : ParameterSelection) : boolean {
         const result = this.info.parameterSet.has(selection.identifier);
         selection.valid = result;
         return result;
+    }
+
+    teardown() {
+        if (this._componentMessageSubscription) {
+            this._componentMessageSubscription.unsubscribe();
+            this._componentMessageSubscription = null;
+        }
     }
 
 }
@@ -299,13 +317,13 @@ export class ComponentController extends BaseController<ComponentInfo> implement
     private _channelControllersObservable = this._channelControllerSource.asObservable();
 
     // an observable with only the messages addressed to this component
-    private _messageObservable: Rx.Observable<HubMessage>;
+    private _incomingMessageObservable: Rx.Observable<HubMessage>;
 
     private _messageCount = 0;
 
     constructor(private _connection : IConnection) {
         super();
-        this._messageObservable = this.connection.messageObservable.filter((message : HubMessage, idx) => {
+        this._incomingMessageObservable = this.connection.messageObservable.filter((message : HubMessage, idx) => {
             return this.info && message.content.component === this.info.identifier;
         }).do((message : HubMessage) => {
             this._messageCount++;
@@ -321,11 +339,12 @@ export class ComponentController extends BaseController<ComponentInfo> implement
         return this._channelControllerSource.getValue();
     }
 
-    get messageObservable() : Rx.Observable<HubMessage> { return this._messageObservable; }
+    get incomingMessageObservable() : Rx.Observable<HubMessage> { return this._incomingMessageObservable; }
 
     get connection() : IConnection { return this._connection; }
 
-    sendMessage(message : HubMessage) {
+    // should not be used directly, send messages using channel controllers
+    sendOutgoingMessage(message : HubMessage) {
         if (message.content.component !== this.info.identifier) {
             throw new Error('invalid message component ' + message.content.component);
         }
@@ -376,14 +395,17 @@ export class ComponentController extends BaseController<ComponentInfo> implement
 }
 
 
-
-
 // ---------------------------------------------------------------------------------------------------------------------
 // Message generator
 
 export enum ComponentMessageGeneratorMode {
     STATIC,
     DYNAMIC
+}
+
+export enum ComponentMessageGeneratorFlow {
+    INCOMING,
+    OUTGOING
 }
 
 // message generator can have a default engine and overrides per parameter
@@ -397,6 +419,7 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
 
     private _channelSelection = new ChannelSelection(null, null);
 
+    private _flow = ComponentMessageGeneratorFlow.OUTGOING;
     private _defaultEngine : GeneratorEngine = new SineEngine(1.0, 1.0, 0.0);
     private _engines = new Map<string, GeneratorEngine>(); // parameter identifier as key
     private _channelController : ChannelController;
@@ -412,6 +435,10 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
         });
     }
 
+    get flow() : ComponentMessageGeneratorFlow { return this._flow; }
+
+    set flow(flow : ComponentMessageGeneratorFlow) { this._flow = flow; }
+
     get manager() : ComponentManager { return this._manager; }
 
     get channelSelection() : ChannelSelection { return this._channelSelection; }
@@ -421,7 +448,7 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
     protected generate(time : number, cycles : number) {
         if (this.channelController) {
             // if we have a multiple of instance cycles, create a new instance
-            if (this._instanceCycles > 0 && cycles % this._instanceCycles == 0) {
+            if (cycles % this._instanceCycles == 0) {
                 // destroy current instance if it exists
                 if (this._currentInstance) {
                     this.sendMessage(HubMessageType.Destroy, this._currentInstance, this.generateParameters(time));
@@ -461,7 +488,14 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
                 parameters
             );
             const message = new HubMessage(messageType, null, content);
-            this.channelController.sendMessage(message);
+            if (this.flow == ComponentMessageGeneratorFlow.INCOMING) {
+                console.log(this.tag + ' generated incoming message ' + message.type);
+                this.channelController.processIncomingMessage(message);
+            } else if (this.flow == ComponentMessageGeneratorFlow.OUTGOING) {
+                console.log(this.tag + ' generated outgoing message ' + message.type);
+                this.channelController.sendOutgoingMessage(message);
+            }
+
         } else {
             console.error(this.tag + ' no content class for hub message type : ' + HubMessageType[messageType]);
         }

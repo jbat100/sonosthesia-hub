@@ -7,9 +7,9 @@
     </div>
 
     <div class="root-content">
-        <channel-mapping *ngFor="let mapping of mappingsObservable | async"
+        <channel-mapping *ngFor="let mapping of mappingsObservable | async; let i = index;"
                          [channelMapping]="mapping"
-                         (deleteRequest)="onDelete(index)">
+                         (deleteRequest)="onDelete(i)">
         </channel-mapping>
     </div>
 

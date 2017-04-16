@@ -188,7 +188,7 @@ export class ChannelMapping extends NativeClass {
         this._outputController = this.componentManager.getChannelController(this.output);
 
         if (this._inputController) {
-            this._inputSubscription = this._inputController.messageObservable.subscribe((message : HubMessage) => {
+            this._inputSubscription = this._inputController.incomingMessageObservable.subscribe((message : HubMessage) => {
                 this.process(message);
             });
         }
@@ -243,7 +243,7 @@ export class ChannelMapping extends NativeClass {
 
             const mappedMessage = new HubMessage(message.hubMessageType, message.timestamp, mappedContent);
 
-            this._outputController.sendMessage(mappedMessage);
+            this._outputController.sendOutgoingMessage(mappedMessage);
 
         }
 
@@ -257,6 +257,7 @@ export class ChannelMapping extends NativeClass {
     }
 
     teardown() {
+        console.log(this.tag + ' teardown');
         this.cancelInputSubscription();
         this.cancelRouteSubscription();
     }

@@ -3,12 +3,11 @@
 import * as Rx from 'rxjs/Rx';
 
 import {
-    Component, OnInit, Input
+    Component, OnInit, Input, Output, EventEmitter
 } from '@angular/core';
 
 import {
-    ComponentMessageGenerator, ComponentManager,
-    ComponentMessageGeneratorFlow
+    ComponentMessageGenerator, ComponentMessageGeneratorFlow
 } from "../../sonosthesia/lib/component";
 
 import { GeneratorState } from "../../sonosthesia/lib/generator";
@@ -21,6 +20,9 @@ import { GeneratorState } from "../../sonosthesia/lib/generator";
 export class GeneratorDetailComponent implements OnInit {
 
     readonly tag = 'GeneratorDetailComponent';
+
+    @Output()
+    deleteRequest = new EventEmitter();
 
     @Input()
     generator : ComponentMessageGenerator;

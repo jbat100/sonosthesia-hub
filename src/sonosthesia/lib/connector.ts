@@ -41,11 +41,18 @@ export class BaseConnection extends NativeClass {
 // simple loop-back connection, send a message and it receives it
 export class LocalConnection extends BaseConnection implements IConnection {
 
+    private _loopback = false;
+    private _verbose = false;
+
     get connectionType() : string { return 'local'; }
 
+    get loopback() : boolean { return this._loopback; }
+
+    set loopback(val : boolean) { this._loopback = val; }
+
     sendMessage(message : Message) {
-        console.log(this.tag + ' sending message of type : ' + message.type);
-        this.messageSubject.next(message);
+        //console.log(this.tag + ' sending message of type : ' + message.type);
+        if (this.loopback) this.messageSubject.next(message);
     }
 
 }

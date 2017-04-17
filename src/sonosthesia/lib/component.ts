@@ -282,6 +282,7 @@ export class ChannelController extends BaseController<ChannelInfo> implements IP
         if (message.content.channel !== this.info.identifier) {
             throw new Error('invalid message channel ' + message.content.channel);
         }
+        console.log(this.tag + this.info.identifier + ' send outgoing message ' + message.type);
         this.componentController.sendOutgoingMessage(message);
         this._outgoingCountSource.next(this._outgoingCountSource.getValue() + 1);
     }
@@ -290,6 +291,7 @@ export class ChannelController extends BaseController<ChannelInfo> implements IP
         if (message.content.channel !== this.info.identifier) {
             throw new Error('invalid message channel ' + message.content.channel);
         }
+        console.log(this.tag + this.info.identifier + ' process incoming message ' + message.type);
         this._incomingMessageSource.next(message);
         this._incomingCountSource.next(this._incomingCountSource.getValue() + 1);
     }
@@ -457,10 +459,7 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
                 this._currentInstance = GUID.generate();
                 this.sendMessage(HubMessageType.Create, this._currentInstance, this.generateParameters(time));
             }
-            // if a current instance exists, send a control message to it
-            if (this._currentInstance) {
-                this.sendMessage(HubMessageType.Control, this._currentInstance, this.generateParameters(time));
-            }
+            this.sendMessage(HubMessageType.Control, this._currentInstance, this.generateParameters(time));
         } else {
             console.error(this.tag + ' could not generate message, no channel controller');
         }
@@ -489,10 +488,10 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
             );
             const message = new HubMessage(messageType, null, content);
             if (this.flow == ComponentMessageGeneratorFlow.INCOMING) {
-                console.log(this.tag + ' generated incoming message ' + message.type);
+                //console.log(this.tag + ' generated incoming message ' + message.type);
                 this.channelController.processIncomingMessage(message);
             } else if (this.flow == ComponentMessageGeneratorFlow.OUTGOING) {
-                console.log(this.tag + ' generated outgoing message ' + message.type);
+                //console.log(this.tag + ' generated outgoing message ' + message.type);
                 this.channelController.sendOutgoingMessage(message);
             }
 

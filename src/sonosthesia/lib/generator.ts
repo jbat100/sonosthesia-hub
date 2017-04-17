@@ -16,6 +16,7 @@ export interface IGenerator {
     stateObservable : Rx.Observable<GeneratorState>;
     start();
     stop();
+    teardown();
 }
 
 export class PeriodicGenerator extends NativeClass implements IGenerator {
@@ -43,6 +44,7 @@ export class PeriodicGenerator extends NativeClass implements IGenerator {
         this._subscription = Rx.Observable.interval(this.period).subscribe((index : number) => {
             const elapsed = Date.now() - this._startTime;
             this._cycles++;
+            //console.log(this.tag + ' generate with elapsed: ' + elapsed + ', cycles: ' + this._cycles);
             this.generate(elapsed, this._cycles);
         });
         this._stateSubject.next(GeneratorState.RUNNING);
@@ -59,9 +61,17 @@ export class PeriodicGenerator extends NativeClass implements IGenerator {
     // abstract method
     protected generate(time : number, cycles : number) { }
 
+    teardown() {
+        console.log(this.tag + ' teardown');
+        this.stop();
+    }
 }
 
 export class GeneratorManager extends ListManager<IGenerator> {
+
+    onRemove(generator : IGenerator) {
+        generator.teardown();
+    }
 
 }
 

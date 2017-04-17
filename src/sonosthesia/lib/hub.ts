@@ -30,24 +30,26 @@ export class HubManager extends NativeClass {
     get mappingManager() : MappingManager { return this._mappingManager; }
     get connector() { return this._connector; }
 
-    public setup() : Q.Promise<void> {
+    setup() : Q.Promise<void> {
         return Q().then(() => {
-
             return this.setupConnector();
-
         });
     }
 
-    public teardown() : Q.Promise<void> {
+    teardown() : Q.Promise<void> {
         return Q().then(() => {
-
             return this.connector.stop().then(() => {
                 this._subscriptions.forEach((subscription : Rx.Disposable) => { subscription.dispose(); });
                 this._subscriptions.clear();
                 this._connections.clear();
             });
-
         });
+    }
+
+    reset() {
+        this.componentManager.reset();
+        this.generatorManager.reset();
+        this.mappingManager.reset();
     }
 
     private setupConnector() : Q.Promise<void> {

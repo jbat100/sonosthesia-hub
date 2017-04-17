@@ -98,6 +98,4 @@ describe('Component tests', () => {
 
     });
 
-
-
 });

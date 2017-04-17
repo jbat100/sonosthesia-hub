@@ -1,0 +1,27 @@
+{
+  "identifier" : "test2",
+  "channels" : [
+    {
+      "identifier" : "channel2A",
+      "parameters" : [
+        {
+          "identifier" : "parameter2Aa"
+        },
+        {
+          "identifier" : "parameter2Ab"
+        }
+      ]
+    },
+    {
+      "identifier" : "channel2B",
+      "parameters" : [
+        {
+          "identifier" : "parameter2Ba"
+        },
+        {
+          "identifier" : "parameter2Bb "
+        }
+      ]
+    }
+  ]
+}

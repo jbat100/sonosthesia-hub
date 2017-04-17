@@ -566,6 +566,12 @@ export class ComponentManager extends NativeClass implements IComponentSelection
         this.updateComponentControllerSource();
     }
 
+    // clear all registered controllers
+    reset() {
+        this._componentControllerMap.clear();
+        this.updateComponentControllerSource();
+    }
+
     // validate a component selection
     validateComponentSelection(selection : ComponentSelection) : boolean {
         const result =  this._componentControllerMap.has(selection.identifier);

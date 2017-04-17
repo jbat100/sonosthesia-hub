@@ -357,6 +357,11 @@ export class ListManager <T> {
         return this._elements[index];
     }
 
+    // for convenience...
+    reset() {
+        this.removeAllElements();
+    }
+
     // use only if a copy is required, otherwise use the iterator (for ... of ... {})
     get elements() : T[] { return Array.from(this._elements); }
 

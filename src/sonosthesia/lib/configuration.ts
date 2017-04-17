@@ -16,6 +16,4 @@ export class HubConfiguration extends NativeClass {
 
     }
 
-
-
 }

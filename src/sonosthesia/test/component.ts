@@ -85,7 +85,7 @@ describe('Component tests', () => {
 
         it('should parse local component configuration file correctly', () => {
             return FileUtils.readJSONFile('../../../config/local.component.json', {}).then((obj : any) => {
-                const component : ComponentInfo = ComponentInfo.newFromJSON(obj) as ComponentInfo;
+                const component : ComponentInfo = ComponentInfo.newFromJSON(obj.components[0]) as ComponentInfo;
                 const channels = component.channels;
                 expect(channels).to.have.length(2);
                 expect(channels[0].identifier).to.equal('channel1');

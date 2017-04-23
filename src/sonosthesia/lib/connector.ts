@@ -2,6 +2,8 @@
 //
 
 import * as net from 'net';
+import * as http from 'http';
+import * as sio from 'socket.io';
 import * as _ from 'underscore';
 import * as Q from 'q';
 import * as Rx from 'rxjs/Rx';
@@ -38,6 +40,60 @@ export class BaseConnection extends NativeClass {
 
 }
 
+
+export class BaseConnector extends NativeClass {
+
+    readonly verbose = true;
+    private _error : Error;
+    private _connections : BaseConnection[] = [];
+    private _emitter : any = new EventEmitter();
+
+    constructor(private _parser : MessageContentParser)
+    {
+        super();
+    }
+
+    get error() { return this._error; }
+    get emitter() { return this._emitter; }
+    get parser() { return this._parser; }
+
+    start(port : number) : Q.Promise<void> {
+        return Q();
+    }
+
+    stop() : Q.Promise<void> {
+        return Q().then(() => {
+            this.resetError();
+        });
+    }
+
+    // needs to be public so that it can be called by the connection
+    destroyConnection(connection : BaseConnection) {
+        console.warn(this.tag + ' destroying connection!');
+        this._connections = _.without(this._connections, connection);
+        this.emitter.emit('disconnection', connection);
+    }
+
+    protected registerConnection(connection : BaseConnection) {
+        this._connections.push(connection);
+        this.emitter.emit('connection', connection);
+    }
+
+    protected handleError(err : Error) {
+        this._error = err;
+        this.emitter.emit('error', err);
+    }
+
+    protected resetError() {
+        this._error = null;
+    }
+}
+
+
+
+
+//----------------------------------------------------------------------------------------------------
+
 // simple loop-back connection, send a message and it receives it
 export class LocalConnection extends BaseConnection implements IConnection {
 
@@ -57,72 +113,61 @@ export class LocalConnection extends BaseConnection implements IConnection {
 
 }
 
+//----------------------------------------------------------------------------------------------------
 
 /**
  * TCPConnector runs server side and spawns TCPConnection instances upon incoming socket connections
+ * Uses raw tcp socket with delimiters seperating stringified JSON objects
  */
 
-export class TCPConnector extends NativeClass {
+export class TCPConnector extends BaseConnector {
 
-    readonly verbose = true;
-    private _error : Error;
     private _server : net.Server;
-    private _connections : TCPConnection[] = [];
-    private _emitter : any = new EventEmitter();
-
-    constructor(private _parser : MessageContentParser)
-    {
-        super();
-    }
 
     get server() { return this._server; }
-    get error() { return this._error; }
-    get emitter() { return this._emitter; }
-    get parser() { return this._parser; }
 
-    start(port) : Q.Promise<void> {
-        return Q.Promise((resolve, reject) => {
-            if (this.server) return reject(new Error('connector is already started'));
-            console.info(this.tag + ' start on port ' + port);
-            this._server = net.createServer((socket) => {
-                const connection = new TCPConnection(this.parser, this, socket);
-                this._connections.push(connection);
-                this.emitter.emit('connection', connection);
-            });
-            // try reconnect on server error (usually port is taken, address in use)
-            this.server.on('error', (err : any) => {
-                console.error(this.tag + ' server error ' + err.type + ' ' + err.message);
-                reject(err);
-                this._error = err;
-                this.emitter.emit('error', err);
-                this.stop();
-            });
-            this.server.on('close', () => {
-                console.error(this.tag + ' server close');
-                reject(new Error('closed'));
-                this.stop();
-            });
-            this.server.on('listening', () => {
-                console.info(this.tag + ' server listening on port ' + port);
-                resolve(null);
-                this._error = null;
-                this.emitter.emit('start');
-            });
-            // actually start the server
-            this.server.listen(port);
-            console.info(this.tag + ' created server listening on port ' + port);
-        }).catch((err) => {
-            this._error = err;
-            console.error(this.tag + ' could not create server on port ', port, err.message);
-            this.emitter.emit('error', err);
-            this.stop().then(() => {
-                throw err;
+    start(port : number) : Q.Promise<void> {
+        return super.start(port).then(() => {
+            return Q.Promise((resolve, reject) => {
+                if (this.server) return reject(new Error('connector is already started'));
+                console.info(this.tag + ' start on port ' + port);
+                this._server = net.createServer((socket) => {
+                    this.registerConnection(new TCPConnection(this.parser, this, socket));
+                });
+                // try reconnect on server error (usually port is taken, address in use)
+                this.server.on('error', (err : any) => {
+                    console.error(this.tag + ' server error ' + err.type + ' ' + err.message);
+                    reject(err);
+                    this.handleError(err);
+                    this.stop();
+                });
+                this.server.on('close', () => {
+                    console.error(this.tag + ' server close');
+                    reject(new Error('closed'));
+                    this.stop();
+                });
+                this.server.on('listening', () => {
+                    console.info(this.tag + ' server listening on port ' + port);
+                    resolve(null);
+                    this.resetError();
+                    this.emitter.emit('start');
+                });
+                // actually start the server
+                this.server.listen(port);
+                console.info(this.tag + ' created server listening on port ' + port);
+            }).catch((err) => {
+                console.error(this.tag + ' could not create server on port ', port, err.message);
+                this.handleError(err);
+                this.stop().then(() => {
+                    throw err;
+                });
             });
         });
     }
 
     stop() : Q.Promise<void> {
-        return Q().then(() => {
+        return super.stop().then(() => {
+            this.resetError();
             if (this.server) {
                 this.server.removeAllListeners();
                 this.server.close();
@@ -130,12 +175,6 @@ export class TCPConnector extends NativeClass {
                 this.emitter.emit('stop');
             }
         });
-    }
-
-    destroyConnection(connection) {
-        console.warn(this.tag + ' destroying connection!');
-        this._connections = _.without(this._connections, connection);
-        this.emitter.emit('disconnection', connection);
     }
 
 }
@@ -196,6 +235,69 @@ export class TCPConnection extends BaseConnection implements IConnection {
         const str = this.jsonDelimiter + JSON.stringify(obj) + this.jsonDelimiter;
         if (this.verbose) console.info(this.tag + ' sending : ' + str);
         this.socket.write(str);
+    }
+
+    sendMessage(message : Message) {
+        this.sendJSON(message.toJSON());
+    }
+
+}
+
+
+//----------------------------------------------------------------------------------------------------
+
+/**
+ * TCPConnector runs server side and spawns TCPConnection instances upon incoming socket connections
+ * Uses raw tcp socket with delimiters seperating stringified JSON objects
+ */
+
+export class SIOConnector extends BaseConnector {
+
+    _httpServer : http.Server;
+    _sioServer : any; // can't seem to find a socket.io Server type in the type definition file
+
+    start(port : number) : Q.Promise<void> {
+        return super.start(port).then(() => {
+            return Q.Promise((resolve, reject) => {
+                if (this._sioServer) return reject(new Error('connector is already started'));
+                console.info(this.tag + ' start on port ' + port);
+                this._httpServer = http.createServer((req, res) => {
+                    console.log(this.tag + ' incoming http request');
+                });
+                this._httpServer.listen(port);
+                this._sioServer = sio(this._httpServer);
+                this._sioServer.on('connection', (socket) => {
+                    const connection = new SIOConnection(this.parser, this, socket);
+                    this.registerConnection(connection);
+                    socket.on('disconnect', () => {
+                        this.destroyConnection(connection);
+                    });
+                });
+                console.info(this.tag + ' created server listening on port ' + port);
+            }).catch((err) => {
+                console.error(this.tag + ' could not create server on port ', port, err.message);
+                this.handleError(err);
+                this.stop().then(() => {
+                    throw err;
+                });
+            });
+        });
+    }
+
+}
+
+export class SIOConnection extends BaseConnection implements IConnection {
+
+    constructor(_parser : MessageContentParser, private _connector : SIOConnector, private _socket : any) {
+        super(_parser);
+        this._socket.on('message', (obj : any) => {
+            this.messageSubject.next(HubMessage.newFromJSON(obj, this.parser));
+        });
+    }
+
+    sendJSON(obj : any) {
+        if (this.verbose) console.info(this.tag + ' sending message ' + obj.type);
+        this._socket.send(obj); // emit message event
     }
 
     sendMessage(message : Message) {

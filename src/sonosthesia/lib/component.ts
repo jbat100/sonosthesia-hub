@@ -1,10 +1,11 @@
 
 import * as Rx from 'rxjs/Rx';
 
+import * as Q from "q";
 import * as _ from "underscore";
 import { expect} from "chai";
 
-import { NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID } from "./core";
+import { NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, FileUtils } from "./core";
 import { HubMessage, Parameters, HubMessageType } from "./messaging";
 import { PeriodicGenerator, SineEngine, GeneratorEngine } from "./generator";
 
@@ -16,6 +17,18 @@ import { PeriodicGenerator, SineEngine, GeneratorEngine } from "./generator";
 
 export class ComponentInfo extends Info {
 
+    static importFromFile(filePath) : Q.Promise<ComponentInfo[]> {
+        return FileUtils.readJSONFile(filePath).then((obj : any) => {
+            if (obj.components) {
+                return obj.components.map((infoObj : any) => { return ComponentInfo.newFromJSON(infoObj); });
+            } else if (obj.component) {
+                return ComponentInfo.newFromJSON(obj.component);
+            } else {
+                return [];
+            }
+        });
+    }
+
     private _channelSet = new InfoSet<ChannelInfo>(ChannelInfo);
 
     applyJSON(obj:any) {
@@ -26,6 +39,10 @@ export class ComponentInfo extends Info {
     get channelSet() : InfoSet<ChannelInfo> { return this._channelSet; }
 
     get channels() : ChannelInfo[] { return this.channelSet.elements(); }
+
+    getChannelInfo(identifier : string) : ChannelInfo {
+        return this._channelSet.getElement(identifier);
+    }
 
     toJSON() : any {
         const obj : any = super.toJSON();
@@ -103,6 +120,10 @@ export class ChannelInfo extends Info {
     get parameterSet() : InfoSet<ParameterInfo> { return this._parameterSet; }
 
     get parameters() : ParameterInfo[] { return this.parameterSet.elements(); }
+
+    getParameterInfo(identifier : string) : ParameterInfo {
+        return this._parameterSet.getElement(identifier);
+    }
 
     toJSON() : any {
         const obj = super.toJSON();
@@ -372,6 +393,12 @@ export class ComponentController extends BaseController<ComponentInfo> implement
         return this._channelControllerMap.get(selection.identifier);
     }
 
+    teardown() {
+        for (let controller of this._channelControllerMap.values()) { controller.teardown(); }
+        this._channelControllerMap.clear();
+        this.updateChannelControllerSource();
+    }
+
     protected internalUpdate(info : ComponentInfo) {
         super.internalUpdate(info);
         info.channelSet.elements().forEach((channelInfo : ChannelInfo) => {
@@ -384,6 +411,7 @@ export class ComponentController extends BaseController<ComponentInfo> implement
         });
         // remove obsolete channel controllers, add required new channel controllers
         _.difference(Array.from(this._channelControllerMap.keys()), this.info.channelSet.identifiers()).forEach((id : string) => {
+            this._channelControllerMap[id].teardown();
             this._channelControllerMap.delete(id);
         });
         this.updateChannelControllerSource();
@@ -529,30 +557,30 @@ export class ComponentManager extends NativeClass implements IComponentSelection
         return this._componentControllerSource.getValue();
     }
 
+    updateComponents(connection : IConnection, infoList : ComponentInfo[]) {
+        const updatedIdentifiers : string[] = infoList.map((info) => { return info.identifier; });
+        const currentIdentifiers : string[] =  this.getComponentControllers(connection).map((controller) => {
+            return controller.info.identifier;
+        });
+        // returns the values from the first array that are not present in the other arrays
+        _.difference(currentIdentifiers, updatedIdentifiers).forEach((identifier) => {
+            // delete obsolete identifiers
+            this.internalUnregisterComponent(connection, identifier);
+        });
+        infoList.forEach((info : ComponentInfo) => {
+            this.internalRegisterComponent(connection, info);
+        });
+        this.updateComponentControllerSource();
+    }
+
     // call register to associate component info with a connection, note there can be multiple components per connection
     registerComponent(connection : IConnection, info : ComponentInfo) {
-        if (!(info && info.identifier)) throw new Error('invalid identifier');
-        let componentController = this._componentControllerMap.get(info.identifier);
-        if (componentController) {
-            console.log(this.tag + ' updating component ' + info.identifier);
-            if (componentController.connection !== connection)
-                throw new Error('duplicate component declaration');
-        } else {
-            console.log(this.tag + ' registering component ' + info.identifier);
-            componentController = new ComponentController(connection);
-            this._componentControllerMap.set(info.identifier, componentController);
-        }
-        componentController.update(info);
+        this.internalRegisterComponent(connection, info);
         this.updateComponentControllerSource();
     }
     // in order to unregister a component, you must know its associated connection
     unregisterComponent(connection : IConnection, identifier : string) {
-        let componentController = this._componentControllerMap.get(identifier);
-        if (!componentController)
-            throw new Error('unknown component identifier : ' + identifier);
-        if (componentController.connection !== connection)
-            throw new Error('component ' + identifier + ' is not associated with connection');
-        this._componentControllerMap.delete(identifier);
+        this.internalUnregisterComponent(connection, identifier);
         this.updateComponentControllerSource();
     }
     // call clean whenever a connection ends
@@ -611,6 +639,31 @@ export class ComponentManager extends NativeClass implements IComponentSelection
     getChannelController(selection : ChannelSelection) {
         const componentController = this.getComponentController(selection.componentSelection);
         return componentController ? componentController.getChannelController(selection) : null;
+    }
+
+    // call register to associate component info with a connection, note there can be multiple components per connection
+    private internalRegisterComponent(connection : IConnection, info : ComponentInfo) {
+        if (!(info && info.identifier)) throw new Error('invalid identifier');
+        let componentController = this._componentControllerMap.get(info.identifier);
+        if (componentController) {
+            console.log(this.tag + ' updating component ' + info.identifier);
+            if (componentController.connection !== connection)
+                throw new Error('duplicate component declaration');
+        } else {
+            console.log(this.tag + ' registering component ' + info.identifier);
+            componentController = new ComponentController(connection);
+            this._componentControllerMap.set(info.identifier, componentController);
+        }
+        componentController.update(info);
+    }
+    // in order to unregister a component, you must know its associated connection
+    private internalUnregisterComponent(connection : IConnection, identifier : string) {
+        let componentController = this._componentControllerMap.get(identifier);
+        if (!componentController)
+            throw new Error('unknown component identifier : ' + identifier);
+        if (componentController.connection !== connection)
+            throw new Error('component ' + identifier + ' is not associated with connection');
+        this._componentControllerMap.delete(identifier);
     }
 
     private updateComponentControllerSource() {

@@ -1,27 +1,27 @@
 {
   "components" : [
     {
-      "identifier" : "local",
+      "identifier" : "test1",
       "channels" : [
         {
-          "identifier" : "channel1",
+          "identifier" : "channel1A",
           "parameters" : [
             {
-              "identifier" : "parameter1a"
+              "identifier" : "parameter1Aa"
             },
             {
-              "identifier" : "parameter1b"
+              "identifier" : "parameter1Ab"
             }
           ]
         },
         {
-          "identifier" : "channel2",
+          "identifier" : "channel1B",
           "parameters" : [
             {
-              "identifier" : "parameter2a"
+              "identifier" : "parameter1Ba"
             },
             {
-              "identifier" : "parameter2b"
+              "identifier" : "parameter1Bb "
             }
           ]
         }

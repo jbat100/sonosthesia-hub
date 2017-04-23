@@ -5,17 +5,21 @@ import {NativeClass, IConnector, IConnection} from "./core";
 import {HubConfiguration, ConnectorType} from './configuration';
 import {ComponentManager} from "./component";
 import {HubMessage, HubMessageContentParser} from "./messaging";
-import {TCPConnector} from "./connector";
+import {TCPConnector, SIOConnector} from "./connector";
 import {GeneratorManager} from "./generator";
 import {MappingManager} from "./mapping";
 
 
 export class HubManager extends NativeClass {
 
-    private _connector : IConnector;
     private _connections = new Map<string, IConnection>();
     private _subscriptions = new Map<string, Rx.Disposable>();
 
+    // connectors
+    private _tcpConnector : TCPConnector;
+    private _sioConnector : SIOConnector;
+
+    // managers
     private _componentManager = new ComponentManager();
     private _generatorManager = new GeneratorManager();
     private _mappingManager = new MappingManager();
@@ -28,7 +32,9 @@ export class HubManager extends NativeClass {
     get componentManager() : ComponentManager { return this._componentManager; }
     get generatorManager() : GeneratorManager { return this._generatorManager; }
     get mappingManager() : MappingManager { return this._mappingManager; }
-    get connector() { return this._connector; }
+
+    // connectors
+    get tcpConnector() { return this._tcpConnector; }
 
     setup() : Q.Promise<void> {
         return Q().then(() => {
@@ -38,7 +44,7 @@ export class HubManager extends NativeClass {
 
     teardown() : Q.Promise<void> {
         return Q().then(() => {
-            return this.connector.stop().then(() => {
+            return this.tcpConnector.stop().then(() => {
                 this._subscriptions.forEach((subscription : Rx.Disposable) => { subscription.dispose(); });
                 this._subscriptions.clear();
                 this._connections.clear();
@@ -58,20 +64,20 @@ export class HubManager extends NativeClass {
             const parser = new HubMessageContentParser();
 
             if (this.configuration.connectorType == ConnectorType.TCP) {
-                this._connector = new TCPConnector(parser);
+                this._tcpConnector = new TCPConnector(parser);
             } else {
                 throw new Error('unsupported connector type');
             }
 
-            this.connector.emitter.on('connection', (connection : IConnection) => {
+            this.tcpConnector.emitter.on('connection', (connection : IConnection) => {
                 this.setupConnection(connection);
             });
 
-            this.connector.emitter.on('disconnection', (connection : IConnection) => {
+            this.tcpConnector.emitter.on('disconnection', (connection : IConnection) => {
                 this.teardownConnection(connection);
             });
 
-            return this.connector.start(this.configuration.port).then(() => {
+            return this.tcpConnector.start(this.configuration.port).then(() => {
                 console.log('Server started on port ' + this.configuration.port);
             }).catch(err => {
                 console.error('Error : ' + err.stack);

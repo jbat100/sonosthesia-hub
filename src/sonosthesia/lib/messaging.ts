@@ -57,22 +57,24 @@ export class MessageContent extends NativeClass {
 export class ComponentMessageContent extends MessageContent {
 
     static newFromJSON(obj : any) {
-        expect(obj.component).to.be.an('object');
-        const component : ComponentInfo = ComponentInfo.newFromJSON(obj.component) as ComponentInfo;
-        return new this(component);
+        expect(obj.components).to.be.an('object'); // check instance of array ?
+        const components : ComponentInfo[] = obj.components.map((component : any) => {
+            return ComponentInfo.newFromJSON(component) as ComponentInfo;
+        });
+        return new this(components);
     }
 
-    constructor(private _component : ComponentInfo) {
+    constructor(private _components : ComponentInfo[]) {
         super();
     }
 
     toJSON() : any {
         return {
-            component : this.component.toJSON()
+            components : this._components.map(component => { return component.toJSON(); })
         }
     }
 
-    get component() : ComponentInfo { return this._component; }
+    get components() : ComponentInfo[] { return this._components }
 
 }
 
@@ -188,6 +190,16 @@ export class HubMessage extends Message {
         this.checkJSON(obj);
         const hubMessageType : HubMessageType = HubMessageType[obj.type as string];
         return new this(hubMessageType, +(obj.date as string), parser.parse(obj.type, obj.content)) as Message;
+    }
+
+    static newChannelMessage(type : HubMessageType,
+                             component : string,
+                             channel : string,
+                             instance : string,
+                             parameters : Parameters) {
+        const ContentClass = this.contentClass(type);
+        const content = new ContentClass(component, channel, instance, null, parameters);
+        return new HubMessage(type, null, content);
     }
 
     static contentClass(type : HubMessageType) : any {

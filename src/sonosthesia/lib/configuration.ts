@@ -3,14 +3,20 @@ import { NativeClass } from './core';
 
 
 export enum ConnectorType {
-    Undefined,
-    TCP
+    UNDEFINED,
+    TCP,
+    SIO
+}
+
+export interface ConnectorConfiguration  {
+    connectorType : ConnectorType;
+    enabled : boolean;
+    port : number;
 }
 
 export class HubConfiguration extends NativeClass {
 
-    public connectorType : ConnectorType;
-    public port : number;
+    public connectorConfigurations : ConnectorConfiguration[] = [];
 
     static newFromJSON(obj) {
 

@@ -2,7 +2,7 @@
 import * as Q from "q";
 
 import {NativeClass, IConnector, IConnection} from "./core";
-import {HubConfiguration, ConnectorType} from './configuration';
+import {HubConfiguration, ConnectorConfiguration, ConnectorType} from './configuration';
 import {ComponentManager} from "./component";
 import {HubMessage, HubMessageContentParser} from "./messaging";
 import {TCPConnector, SIOConnector} from "./connector";
@@ -16,13 +16,14 @@ export class HubManager extends NativeClass {
     private _subscriptions = new Map<string, Rx.Disposable>();
 
     // connectors
-    private _tcpConnector : TCPConnector;
-    private _sioConnector : SIOConnector;
+    private _connectors : IConnector[];
 
     // managers
     private _componentManager = new ComponentManager();
     private _generatorManager = new GeneratorManager();
     private _mappingManager = new MappingManager();
+
+    private _parser = new HubMessageContentParser();
 
     constructor(private _configuration : HubConfiguration) {
         super();
@@ -32,19 +33,24 @@ export class HubManager extends NativeClass {
     get componentManager() : ComponentManager { return this._componentManager; }
     get generatorManager() : GeneratorManager { return this._generatorManager; }
     get mappingManager() : MappingManager { return this._mappingManager; }
-
-    // connectors
-    get tcpConnector() { return this._tcpConnector; }
+    get parser() : HubMessageContentParser { return this._parser; }
 
     setup() : Q.Promise<void> {
         return Q().then(() => {
-            return this.setupConnector();
+            return Q.all(this._configuration.connectorConfigurations.map(configuration => {
+                return this.setupConnector(configuration);
+            })).then(results => {
+                this._connectors = results;
+            });
         });
     }
 
     teardown() : Q.Promise<void> {
         return Q().then(() => {
-            return this.tcpConnector.stop().then(() => {
+            this.reset();
+            return Q.all(this._connectors.map(connector => {
+                return connector.stop();
+            })).then(() => {
                 this._subscriptions.forEach((subscription : Rx.Disposable) => { subscription.dispose(); });
                 this._subscriptions.clear();
                 this._connections.clear();
@@ -58,31 +64,32 @@ export class HubManager extends NativeClass {
         this.mappingManager.reset();
     }
 
-    private setupConnector() : Q.Promise<void> {
+    private setupConnector(config : ConnectorConfiguration) : Q.Promise<IConnector> {
         return Q().then(() => {
-
-            const parser = new HubMessageContentParser();
-
-            if (this.configuration.connectorType == ConnectorType.TCP) {
-                this._tcpConnector = new TCPConnector(parser);
-            } else {
-                throw new Error('unsupported connector type');
+            let connector : IConnector = null;
+            switch (config.connectorType) {
+                case ConnectorType.TCP:
+                    connector = new TCPConnector(this.parser);
+                    break;
+                case ConnectorType.SIO:
+                    connector = new SIOConnector(this.parser);
+                    break;
+                default:
+                    throw new Error('unsupported connection type');
             }
-
-            this.tcpConnector.emitter.on('connection', (connection : IConnection) => {
+            connector.emitter.on('connection', (connection : IConnection) => {
                 this.setupConnection(connection);
             });
-
-            this.tcpConnector.emitter.on('disconnection', (connection : IConnection) => {
+            connector.emitter.on('disconnection', (connection : IConnection) => {
                 this.teardownConnection(connection);
             });
-
-            return this.tcpConnector.start(this.configuration.port).then(() => {
-                console.log('Server started on port ' + this.configuration.port);
+            return connector.start(config.port).then(() => {
+                console.log('Server started on port ' + config.port);
+                return connector;
             }).catch(err => {
                 console.error('Error : ' + err.stack);
+                throw err;
             });
-
         });
     }
 

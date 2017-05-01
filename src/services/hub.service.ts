@@ -7,7 +7,7 @@ import { Injectable } from '@angular/core';
 import { ConfigurationService } from './configuration.service';
 
 import {
-    HubManager, HubConfiguration, FileUtils, ComponentInfo, LocalConnection,
+    HubManager, HubConfiguration, ComponentInfo, LocalConnection,
     HubMessageContentParser
 } from '../sonosthesia';
 

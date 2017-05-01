@@ -11,9 +11,13 @@
 export * from './lib/core';
 export * from './lib/component';
 export * from './lib/configuration';
-export * from './lib/connector';
 export * from './lib/component';
 export * from './lib/hub';
 export * from './lib/mapping';
 export * from './lib/messaging';
 export * from './lib/processing';
+
+// connection types
+export * from './lib/connector/core';
+export * from './lib/connector/tcp';
+//export * from './lib/connector/sio';

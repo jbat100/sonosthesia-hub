@@ -5,6 +5,7 @@ import { NativeClass } from './core';
 export enum ConnectorType {
     UNDEFINED,
     TCP,
+    WS,
     SIO
 }
 

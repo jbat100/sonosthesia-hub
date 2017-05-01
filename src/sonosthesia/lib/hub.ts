@@ -5,9 +5,12 @@ import {NativeClass, IConnector, IConnection} from "./core";
 import {HubConfiguration, ConnectorConfiguration, ConnectorType} from './configuration';
 import {ComponentManager} from "./component";
 import {HubMessage, HubMessageContentParser} from "./messaging";
-import {TCPConnector, SIOConnector} from "./connector";
 import {GeneratorManager} from "./generator";
 import {MappingManager} from "./mapping";
+
+import {TCPConnector} from "./connector/tcp";
+//import {SIOConnector} from "./connector/sio";
+import {WSConnector} from "./connector/ws";
 
 
 export class HubManager extends NativeClass {
@@ -37,7 +40,9 @@ export class HubManager extends NativeClass {
 
     setup() : Q.Promise<void> {
         return Q().then(() => {
-            return Q.all(this._configuration.connectorConfigurations.map(configuration => {
+            return Q.all(this._configuration.connectorConfigurations.filter(configuration => {
+                return configuration.enabled;
+            }).map(configuration => {
                 return this.setupConnector(configuration);
             })).then(results => {
                 this._connectors = results;
@@ -66,14 +71,18 @@ export class HubManager extends NativeClass {
 
     private setupConnector(config : ConnectorConfiguration) : Q.Promise<IConnector> {
         return Q().then(() => {
+            if (!config.enabled) throw new Error('connection config is not enabled');
             let connector : IConnector = null;
             switch (config.connectorType) {
                 case ConnectorType.TCP:
                     connector = new TCPConnector(this.parser);
                     break;
-                case ConnectorType.SIO:
-                    connector = new SIOConnector(this.parser);
+                case ConnectorType.WS:
+                    connector = new WSConnector(this.parser);
                     break;
+                case ConnectorType.SIO:
+                    //connector = new SIOConnector(this.parser);
+                    //break;
                 default:
                     throw new Error('unsupported connection type');
             }

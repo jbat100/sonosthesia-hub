@@ -44,11 +44,13 @@ export class HubService {
                     // load local component config file
                     return Q.all(
                         this._componentConfigPaths.map(path => {
-                            return FileUtils.readJSONFile(path).then((obj : any) => {
-                                const componentInfo = ComponentInfo.newFromJSON(obj) as ComponentInfo;
-                                manager.componentManager.registerComponent(this._localConnection, componentInfo);
+                            return ComponentInfo.importFromFile(path).then((infoList : ComponentInfo[]) => {
+                                infoList.forEach((info : ComponentInfo) => {
+                                    manager.componentManager.registerComponent(this._localConnection, info);
+                                });
                             }).catch(err => {
-                                console.error(this.tag + ' failed to load component config file ' + path + ', err : ' + err.stack);
+                                console.error(this.tag + ' failed to load component config file '
+                                    + path + ', err : ' + err.stack);
                             });
                         })
                     );

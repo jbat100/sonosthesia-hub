@@ -8,7 +8,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 // apparently not great with webpack 2
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+const nodeExternals = require('webpack-node-externals');
+
 const helpers = require('./config/helpers');
+
+// some hints for windows...
+// http://www.digitalcitizen.life/command-prompt-how-use-basic-commands
+// http://stackoverflow.com/questions/15126050/running-python-on-windows-for-node-js-dependencies
 
 // configuring electron apps for debug in webstorm is a bit tricky
 // https://blog.jetbrains.com/webstorm/2016/05/getting-started-with-electron-in-webstorm/
@@ -23,8 +29,9 @@ module.exports = {
         filename: "js/[name].bundle.js"
     },
     resolve: {
-        extensions: ['*', '.ts', '.js', '.sass', 'scss', 'css']
+        extensions: ['*', '.ts', '.js', '.sass', 'scss', 'css', '.json']
     },
+    //exclude: [/node_modules/],
     module: {
         loaders: [
 
@@ -80,6 +87,11 @@ module.exports = {
                 loaders: ['style-loader', 'css-loader']
             },
 
+            {
+                "test": /\.json$/,
+                "loader": "json-loader"
+            },
+
             // files used by photonkit
             // not actually using photon kit as it looks really shitty on windows...
             // https://github.com/abduld/electron-react-cerebral-photonkit-babel6-webpack/blob/master/webpack.config.js
@@ -91,7 +103,8 @@ module.exports = {
                 test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
                 loader: "file-loader"
             }
-        ]
+        ],
+        //noParse: [/(ws|socket\.io)/]
     },
     devServer: {
         port: 80,
@@ -111,7 +124,9 @@ module.exports = {
 
     // ways around the 'cannot resolve 'net', or all the other node modules
     // https://github.com/request/request/issues/1529
-    target: 'node',
+    target: 'electron-renderer',
     //node: {console: true, fs: 'empty', net: 'empty', tls: 'empty'}
-    devtool: 'source-map'
+    devtool: 'source-map',
+    //externals: [nodeExternals()]
+    //externals: ["ws", "socket.io"]
 };

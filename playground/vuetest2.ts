@@ -2,7 +2,7 @@
  * Created by jonathan on 07/02/2017.
  */
 
-import sonosthesia from '../src/sonosthesia';
+//import sonosthesia from '../src/sonosthesia';
 
 export class Test {
 
@@ -18,4 +18,4 @@ export class Test {
 }
 
 // how do we get type information here?
-const message = new sonosthesia.messaging.MessageContent();
+// const message = new sonosthesia.messaging.MessageContent();

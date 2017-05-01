@@ -19,6 +19,9 @@ const helpers = require('./config/helpers');
 // configuring electron apps for debug in webstorm is a bit tricky
 // https://blog.jetbrains.com/webstorm/2016/05/getting-started-with-electron-in-webstorm/
 
+// look into backend apps with webpack
+// http://jlongster.com/Backend-Apps-with-Webpack--Part-I#Getting-Started
+
 module.exports = {
     entry: {
         "vendor": "./src/vendor.ts",

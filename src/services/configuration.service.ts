@@ -27,9 +27,14 @@ export class ConfigurationService {
                 port: 3000
             },
             {
-                connectorType: ConnectorType.WS,
+                connectorType: ConnectorType.SIO,
                 enabled: false,
                 port: 3001
+            },
+            {
+                connectorType: ConnectorType.WS,
+                enabled: true,
+                port: 3002
             }
         ];
 

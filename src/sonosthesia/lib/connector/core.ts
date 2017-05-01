@@ -77,6 +77,7 @@ export class BaseConnector extends NativeClass {
 
     protected handleError(err : Error) {
         this._error = err;
+        console.error(this.tag + ' handle error : ' + err.message);
         this.emitter.emit('error', err);
     }
 
@@ -84,9 +85,6 @@ export class BaseConnector extends NativeClass {
         this._error = null;
     }
 }
-
-
-
 
 //----------------------------------------------------------------------------------------------------
 

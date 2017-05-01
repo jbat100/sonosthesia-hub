@@ -23,8 +23,8 @@ export class SIOConnector extends BaseConnector {
 
     start(port : number) : Q.Promise<void> {
         return super.start(port).then(() => {
-            return Q.Promise((resolve, reject) => {
-                if (this._sioServer) return reject(new Error('connector is already started'));
+            return Q().then(() => {
+                if (this._sioServer) throw new Error('connector is already started');
                 console.info(this.tag + ' start on port ' + port);
                 this._httpServer = http.createServer((req, res) => {
                     console.log(this.tag + ' incoming http request');

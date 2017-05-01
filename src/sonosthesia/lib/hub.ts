@@ -9,7 +9,7 @@ import {GeneratorManager} from "./generator";
 import {MappingManager} from "./mapping";
 
 import {TCPConnector} from "./connector/tcp";
-//import {SIOConnector} from "./connector/sio";
+import {SIOConnector} from "./connector/sio";
 import {WSConnector} from "./connector/ws";
 
 
@@ -81,8 +81,8 @@ export class HubManager extends NativeClass {
                     connector = new WSConnector(this.parser);
                     break;
                 case ConnectorType.SIO:
-                    //connector = new SIOConnector(this.parser);
-                    //break;
+                    connector = new SIOConnector(this.parser);
+                    break;
                 default:
                     throw new Error('unsupported connection type');
             }

@@ -19,10 +19,13 @@ export class WSConnector extends BaseConnector {
 
     start(port : number) : Q.Promise<void> {
         return super.start(port).then(() => {
-            return Q.Promise((resolve, reject) => {
-                if (this._wsServer) return reject(new Error('connector is already started'));
+            return Q().then(() => {
+                if (this._wsServer) throw new Error('connector is already started');
                 console.info(this.tag + ' start on port ' + port);
                 this._wsServer = new ws.Server({port:port});
+                this._wsServer.on('error', (err) => {
+                    this.handleError(err);
+                });
                 this._wsServer.on('connection', (socket) => {
                     const connection = new WSConnection(this.parser, this, socket);
                     this.registerConnection(connection);

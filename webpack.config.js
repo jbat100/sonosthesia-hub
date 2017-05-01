@@ -1,5 +1,6 @@
 
 const path = require('path');
+const fs = require('fs');
 
 const webpack = require("webpack");
 const autoprefixer = require('autoprefixer');
@@ -8,7 +9,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 // apparently not great with webpack 2
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-const nodeExternals = require('webpack-node-externals');
+//const nodeExternals = require('webpack-node-externals');
 
 const helpers = require('./config/helpers');
 
@@ -22,6 +23,18 @@ const helpers = require('./config/helpers');
 // look into backend apps with webpack
 // http://jlongster.com/Backend-Apps-with-Webpack--Part-I#Getting-Started
 
+// doesnt work: 'Unexpected value 'NgPipesModule' imported by the module 'ApplicationModule'
+// the problem is that i have a combination of front end and backend
+const nodeModules = {};
+fs.readdirSync('node_modules')
+    .filter(function(x) {
+        return ['.bin'].indexOf(x) === -1;
+    })
+    .forEach(function(mod) {
+        nodeModules[mod] = 'commonjs ' + mod;
+    });
+
+
 module.exports = {
     entry: {
         "vendor": "./src/vendor.ts",
@@ -32,7 +45,7 @@ module.exports = {
         filename: "js/[name].bundle.js"
     },
     resolve: {
-        extensions: ['*', '.ts', '.js', '.sass', 'scss', 'css', '.json']
+        extensions: ['*', '.ts', '.js', '.sass', 'scss', 'css']
     },
     //exclude: [/node_modules/],
     module: {
@@ -132,4 +145,5 @@ module.exports = {
     devtool: 'source-map',
     //externals: [nodeExternals()]
     //externals: ["ws", "socket.io"]
+    //externals: nodeModules
 };

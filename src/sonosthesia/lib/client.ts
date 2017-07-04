@@ -5,7 +5,7 @@ import * as Q from 'q';
 import * as _ from 'underscore';
 
 import {NativeClass, IConnection} from "./core";
-import {TCPConnection} from "./connector";
+import {TCPConnection} from "./connector/tcp";
 import {HubMessageContentParser, ComponentMessageContent, HubMessage, HubMessageType, Parameters} from "./messaging";
 import {ComponentController, ComponentInfo, ChannelSelection} from "./component";
 

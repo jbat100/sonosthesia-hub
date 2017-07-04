@@ -21,13 +21,13 @@ export class ParameterOperatorService {
 
     operatorNames() : string[] {
         return this.operatorTypes.map((operatorType : typeof ParameterOperator) => {
-            return operatorType.name as string;
+            return operatorType.operatorName as string;
         });
     }
 
     operatorTypeForName(name : string) : typeof ParameterOperator {
         return this.operatorTypes.find((operatorType : typeof ParameterOperator) => {
-            return operatorType.name == name;
+            return operatorType.operatorName == name;
         });
     }
 

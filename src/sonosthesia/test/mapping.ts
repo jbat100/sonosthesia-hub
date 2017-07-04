@@ -48,8 +48,11 @@ describe('Mapping tests', () => {
     function setupHubManager() : Q.Promise<void> {
         return Q().then(() => {
             const hubConfig = new HubConfiguration();
-            hubConfig.connectorType = ConnectorType.TCP;
-            hubConfig.port = hubPort;
+            hubConfig.connectorConfigurations.push({
+                connectorType:ConnectorType.TCP,
+                enabled:true,
+                port:hubPort
+            });
             return hubConfig;
         }).then((hubConfig : HubConfiguration) => {
             hubManager = new HubManager(hubConfig);

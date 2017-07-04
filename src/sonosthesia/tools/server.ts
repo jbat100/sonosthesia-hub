@@ -6,7 +6,7 @@ const commandLineArgs = require('command-line-args');
 import * as Rx from 'rx';
 
 import {HubMessageContentParser, HubMessage} from "../lib/messaging";
-import {TCPConnector, TCPConnection} from '../lib/connector';
+import {TCPConnector, TCPConnection} from '../lib/connector/tcp';
 import {Message} from "../lib/core";
 
 const optionDefinitions = [

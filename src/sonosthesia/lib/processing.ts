@@ -27,11 +27,11 @@ export class ParameterSample extends NativeClass {
 
 export class ParameterOperator extends NativeClass {
 
-    static get name() : string { return ''; }
+    static get operatorName() : string { return ''; }
 
     // I have trouble believing there isn't a better way to do this but can't find one...
 
-    get name() : string { return (this.constructor as any).name; }
+    get name() : string { return (this.constructor as any).operatorName; }
 
 }
 
@@ -62,7 +62,7 @@ export class StatelessValueOperator extends StatelessParameterOperator {
 
 export class ScaleValueOperator extends StatelessValueOperator {
 
-    static get name() { return 'scale'; }
+    static get operatorName() { return 'scale'; }
 
     private _scale = 1.0;
 
@@ -83,7 +83,7 @@ export class ScaleValueOperator extends StatelessValueOperator {
 
 export class OffsetValueOperator extends StatelessValueOperator {
 
-    static get name() { return 'offset'; }
+    static get operatorName() { return 'offset'; }
 
     private _offset = 0.0;
 

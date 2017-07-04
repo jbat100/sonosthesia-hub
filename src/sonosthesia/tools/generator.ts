@@ -8,7 +8,7 @@ import {Socket} from 'net';
 import * as _  from 'underscore';
 
 import {GUID} from '../lib/core';
-import {TCPConnection} from '../lib/connector';
+import {TCPConnection} from '../lib/connector/tcp';
 import {ControlMessageContent, ActionMessageContent, HubMessageContentParser} from '../lib/messaging';
 import {CreateMessageContent, DestroyMessageContent} from '../lib/messaging';
 import {Parameters, HubMessageType, HubMessage} from '../lib/messaging';

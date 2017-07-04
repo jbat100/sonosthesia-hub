@@ -3,9 +3,9 @@
 
     <div class="bar-container">
         <!-- unless it causes performance issues, have a switch based on operator type -->
-        <div class="bar-label">{{operator.name | titleCase}}</div>
+        <div class="bar-label">{{operator.operatorName | titleCase}}</div>
 
-        <div class="bar-container" [ngSwitch]="operator.name">
+        <div class="bar-container" [ngSwitch]="operator.operatorName">
 
             <div *ngSwitchCase="'offset'" class="bar-field">
                 <offset-value-operator [operator]="operator"></offset-value-operator>

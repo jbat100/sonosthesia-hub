@@ -5,7 +5,7 @@ import * as Q from "q";
 import * as _ from "underscore";
 import { expect} from "chai";
 
-import { NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, FileUtils } from "./core";
+import {NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, FileUtils, Message} from "./core";
 import { HubMessage, Parameters, HubMessageType } from "./messaging";
 import { PeriodicGenerator, SineEngine, GeneratorEngine } from "./generator";
 
@@ -346,8 +346,10 @@ export class ComponentController extends BaseController<ComponentInfo> implement
 
     constructor(private _connection : IConnection) {
         super();
-        this._incomingMessageObservable = this.connection.messageObservable.filter((message : HubMessage, idx) => {
+        this._incomingMessageObservable = this.connection.messageObservable.filter((message : Message, idx) => {
             return this.info && message.content.component === this.info.identifier;
+        }).map((message : Message, idx) => {
+            return message as HubMessage;
         }).do((message : HubMessage) => {
             this._messageCount++;
         });

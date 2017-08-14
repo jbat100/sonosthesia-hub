@@ -1,0 +1,25 @@
+<div class="bar-container">
+
+    <channel-selection *ngIf="showChannel"
+                       [manager]="manager"
+                       [selection]="selection.channelSelection"
+                       [showComponent]="showComponent"
+                       [labeled]="labeled"
+                       class="bar-field"></channel-selection>
+
+    <div *ngIf="labeled" class="bar-label">Parameter</div>
+
+    <select [ngModel]="identifier"
+            (ngModelChange)="onSelection($event)"
+            name="parameterSelect"
+            class="custom-select bar-field select-space">
+
+        <option value="" disabled selected>Select parameter...</option>
+
+        <option [ngValue]="candidate"
+                *ngFor="let candidate of candidates">{{candidate}}</option>
+
+    </select>
+
+</div>
+

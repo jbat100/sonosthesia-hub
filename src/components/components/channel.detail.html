@@ -1,0 +1,14 @@
+<div class="content-panel-2">
+    <div class="bar-container bar-vertical-margin">
+        <div class="bar-label h5"> Channel: {{channelController.info.identifier}} </div>
+        <div class="bar-center-space"></div>
+        <div class="bar-label h5"> Incoming: {{channelController.incomingCountObservable | async}} </div>
+        <div class="bar-label h5"> Outgoing: {{channelController.outgoingCountObservable | async}} </div>
+    </div>
+
+    <div>
+        <parameter-detail *ngFor="let info of channelController.info.parameters"
+                          [parameterInfo]="info">
+        </parameter-detail>
+    </div>
+</div>

@@ -1,0 +1,46 @@
+<div class="content-panel-2">
+
+    <div class="vertical-space"></div>
+
+    <div class="bar-container">
+
+        <div class="bar-label h5">Input</div>
+
+        <parameter-selection [manager]="parameterMapping.componentManager"
+                             [selection]="parameterMapping.input"
+                             class="bar-field">
+        </parameter-selection>
+
+        <div class="bar-label h5">Output</div>
+
+        <parameter-selection [manager]="parameterMapping.componentManager"
+                             [selection]="parameterMapping.output"
+                             class="bar-field">
+        </parameter-selection>
+
+        <div class="bar-label h5">Operators</div>
+
+        <select [(ngModel)]="selectedOperatorName" class="custom-select bar-field">
+
+            <option [ngValue]="name" *ngFor="let name of availableOperatorNames">{{name}}</option>
+
+        </select>
+
+        <button (click)="onCreateParameterOperator(selectedOperatorName)"
+                type="button"
+                class="btn btn-primary bar-label">Add</button>
+
+        <button (click)="deleteRequest.emit($event)"
+                type="button"
+                class="btn btn-primary secondary-bar-item"> Delete </button>
+
+    </div>
+
+    <div class="vertical-space"></div>
+
+    <parameter-operator-container *ngFor="let operator of parameterOperators | async; let i = index;"
+                        [operator]="operator"
+                        (deleteRequest)="onDestroyParameterOperator(i)">
+    </parameter-operator-container>
+
+</div>

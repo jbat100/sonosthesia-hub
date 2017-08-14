@@ -1,0 +1,19 @@
+
+<div class="bar-container">
+
+
+    <div *ngIf="labeled" class="bar-label">Component</div>
+
+    <select [ngModel]="identifier"
+            (ngModelChange)="onSelection($event)"
+            name="componentSelect"
+            class="custom-select bar-field select-space">
+
+        <option value="" disabled selected>Select component...</option>
+
+        <option *ngFor="let candidate of candidates"
+                [ngValue]="candidate">{{candidate}}</option>
+
+    </select>
+
+</div>

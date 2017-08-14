@@ -1,0 +1,16 @@
+
+<div clas="root">
+
+    <div class="root-top-bar">
+        <button-navigation class="main-bar-item" [currentKey]="'mappings'"></button-navigation>
+        <button class="secondary-bar-item" (click)="onCreate($event)" type="button" class="btn btn-primary">Add</button>
+    </div>
+
+    <div class="root-content">
+        <channel-mapping *ngFor="let mapping of mappingsObservable | async; let i = index;"
+                         [channelMapping]="mapping"
+                         (deleteRequest)="onDelete(i)">
+        </channel-mapping>
+    </div>
+
+</div>

@@ -1,0 +1,27 @@
+
+<div class="content-panel-3">
+
+    <div class="bar-container">
+        <!-- unless it causes performance issues, have a switch based on operator type -->
+        <div class="bar-label">{{operator.operatorName | titleCase}}</div>
+
+        <div class="bar-container" [ngSwitch]="operator.operatorName">
+
+            <div *ngSwitchCase="'offset'" class="bar-field">
+                <offset-value-operator [operator]="operator"></offset-value-operator>
+            </div>
+
+            <div *ngSwitchCase="'scale'" class="bar-field">
+                <scale-value-operator [operator]="operator"></scale-value-operator>
+            </div>
+
+        </div>
+
+        <button (click)="deleteRequest.emit($event)"
+                type="button"
+                class="btn btn-primary bar-label"> Delete </button>
+
+    </div>
+
+</div>
+

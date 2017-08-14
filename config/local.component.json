@@ -1,0 +1,31 @@
+{
+  "components" : [
+    {
+      "identifier" : "local",
+      "channels" : [
+        {
+          "identifier" : "channel1",
+          "parameters" : [
+            {
+              "identifier" : "parameter1a"
+            },
+            {
+              "identifier" : "parameter1b"
+            }
+          ]
+        },
+        {
+          "identifier" : "channel2",
+          "parameters" : [
+            {
+              "identifier" : "parameter2a"
+            },
+            {
+              "identifier" : "parameter2b"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

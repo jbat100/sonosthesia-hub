@@ -1,0 +1,18 @@
+
+<div class="root">
+
+    <div class="root-top-bar">
+        <button-navigation class="main-bar-item" [currentKey]="'components'"></button-navigation>
+    </div>
+
+    <div class="root-content">
+        <component-detail
+                *ngFor="let controller of componentControllers"
+                [componentController]="controller">
+        </component-detail>
+        <!--div *ngFor="let test of testList">
+            {{test}}
+        </div-->
+    </div>
+
+</div>

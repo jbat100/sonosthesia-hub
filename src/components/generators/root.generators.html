@@ -1,0 +1,23 @@
+
+<div class="root">
+
+    <div class="root-top-bar">
+
+        <button-navigation class="main-bar-item"
+                           [currentKey]="'generators'"></button-navigation>
+
+        <button class="btn btn-primary secondary-bar-item"
+                (click)="onCreateGenerator($event)"
+                type="button">Add</button>
+    </div>
+
+    <div class="root-content">
+
+        <div *ngFor="let generator of componentMessageGeneratorsObservable | async; let i = index;">
+            <generator-detail [generator]="generator"
+                              (deleteRequest)="onDestroyGenerator(i)"></generator-detail>
+        </div>
+
+    </div>
+
+</div>

@@ -1,6 +1,6 @@
-<div class="content-panel-3">
+<div class="content-panel-1">
 
-    <div class="bar-container bar-vertical-margin">
+    <div class="bar-container-1 bar-vertical-margin">
 
         <div class="bar-label bar-title h5">Input</div>
 
@@ -33,7 +33,5 @@
     <parameter-mapping *ngFor="let parameterMapping of parameterMappings | async; let i = index;"
                        [parameterMapping]="parameterMapping"
                        (deleteRequest)="onDestroyParameterMapping(i)"> </parameter-mapping>
-
-    <div class="vertical-space"></div>
 
 </div>

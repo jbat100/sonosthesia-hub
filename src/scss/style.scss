@@ -29,7 +29,7 @@ select {
   flex-shrink: 0;
   overflow-y: hidden;
   padding: 10px;
-  margin-bottom: 10px;
+  //margin-bottom: 10px;
   display: flex;
   flex-wrap: nowrap;
   align-items: left;
@@ -42,7 +42,7 @@ select {
   flex-direction: column;
   //overflow-y: scroll;
   overflow-y: hidden;
-  padding: 10px;
+  //padding: 10px;
 }
 
 .root-bottom-bar {
@@ -79,7 +79,8 @@ select {
 }
 
 .bar-vertical-margin {
-  padding: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .bar-title {
@@ -92,6 +93,21 @@ select {
   display: flex;
   flex-direction: row;
   align-items: center;
+}
+
+.bar-container-1 {
+  @extend .bar-container;
+  margin-left: 10px;
+}
+
+.bar-container-2 {
+  @extend .bar-container;
+  margin-left: 30px;
+}
+
+.bar-container-3 {
+  @extend .bar-container;
+  margin-left: 50px;
 }
 
 .bar-label {
@@ -182,25 +198,31 @@ select {
 
 .content-panel {
   text-align: left;
-  margin-bottom: 10px;
-  padding:5px 5px 5px 10px;
-  border-radius: 6px 6px 6px 6px;
-  border: 1px solid darkgray;
+  //margin-bottom: 10px;
+  padding-top: 5px;
+  //padding-bottom: 10px;
+  //padding:5px 5px 5px 10px;
+  //border-radius: 6px 6px 6px 6px;
+  //border: 1px solid darkgray;
+  border-top: 1px solid darkgray;
+  border-bottom: 1px solid darkgray;
   //box-shadow: 10px 10px 16px -7px rgba(0,0,0,0.75);
 }
 
-.content-panel-3 {
+.content-panel-1 {
   @extend .content-panel;
   //background-color: #f7f8fa;
   background-color: #eaeaea;
 }
 
+
 .content-panel-2 {
   @extend .content-panel;
-  background-color: #b8b8b9;
+  background-color: #9c9c9d;
 }
 
-.content-panel-1 {
+
+.content-panel-3 {
   @extend .content-panel;
   background-color: #8c8c8d;
 }

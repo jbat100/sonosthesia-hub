@@ -61,7 +61,7 @@
     "angular2-router-loader": "^0.3.4",
     "angular2-template-loader": "^0.6.0",
     "autoprefixer": "^6.7.2",
-    "awesome-typescript-loader": "^2.2.4",
+    "awesome-typescript-loader": "^3.2.3",
     "bower": "^1.8.0",
     "css-loader": "^0.26.1",
     "del": "^2.2.2",

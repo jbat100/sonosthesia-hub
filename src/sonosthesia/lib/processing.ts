@@ -31,7 +31,7 @@ export class ParameterOperator extends NativeClass {
 
     // I have trouble believing there isn't a better way to do this but can't find one...
 
-    get name() : string { return (this.constructor as any).operatorName; }
+    get operatorName() : string { return (this.constructor as any).operatorName; }
 
 }
 

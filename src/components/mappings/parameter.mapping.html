@@ -4,23 +4,23 @@
 
     <div class="bar-container-2">
 
-        <div class="bar-label h5">Input</div>
+        <div class="bar-label-1">Input</div>
 
         <parameter-selection [manager]="parameterMapping.componentManager"
                              [selection]="parameterMapping.input"
                              class="bar-field">
         </parameter-selection>
 
-        <div class="bar-label h5">Output</div>
+        <div class="bar-label-1">Output</div>
 
         <parameter-selection [manager]="parameterMapping.componentManager"
                              [selection]="parameterMapping.output"
                              class="bar-field">
         </parameter-selection>
 
-        <div class="bar-label h5">Operators</div>
+        <div class="bar-label-1">Operators</div>
 
-        <select [(ngModel)]="selectedOperatorName" class="custom-select bar-field">
+        <select [(ngModel)]="selectedOperatorName" class="custom-select bar-field form-control-sm">
 
             <option [ngValue]="name" *ngFor="let name of availableOperatorNames">{{name}}</option>
 
@@ -28,11 +28,11 @@
 
         <button (click)="onCreateParameterOperator(selectedOperatorName)"
                 type="button"
-                class="btn btn-primary bar-label">Add</button>
+                class="btn btn-primary btn-sm secondary-bar-item">Add</button>
 
         <button (click)="deleteRequest.emit($event)"
                 type="button"
-                class="btn btn-primary secondary-bar-item"> Delete </button>
+                class="btn btn-primary btn-sm secondary-bar-item">Delete</button>
 
     </div>
 

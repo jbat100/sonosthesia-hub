@@ -111,12 +111,29 @@ select {
 }
 
 .bar-label {
-  text-align: left;
-  flex-grow: 0;
-  flex-shrink: 0;
-  overflow-y: hidden;
-  padding-left: 5px;
-  padding-right: 5px;
+   text-align: left;
+   font-size: 12px;
+   font-weight: bold;
+   flex-grow: 0;
+   flex-shrink: 0;
+   overflow-y: hidden;
+   padding-left: 5px;
+   padding-right: 5px;
+ }
+
+.bar-label-1 {
+  @extend .bar-label;
+  font-size: 16px;
+}
+
+.bar-label-2 {
+  @extend .bar-label;
+  font-size: 14px;
+}
+
+.bar-label-3 {
+  @extend .bar-label;
+  font-size: 12px;
 }
 
 .bar-field {
@@ -128,6 +145,13 @@ select {
   padding-right: 5px;
   margin-left: 5px;
   margin-right: 5px;
+}
+
+.bar-button {
+  //@extend .btn;
+  //@extend .btn-primary;
+  //@extend .btn-sm;
+  //@extend .secondary-bar-item;
 }
 
 

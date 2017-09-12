@@ -3,7 +3,7 @@
 
     <div class="bar-container-3">
         <!-- unless it causes performance issues, have a switch based on operator type -->
-        <div class="bar-label">{{operator.operatorName | titleCase}}</div>
+        <div class="bar-label-1">{{operator.operatorName | titleCase}}</div>
 
         <div class="bar-container" [ngSwitch]="operator.operatorName">
 
@@ -15,11 +15,13 @@
                 <scale-value-operator [operator]="operator"></scale-value-operator>
             </div>
 
+            <div *ngSwitchDefault>No component for operator: {{operator.operatorName}}</div>
+
         </div>
 
         <button (click)="deleteRequest.emit($event)"
                 type="button"
-                class="btn btn-primary bar-label"> Delete </button>
+                class="btn btn-primary btn-sm secondary-bar-item"> Delete </button>
 
     </div>
 

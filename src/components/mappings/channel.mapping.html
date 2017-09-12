@@ -2,7 +2,7 @@
 
     <div class="bar-container-1 bar-vertical-margin">
 
-        <div class="bar-label bar-title h5">Input</div>
+        <div class="bar-label-1">Input</div>
 
         <channel-selection [manager]="channelMapping.componentManager"
                            [selection]="channelMapping.input"
@@ -10,7 +10,7 @@
                            class="bar-field">
         </channel-selection>
 
-        <div class="bar-label bar-title h5">Output</div>
+        <div class="bar-label-1">Output</div>
 
         <channel-selection [manager]="channelMapping.componentManager"
                            [selection]="channelMapping.output"
@@ -18,15 +18,15 @@
                            class="bar-field">
         </channel-selection>
 
-        <div class="bar-label">{{channelMapping.messageCountObservable | async}}</div>
+        <div class="bar-label-1">{{channelMapping.messageCountObservable | async}}</div>
 
         <button (click)="deleteRequest.emit($event)"
                 type="button"
-                class="btn btn-primary secondary-bar-item"> Delete </button>
+                class="btn btn-primary btn-sm secondary-bar-item"> Delete </button>
 
         <button (click)="onCreateParameterMapping($event)"
                 type="button"
-                class="btn btn-primary secondary-bar-item"> Add Parameter Mapping </button>
+                class="btn btn-primary btn-sm secondary-bar-item"> Add Parameter Mapping </button>
 
     </div>
 

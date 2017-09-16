@@ -45,7 +45,7 @@ const key = 'test-key';
 // no need for instance identifier, they should be auto generated guids
 
 
-// generators
+// drivers
 
 function* controlGenerator() {
     let i = 0;

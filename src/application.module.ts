@@ -39,10 +39,13 @@ import {
 
 import { RootSettingsComponent } from './components/settings/root.settings.component';
 
-// generator sub components
+// driver sub components
 
-import { RootGeneratorsComponent } from './components/generators/root.generators.component';
-import { GeneratorDetailComponent } from './components/generators/generator.detail.component';
+import { RootDriversComponent } from './components/drivers/root.drivers.component';
+import { DriverDetailComponent } from './components/drivers/driver.detail.component';
+import {
+    GeneratorDetailComponent, GeneratorContainerDetailComponent
+} from './components/drivers/generator.detail.component';
 
 // settings sub components
 
@@ -83,8 +86,8 @@ const routes : Routes = [
         component: RootSettingsComponent
     },
     {
-        path: 'generators',
-        component: RootGeneratorsComponent
+        path: 'drivers',
+        component: RootDriversComponent
     },
     {
         path: 'mappings',
@@ -122,8 +125,10 @@ const routes : Routes = [
         ButtonNavigationComponent,
         // sonosthesia settings -----------------------
         RootSettingsComponent,
-        // sonosthesia generators ---------------------
-        RootGeneratorsComponent,
+        // sonosthesia drivers ---------------------
+        RootDriversComponent,
+        DriverDetailComponent,
+        GeneratorContainerDetailComponent,
         GeneratorDetailComponent,
         // sonosthesia mappings -----------------------
         RootMappingsComponent,

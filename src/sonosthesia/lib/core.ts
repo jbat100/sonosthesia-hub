@@ -431,6 +431,29 @@ export class Range extends NativeClass {
 
 }
 
+
+
+// consider using this for operators
+
+export interface IFloatSettingDescription
+{
+    key : string;
+    defaultValue: number;
+    minValue: number;
+    maxValue: number;
+}
+
+// https://stackoverflow.com/questions/13315131/enforcing-the-type-of-the-indexed-members-of-a-typescript-object
+
+export interface IStringTMap<T>
+{
+    [key: string]: T;
+}
+
+export interface IFloatSettingMap extends IStringTMap<number> { }
+
+
+
 export class GUID extends NativeClass {
 
     static generate() : string {

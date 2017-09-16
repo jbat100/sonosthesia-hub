@@ -1,14 +1,17 @@
 <div class="content-panel-1">
-    <div class="bar-container">
-        <div class="bar-label h4">
+
+    <div class="bar-container-1">
+        <div class="bar-label-1">
             Component: {{componentIdentifier | async}} ({{componentController.connection.connectionType}})
         </div>
     </div>
 
     <div class="vertical-space"></div>
+
     <div>
         <channel-detail *ngFor="let controller of channelControllers | async"
                         [channelController]="controller">
         </channel-detail>
     </div>
+
 </div>

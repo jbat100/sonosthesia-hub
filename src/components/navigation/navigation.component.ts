@@ -11,7 +11,7 @@ import {NavigationService} from "../../services/navigation.service";
 
 const targets = [
     { key:'components' },
-    { key:'generators' },
+    { key:'drivers' },
     { key:'mappings' },
     { key:'settings' }
 ];

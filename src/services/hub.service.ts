@@ -46,6 +46,7 @@ export class HubService {
                         this._componentConfigPaths.map(path => {
                             return ComponentInfo.importFromFile(path).then((infoList : ComponentInfo[]) => {
                                 infoList.forEach((info : ComponentInfo) => {
+                                    console.warn(this.tag + ' imported component info ' + JSON.stringify(info));
                                     manager.componentManager.registerComponent(this._localConnection, info);
                                 });
                             }).catch(err => {

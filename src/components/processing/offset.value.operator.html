@@ -3,10 +3,16 @@
 
 <div class="bar-container">
     <div class="bar-field slider-space">
-        <nouislider [connect]="true" [min]="0" [max]="1" [(ngModel)]="operator.offset"></nouislider>
+        <nouislider [connect]="true"
+                    [min]="0"
+                    [max]="1"
+                    [(ngModel)]="operator.offset"></nouislider>
     </div>
     <div class="bar-label">
-        <input type="number" name="quantity" min="0" max="1" [(ngModel)]="operator.offset">
+        <input type="number"
+               name="quantity"
+               min="0" max="1"
+               [(ngModel)]="operator.offset">
     </div>
 </div>
 

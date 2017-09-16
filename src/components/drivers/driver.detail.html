@@ -4,12 +4,12 @@
     <div class="bar-container">
 
         <div class="bar-field">
-            <channel-selection [manager]="generator.manager"
-                               [selection]="generator.channelSelection"
+            <channel-selection [manager]="driver.manager"
+                               [selection]="driver.channelSelection"
                                [showComponent]="true"></channel-selection>
         </div>
 
-        <enum-select [initial]="generator.flow"
+        <enum-select [initial]="driver.flow"
                      [enumType]="flowEnumType"
                      (selected)="onSelectedFlow($event)"></enum-select>
 
@@ -18,14 +18,14 @@
             <div *ngSwitchCase="false">
                 <button (click)="onStart($event)"
                         type="button"
-                        class="btn btn-default">Start</button>
+                        class="btn btn-default btn-sm">Start</button>
                 <!--div class="badge badge-default">Idle</div-->
             </div>
 
             <div *ngSwitchCase="true">
                 <button (click)="onStop($event)"
                         type="button"
-                        class="btn btn-primary">Stop</button>
+                        class="btn btn-primary btn-sm">Stop</button>
                 <!--div class="badge badge-primary">Running</div-->
             </div>
 
@@ -33,12 +33,14 @@
 
         <button (click)="deleteRequest.emit($event)"
                 type="button"
-                class="btn btn-primary secondary-bar-item"> Delete </button>
+                class="btn btn-primary btn-sm secondary-bar-item"> Delete </button>
+
+        <div>
+            <generator-container-detail *ngFor="let key of driver.generatorKeysObservable | async"
+                              [generatorContainer]="driver.getGenerator(key)">
+            </generator-container-detail>
+        </div>
 
     </div>
 
 </div>
-
-
-
-

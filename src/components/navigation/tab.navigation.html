@@ -2,21 +2,11 @@
     <div class="root-canvas">
         <div class="container">
             <div>
-
                 <ngb-tabset type="pills" (tabChange)="tabChange($event)" [activeId]="currentKey">
                     <ngb-tab *ngFor="let tab of targets" [id]="tab.key" [title]="tab.key | titleCase">
                         <template ngbTabContent></template>
                     </ngb-tab>
                 </ngb-tabset>
-
-                <!--
-                http://stackoverflow.com/questions/40204521/exception-error-in-ngbtabset-class-ngbtabset-inline-template1220-caused-b
-                <ngb-tabset>
-                    <ngb-tab id="boo" title="boo"><template ngbTabContent>boo</template></ngb-tab>
-                    <ngb-tab id="baa" title="baa"><template ngbTabContent>baa</template></ngb-tab>
-                </ngb-tabset>
-                -->
-
             </div>
             <div>
                 <ng-content></ng-content>

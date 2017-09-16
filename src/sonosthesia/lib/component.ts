@@ -7,7 +7,8 @@ import { expect} from "chai";
 
 import {NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, FileUtils, Message} from "./core";
 import { HubMessage, Parameters, HubMessageType } from "./messaging";
-import { PeriodicGenerator, SineEngine, GeneratorEngine } from "./generator";
+import {ValueGeneratorType, ValueGeneratorContainer} from "./generator";
+import {PeriodicDriver} from "./driver";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Info classes represent the declarations of available components (and their channels) made by connections, they are
@@ -18,11 +19,12 @@ import { PeriodicGenerator, SineEngine, GeneratorEngine } from "./generator";
 export class ComponentInfo extends Info {
 
     static importFromFile(filePath) : Q.Promise<ComponentInfo[]> {
+        console.log('ComponentInfo importing from file ' + filePath);
         return FileUtils.readJSONFile(filePath).then((obj : any) => {
             if (obj.components) {
                 return obj.components.map((infoObj : any) => { return ComponentInfo.newFromJSON(infoObj); });
             } else if (obj.component) {
-                return ComponentInfo.newFromJSON(obj.component);
+                return [ComponentInfo.newFromJSON(obj.component)];
             } else {
                 return [];
             }
@@ -430,12 +432,7 @@ export class ComponentController extends BaseController<ComponentInfo> implement
 // ---------------------------------------------------------------------------------------------------------------------
 // Message generator
 
-export enum ComponentMessageGeneratorMode {
-    STATIC,
-    DYNAMIC
-}
-
-export enum ComponentMessageGeneratorFlow {
+export enum ComponentDriverFlow {
     INCOMING,
     OUTGOING
 }
@@ -447,29 +444,37 @@ export enum ComponentMessageGeneratorFlow {
 // complex generator types such as arpegiators could be created (although that
 // maybe be a better fit for a channel processor)
 
-export class ComponentMessageGenerator extends PeriodicGenerator {
+export class ComponentDriver extends PeriodicDriver {
 
     private _channelSelection = new ChannelSelection(null, null);
 
-    private _flow = ComponentMessageGeneratorFlow.OUTGOING;
-    private _defaultEngine : GeneratorEngine = new SineEngine(1.0, 1.0, 0.0);
-    private _engines = new Map<string, GeneratorEngine>(); // parameter identifier as key
-    private _channelController : ChannelController;
+    private _flow = ComponentDriverFlow.OUTGOING;
+    private _defaultGeneratorType : ValueGeneratorType.CONSTANT;
+    private _generators = new Map<string, ValueGeneratorContainer>(); // parameter identifier as key
     private _selectionSubscription : Rx.Subscription;
     private _currentInstance : string;
     private _instanceCycles = 10;
+
+    private _channelController : ChannelController;
+
+    private _generatorKeysSource = new Rx.BehaviorSubject<string[]>([]);
+    private _generatorKeysObservable = this._generatorKeysSource.asObservable();
+
+    //private _channelControllerSource = new Rx.BehaviorSubject<ChannelController>(null);
+    //private _channelControllerObservable = this._channelControllerSource.asObservable();
 
     constructor(period : number, private _manager : ComponentManager) {
         super(period);
         // TODO: provide a clean way to unsubscribe, teardown/destroy kind of thing
         this._selectionSubscription = this._channelSelection.changeObservable.subscribe(() => {
             this._channelController = this.manager.getChannelController(this.channelSelection);
+            this.updateGenerators();
         });
     }
 
-    get flow() : ComponentMessageGeneratorFlow { return this._flow; }
+    get flow() : ComponentDriverFlow { return this._flow; }
 
-    set flow(flow : ComponentMessageGeneratorFlow) { this._flow = flow; }
+    set flow(flow : ComponentDriverFlow) { this._flow = flow; }
 
     get manager() : ComponentManager { return this._manager; }
 
@@ -477,31 +482,60 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
 
     get channelController() : ChannelController { return this._channelController; }
 
-    protected generate(time : number, cycles : number) {
+    //get channelControllerObservable() : Rx.Observable<ChannelController> { return this._channelControllerObservable; }
+
+    get generatorKeysObservable() : Rx.Observable<string[]> { return this._generatorKeysObservable; }
+
+    getGenerator(key : string) : ValueGeneratorContainer { return this._generators[key]; }
+
+    protected get generators() : Map<string, ValueGeneratorContainer> { return this._generators; }
+
+    protected drive(time : number, cycles : number) {
         if (this.channelController) {
             // if we have a multiple of instance cycles, create a new instance
             if (cycles % this._instanceCycles == 0) {
                 // destroy current instance if it exists
                 if (this._currentInstance) {
-                    this.sendMessage(HubMessageType.Destroy, this._currentInstance, this.generateParameters(time));
+                    this.sendMessage(HubMessageType.Destroy, this._currentInstance, this.generateParameters(time, cycles));
                 }
                 // create an instance
                 this._currentInstance = GUID.generate();
-                this.sendMessage(HubMessageType.Create, this._currentInstance, this.generateParameters(time));
+                this.sendMessage(HubMessageType.Create, this._currentInstance, this.generateParameters(time, cycles));
             }
-            this.sendMessage(HubMessageType.Control, this._currentInstance, this.generateParameters(time));
+            this.sendMessage(HubMessageType.Control, this._currentInstance, this.generateParameters(time, cycles));
         } else {
             console.error(this.tag + ' could not generate message, no channel controller');
         }
     }
 
-    protected generateParameters(time : number) : Parameters {
+    protected updateGenerators() {
+        // we want to keep previous generators, don't clear...
+        // this.generators.clear();
+        if (this.channelController) {
+            console.log(this.tag + ' updating generators (' + this.channelController.info.parameters.length + ' parameters)');
+            this.channelController.info.parameters.forEach((parameterInfo : ParameterInfo) => {
+                // single value parameter samples for now
+                if (!this.generators.has(parameterInfo.identifier)) {
+                    this.generators[parameterInfo.identifier] = new ValueGeneratorContainer(this._defaultGeneratorType);
+                }
+            });
+        } else {
+            console.error(this.tag + ' cannot update generators, no channel controller');
+            this.generators.clear();
+        }
+        this._generatorKeysSource.next(Array.from(this.generators.keys()));
+    }
+
+    protected generateParameters(time : number, cycles : number) : Parameters {
         const parameters = new Parameters();
         this.channelController.info.parameters.forEach((parameterInfo : ParameterInfo) => {
             // single value parameter samples for now
-            let engine = this._engines.get(parameterInfo.identifier);
-            if (!engine) engine = this._defaultEngine;
-            parameters.setParameter(parameterInfo.identifier, [engine.generate(time)])
+            let generator = this.generators.get(parameterInfo.identifier);
+            if (generator) {
+                parameters.setParameter(parameterInfo.identifier, [generator.generate(time, cycles)])
+            } else {
+                console.error(this.tag + ' no generator for parameter ' + parameterInfo.identifier);
+            }
         });
         return parameters;
     }
@@ -517,18 +551,16 @@ export class ComponentMessageGenerator extends PeriodicGenerator {
                 parameters
             );
             const message = new HubMessage(messageType, null, content);
-            if (this.flow == ComponentMessageGeneratorFlow.INCOMING) {
+            if (this.flow == ComponentDriverFlow.INCOMING) {
                 //console.log(this.tag + ' generated incoming message ' + message.type);
                 this.channelController.processIncomingMessage(message);
-            } else if (this.flow == ComponentMessageGeneratorFlow.OUTGOING) {
+            } else if (this.flow == ComponentDriverFlow.OUTGOING) {
                 //console.log(this.tag + ' generated outgoing message ' + message.type);
                 this.channelController.sendOutgoingMessage(message);
             }
-
         } else {
             console.error(this.tag + ' no content class for hub message type : ' + HubMessageType[messageType]);
         }
-
     }
 
 }

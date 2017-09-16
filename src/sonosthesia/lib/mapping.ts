@@ -222,7 +222,7 @@ export class ChannelMapping extends NativeClass {
 
             // message should be coming from subscription to input channel so it should be a channel related
 
-            const parameters : Parameters = message.content.parameters;
+            const parameters : Parameters = message.content.settingDescriptions;
             const timestamp : number = message.timestamp;
             const mappedParameters : Parameters = new Parameters();
             for (let parameterMapping of this.parameterMappingManager.elementIterator) {

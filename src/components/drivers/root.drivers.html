@@ -1,0 +1,22 @@
+
+<div class="root">
+
+    <div class="root-top-bar">
+
+        <button-navigation class="main-bar-item" [currentKey]="'drivers'"></button-navigation>
+
+        <button class="btn btn-primary secondary-bar-item"
+                (click)="onCreateDriver($event)"
+                type="button">Add</button>
+    </div>
+
+    <div class="root-content">
+
+        <div *ngFor="let driver of componentDriverObservable | async; let i = index;">
+            <driver-detail [driver]="driver"
+                           (deleteRequest)="onDestroyDriver(i)"></driver-detail>
+        </div>
+
+    </div>
+
+</div>

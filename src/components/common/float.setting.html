@@ -1,0 +1,14 @@
+
+<div class="bar-container-3">
+    <div class="bar-label-3"> {{label}} </div>
+    <div class="bar-field slider-space">
+        <nouislider [connect]="true"
+                    [min]="description.min"
+                    [max]="description.max"
+                    [(ngModel)]="value"
+                    (ngModelChange)="onSliderChange($event)"> </nouislider>
+    </div>
+    <div class="bar-label-3">
+        <input type="number" name="quantity" min="{{description.min}}" max="{{description.max}}" [(ngModel)]="value">
+    </div>
+</div>

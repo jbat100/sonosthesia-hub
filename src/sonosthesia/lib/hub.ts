@@ -5,11 +5,10 @@ import {NativeClass, IConnector, IConnection} from "./core";
 import {HubConfiguration, ConnectorConfiguration, ConnectorType} from './configuration';
 import {ComponentManager} from "./component";
 import {HubMessage, HubMessageContentParser} from "./messaging";
-import {GeneratorManager} from "./generator";
+import {DriverManager} from "./driver";
 import {MappingManager} from "./mapping";
 
 import {TCPConnector} from "./connector/tcp";
-//import {SIOConnector} from "./connector/sio";
 import {WSConnector} from "./connector/ws";
 
 
@@ -23,7 +22,7 @@ export class HubManager extends NativeClass {
 
     // managers
     private _componentManager = new ComponentManager();
-    private _generatorManager = new GeneratorManager();
+    private _driverManager = new DriverManager();
     private _mappingManager = new MappingManager();
 
     private _parser = new HubMessageContentParser();
@@ -34,7 +33,7 @@ export class HubManager extends NativeClass {
 
     get configuration() : HubConfiguration { return this._configuration; }
     get componentManager() : ComponentManager { return this._componentManager; }
-    get generatorManager() : GeneratorManager { return this._generatorManager; }
+    get driverManager() : DriverManager { return this._driverManager; }
     get mappingManager() : MappingManager { return this._mappingManager; }
     get parser() : HubMessageContentParser { return this._parser; }
 
@@ -65,7 +64,7 @@ export class HubManager extends NativeClass {
 
     reset() {
         this.componentManager.reset();
-        this.generatorManager.reset();
+        this.driverManager.reset();
         this.mappingManager.reset();
     }
 

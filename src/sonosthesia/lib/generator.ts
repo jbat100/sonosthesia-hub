@@ -1,134 +1,172 @@
 
-
-import * as Math from 'mathjs';
 import * as Rx from 'rxjs/Rx';
+import * as Math from 'mathjs';
 
-import {ParameterSelection, ChannelSelection, IComponentSelectionValidator} from './component';
-import {NativeClass, IMessageSender, ListManager} from "./core";
+import {NativeClass, IFloatSettingDescription, IFloatSettingMap} from "./core";
 
 
-export enum GeneratorState {
-    IDLE,
-    RUNNING
+export interface IValueGenerator {
+    settingDescriptions : IFloatSettingDescription[];
+    settings : IFloatSettingMap;
+    generate(time : number, cycles : number) : number;
 }
 
-export interface IGenerator {
-    stateObservable : Rx.Observable<GeneratorState>;
-    start();
-    stop();
-    teardown();
+export enum ValueGeneratorType
+{
+    NONE,
+    CONSTANT,
+    SINE,
+    SAWTOOTH,
+    TRIANGLE
 }
 
-export class PeriodicGenerator extends NativeClass implements IGenerator {
+const ValueGeneratorClasses = new Map<ValueGeneratorType, typeof ValueGenerator>();
 
-    private _startTime : number;
-    private _subscription : Rx.Subscription;
-    private _stateSubject = new Rx.BehaviorSubject<GeneratorState>(GeneratorState.IDLE);
-    private _stateObservable = this._stateSubject.asObservable();
-    private _cycles = 0;
 
-    constructor(private _period : number) {
+
+// makes things easier in angular interface...
+export class ValueGeneratorContainer extends NativeClass implements  IValueGenerator
+{
+    private _generator : IValueGenerator = null; // keep direct ref for perf
+    private _generatorSource = new Rx.BehaviorSubject<IValueGenerator>(null);
+    private _generatorObservable = this._generatorSource.asObservable();
+
+    private _generatorTypeSource = new Rx.BehaviorSubject<ValueGeneratorType>(ValueGeneratorType.NONE);
+    private _generatorTypeObservable = this._generatorTypeSource.asObservable();
+
+    constructor(_generatorType : ValueGeneratorType = ValueGeneratorType.CONSTANT) {
         super();
+        this.generatorType = _generatorType;
     }
 
-    get stateObservable() : Rx.Observable<GeneratorState> { return this._stateObservable; }
+    get generatorObservable() { return this._generatorObservable; }
 
-    get period() : number { return this._period; }
+    get generatorTypeObservable() { return this._generatorTypeObservable; }
 
-    set period(val : number) { this._period = val; }
+    get generatorType() { return this._generatorTypeSource.getValue(); }
 
-    start() {
-        if (this._subscription) this._subscription.unsubscribe();
-        console.log(this.tag + ' starting generator with period ' + this.period + ' ms');
-        this._startTime = Date.now();
-        this._subscription = Rx.Observable.interval(this.period).subscribe((index : number) => {
-            const elapsed = Date.now() - this._startTime;
-            this._cycles++;
-            //console.log(this.tag + ' generate with elapsed: ' + elapsed + ', cycles: ' + this._cycles);
-            this.generate(elapsed, this._cycles);
-        });
-        this._stateSubject.next(GeneratorState.RUNNING);
-    }
-
-    stop() {
-        if (this._subscription) {
-            this._subscription.unsubscribe();
-            this._subscription = null;
+    set generatorType(generatorType : ValueGeneratorType) {
+        if (ValueGeneratorClasses.has(generatorType)) {
+            this._generator = new ValueGeneratorClasses[generatorType]();
+        } else {
+            this._generator = null;
         }
-        this._stateSubject.next(GeneratorState.IDLE);
+        this._generatorSource.next(this._generator);
+        this._generatorTypeSource.next(generatorType);
     }
 
-    // abstract method
-    protected generate(time : number, cycles : number) { }
-
-    teardown() {
-        console.log(this.tag + ' teardown');
-        this.stop();
-    }
-}
-
-export class GeneratorManager extends ListManager<IGenerator> {
-
-    onRemove(generator : IGenerator) {
-        generator.teardown();
+    get settingDescriptions() : IFloatSettingDescription[] {
+        if (this._generator) return this._generator.settingDescriptions;
+        return [];
     }
 
+    get settings() : IFloatSettingMap {
+        if (this._generator) return this._generator.settings;
+    }
 
-}
-
-
-
-export class GeneratorEngine extends NativeClass {
-
-    public generate(time : number) : number {
+    generate(time : number, cycles : number) : number {
+        if (this._generator) return this._generator.generate(time, cycles);
         return 0.0;
     }
 
+
 }
 
-export class ConstantEngine extends NativeClass {
 
-    constructor(public value : number) {
+export class ValueGenerator extends NativeClass implements IValueGenerator {
+
+    private _settings : IFloatSettingMap = {};
+    private _settingKeys : string[] = [];
+
+    constructor() {
         super();
+        // cache keys
+        this._settingKeys = this.settingDescriptions.map(description => description.key);
+        // apply defaults
+        this.settingDescriptions.forEach(description => {
+            this._settings[description.key] = description.defaultValue;
+        });
     }
 
-    public generate(time : number) : number {
-        return this.value;
+    protected static SETTING_DESCRIPTIONS = [];
+
+    get settingDescriptions() : IFloatSettingDescription[] {
+        //https://stackoverflow.com/questions/29244119/how-to-access-static-members-from-instance-methods-in-typescript
+        const generatorType = <typeof ValueGenerator>this.constructor;
+        return generatorType.SETTING_DESCRIPTIONS;
+    }
+
+    get settings() : IFloatSettingMap { return this._settings; }
+
+    public generate(time : number, cycles : number) : number { return 0.0; }
+
+}
+
+export class ConstantGenerator extends ValueGenerator {
+
+    public constant : number;
+
+    protected static SETTING_DESCRIPTIONS = [
+        {
+            key: 'constant',
+            defaultValue: 0.0,
+            minValue: -100,
+            maxValue: 100
+        }
+    ];
+
+    public generate(time : number, cycles : number) : number {
+        return this.settings['constant'];
     }
 
 }
 
-export class PrimitiveEngine extends GeneratorEngine {
+export class PrimitiveGenerator extends ValueGenerator {
 
-    constructor(public amplitude : number, public frequency : number, public offset : number) {
-        super();
+    protected static SETTING_DESCRIPTIONS = [
+        {
+            key: 'amplitude',
+            defaultValue: 0.0,
+            minValue: -100,
+            maxValue: 100
+        },
+        {
+            key: 'frequency',
+            defaultValue: 0.0,
+            minValue: -100,
+            maxValue: 100
+        },
+        {
+            key: 'offset',
+            defaultValue: 0.0,
+            minValue: -100,
+            maxValue: 100
+        }
+    ];
+
+    public generate(time : number, cycles : number) : number {
+        return this.settings['amplitude'] * this.raw((this.settings['frequency'] * time) + this.settings['offset']);
     }
 
-    public generate(time : number) : number {
-        return this.amplitude * this.raw((this.frequency * time) + this.offset);
-    }
-
-    protected raw(time : number) : number {
-        return 0.0;
-    }
+    protected raw(time : number) : number { return 0.0; }
 
 }
 
-export class SineEngine extends PrimitiveEngine {
+export class SineGenerator extends PrimitiveGenerator {
 
     protected raw(time : number) : number {
         return Math.sin(time);
     }
 }
 
-export class SawtoothEngine extends PrimitiveEngine {
+export class SawtoothGenerator extends PrimitiveGenerator {
 
     protected raw(time : number) : number {
         return time - Math.floor(time);
     }
 }
 
-export class TriangleEngine extends PrimitiveEngine {
+export class TriangleGenerator extends PrimitiveGenerator {
 
     protected raw(time : number) : number {
         // https://en.wikipedia.org/wiki/Triangle_wave
@@ -136,3 +174,8 @@ export class TriangleEngine extends PrimitiveEngine {
         return Math.abs(x - 2.0) - 1.0;
     }
 }
+
+ValueGeneratorClasses[ValueGeneratorType.CONSTANT] = ConstantGenerator;
+ValueGeneratorClasses[ValueGeneratorType.SINE] = SineGenerator;
+ValueGeneratorClasses[ValueGeneratorType.SAWTOOTH] = SawtoothGenerator;
+ValueGeneratorClasses[ValueGeneratorType.TRIANGLE] = TriangleGenerator;

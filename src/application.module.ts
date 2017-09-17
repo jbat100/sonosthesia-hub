@@ -158,6 +158,8 @@ const routes : Routes = [
 })
 export class ApplicationModule { 
 
-    constructor() { }
+    constructor(private _hubService : HubService) {
+        _hubService.init();
+    }
 
 }

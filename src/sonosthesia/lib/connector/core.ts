@@ -47,6 +47,7 @@ export class BaseConnector extends NativeClass {
     constructor(private _parser : MessageContentParser)
     {
         super();
+        console.log(this.tag + ' constructor');
     }
 
     get error() { return this._error; }

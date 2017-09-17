@@ -57,7 +57,7 @@ export class MessageContent extends NativeClass {
 export class ComponentMessageContent extends MessageContent {
 
     static newFromJSON(obj : any) {
-        expect(obj.components).to.be.an('object'); // check instance of array ?
+        //expect(obj.components).to.be.an('object'); // check instance of array ?
         const components : ComponentInfo[] = obj.components.map((component : any) => {
             return ComponentInfo.newFromJSON(component) as ComponentInfo;
         });

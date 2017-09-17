@@ -88,7 +88,7 @@ export class Message extends NativeClass {
 
     static checkJSON(obj : any) {
         expect(obj.type).to.be.a('string');
-        expect(obj.date).to.be.a('string');
+        //expect(obj.date).to.be.a('string');
     }
 
     static newFromJSON(obj : any, parser : MessageContentParser) : Message {

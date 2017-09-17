@@ -24,7 +24,7 @@ export class ConfigurationService {
             {
                 connectorType: ConnectorType.TCP,
                 enabled: true,
-                port: 3000
+                port: 3333
             },
             /*
             {

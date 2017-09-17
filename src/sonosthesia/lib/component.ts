@@ -129,8 +129,8 @@ export class ChannelInfo extends Info {
 
     toJSON() : any {
         const obj = super.toJSON();
-        obj.flow = ChannelFlow[this.flow]; // convert to string
-        obj.producer = ChannelType[this.type];
+        obj.flow = this.flow ? ChannelFlow[this.flow] : null; // convert to string
+        obj.producer = this.type ? ChannelType[this.type] : null;
         obj.parameters = this._parameterSet.toJSON();
         return obj;
     }
@@ -614,7 +614,8 @@ export class ComponentManager extends NativeClass implements IComponentSelection
         this.updateComponentControllerSource();
     }
 
-    // call register to associate component info with a connection, note there can be multiple components per connection
+    // call register to associate component info with a connection,
+    // note there can be multiple components per connection
     registerComponent(connection : IConnection, info : ComponentInfo) {
         this.internalRegisterComponent(connection, info);
         this.updateComponentControllerSource();

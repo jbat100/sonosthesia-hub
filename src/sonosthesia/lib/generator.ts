@@ -22,9 +22,6 @@ export enum ValueGeneratorType
     TRIANGLE
 }
 
-const ValueGeneratorClasses = new Map<ValueGeneratorType, typeof ValueGenerator>();
-
-
 
 // makes things easier in angular interface...
 export class ValueGeneratorContainer extends NativeClass implements  IValueGenerator
@@ -54,7 +51,7 @@ export class ValueGeneratorContainer extends NativeClass implements  IValueGener
             console.error(this.tag + ' unsuported generator type ' + generatorType);
             generatorClass = ConstantGenerator;
         }
-        this._generator = new ValueGeneratorClasses[generatorType]();
+        this._generator = new generatorClass();
         this._generatorSource.next(this._generator);
         this._generatorTypeSource.next(generatorType);
     }
@@ -74,7 +71,6 @@ export class ValueGeneratorContainer extends NativeClass implements  IValueGener
     }
 
     protected getGeneratorClass(generatorType : ValueGeneratorType) : any {
-
         switch(generatorType) {
             case ValueGeneratorType.CONSTANT:
                 return ConstantGenerator;
@@ -192,8 +188,3 @@ export class TriangleGenerator extends PrimitiveGenerator {
         return Math.abs(x - 2.0) - 1.0;
     }
 }
-
-ValueGeneratorClasses[ValueGeneratorType.CONSTANT] = ConstantGenerator;
-ValueGeneratorClasses[ValueGeneratorType.SINE] = SineGenerator;
-ValueGeneratorClasses[ValueGeneratorType.SAWTOOTH] = SawtoothGenerator;
-ValueGeneratorClasses[ValueGeneratorType.TRIANGLE] = TriangleGenerator;

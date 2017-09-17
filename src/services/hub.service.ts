@@ -26,12 +26,18 @@ export class HubService {
 
     // component config paths will be loaded to the hubManager's manager
     private _componentConfigPaths = [
-        'F:/Sonosthesia/sonosthesia-hub/config/local.component.json'
+        'F:/Sonosthesia/sonosthesia-hub/config/test.component.1.json'
     ];
 
     private _localConnection = new LocalConnection(new HubMessageContentParser());
 
     constructor(private _configurationService: ConfigurationService) {
+
+    }
+
+    get hubManager() : Rx.Observable<HubManager> { return this._hubManager; }
+
+    init() {
 
         //console.log(this.tag + ' __dirname' + __dirname);
 
@@ -70,8 +76,6 @@ export class HubService {
         });
 
     }
-
-    get hubManager() : Rx.Observable<HubManager> { return this._hubManager; }
 
 
 }

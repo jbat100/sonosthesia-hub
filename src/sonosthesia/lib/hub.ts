@@ -4,7 +4,7 @@ import * as Q from "q";
 import {NativeClass, IConnector, IConnection} from "./core";
 import {HubConfiguration, ConnectorConfiguration, ConnectorType} from './configuration';
 import {ComponentManager} from "./component";
-import {HubMessage, HubMessageContentParser} from "./messaging";
+import {HubMessage, HubMessageContentParser, HubMessageType, ComponentMessageContent} from "./messaging";
 import {DriverManager} from "./driver";
 import {MappingManager} from "./mapping";
 
@@ -71,6 +71,7 @@ export class HubManager extends NativeClass {
     private setupConnector(config : ConnectorConfiguration) : Q.Promise<IConnector> {
         return Q().then(() => {
             if (!config.enabled) throw new Error('connection config is not enabled');
+            console.log(this.tag + ' setting up connector with configuration : ' + JSON.stringify(config));
             let connector : IConnector = null;
             switch (config.connectorType) {
                 case ConnectorType.TCP:
@@ -105,19 +106,32 @@ export class HubManager extends NativeClass {
     private setupConnection(connection : IConnection) {
         this._connections[connection.identifier] = connection;
         this._subscriptions[connection.identifier] = connection.messageObservable.subscribe((message : HubMessage) => {
-            this.processMessage(message);
+            this.processMessage(connection, message);
         });
     }
 
     private teardownConnection(connection : IConnection) {
         if (this._subscriptions[connection.identifier])
-            this._subscriptions[connection.identifier].dispose();
+            this._subscriptions[connection.identifier].unsubscribe();
+
+        this.componentManager.clean(connection);
+
         this._subscriptions.delete(connection.identifier);
         this._connections.delete(connection.identifier);
     }
 
-    protected processMessage(message : HubMessage) {
+    protected processMessage(connection : IConnection, message : HubMessage) {
         console.log('processing hub message ' + JSON.stringify(message.toJSON()));
+
+        switch (message.hubMessageType) {
+            case HubMessageType.Component:
+                {
+                    const content = message.content as ComponentMessageContent;
+                    this.componentManager.updateComponents(connection, content.components);
+                }
+                break;
+
+        }
     }
 
 }

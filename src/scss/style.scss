@@ -237,18 +237,21 @@ select {
   @extend .content-panel;
   //background-color: #f7f8fa;
   background-color: #eaeaea;
+  margin-left: 0px;
 }
 
 
 .content-panel-2 {
   @extend .content-panel;
   background-color: #9c9c9d;
+  margin-left: 10px;
 }
 
 
 .content-panel-3 {
   @extend .content-panel;
   background-color: #8c8c8d;
+  margin-left: 15px;
 }
 
 .primary-content-panel {

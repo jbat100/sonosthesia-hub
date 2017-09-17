@@ -1,7 +1,7 @@
 
 <div class="content-panel-1">
 
-    <div class="bar-container">
+    <div class="bar-container bar-vertical-margin">
 
         <div class="bar-field">
             <channel-selection [manager]="driver.manager"
@@ -35,12 +35,12 @@
                 type="button"
                 class="btn btn-primary btn-sm secondary-bar-item"> Delete </button>
 
-        <div>
-            <generator-container-detail *ngFor="let key of driver.generatorKeysObservable | async"
-                              [generatorContainer]="driver.getGenerator(key)">
-            </generator-container-detail>
-        </div>
 
     </div>
+
+    <generator-container-detail *ngFor="let key of driver.generatorKeysObservable | async"
+                                [label]="key"
+                                [generatorContainer]="driver.getGenerator(key)">
+    </generator-container-detail>
 
 </div>

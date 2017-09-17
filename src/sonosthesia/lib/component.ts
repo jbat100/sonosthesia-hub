@@ -7,7 +7,7 @@ import { expect} from "chai";
 
 import {NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, FileUtils, Message} from "./core";
 import { HubMessage, Parameters, HubMessageType } from "./messaging";
-import {ValueGeneratorType, ValueGeneratorContainer} from "./generator";
+import {ValueGeneratorType, ValueGeneratorContainer, IValueGeneratorMap} from "./generator";
 import {PeriodicDriver} from "./driver";
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -414,10 +414,11 @@ export class ComponentController extends BaseController<ComponentInfo> implement
             controller.update(channelInfo);
         });
         // remove obsolete channel controllers, add required new channel controllers
-        _.difference(Array.from(this._channelControllerMap.keys()), this.info.channelSet.identifiers()).forEach((id : string) => {
-            this._channelControllerMap[id].teardown();
-            this._channelControllerMap.delete(id);
-        });
+        _.difference(Array.from(this._channelControllerMap.keys()), this.info.channelSet.identifiers())
+            .forEach((id : string) => {
+                this._channelControllerMap[id].teardown();
+                this._channelControllerMap.delete(id);
+            });
         this.updateChannelControllerSource();
     }
 
@@ -450,7 +451,7 @@ export class ComponentDriver extends PeriodicDriver {
 
     private _flow = ComponentDriverFlow.OUTGOING;
     private _defaultGeneratorType : ValueGeneratorType.CONSTANT;
-    private _generators = new Map<string, ValueGeneratorContainer>(); // parameter identifier as key
+    private _generators : IValueGeneratorMap = {}; // parameter identifier as key
     private _selectionSubscription : Rx.Subscription;
     private _currentInstance : string;
     private _instanceCycles = 10;
@@ -486,9 +487,13 @@ export class ComponentDriver extends PeriodicDriver {
 
     get generatorKeysObservable() : Rx.Observable<string[]> { return this._generatorKeysObservable; }
 
-    getGenerator(key : string) : ValueGeneratorContainer { return this._generators[key]; }
+    getGenerator(key : string) : ValueGeneratorContainer {
+        const result = this._generators[key] as ValueGeneratorContainer;
+        if (!result) console.warn(this.tag + ' getGenerator failed ' + key);
+        return result;
+    }
 
-    protected get generators() : Map<string, ValueGeneratorContainer> { return this._generators; }
+    protected get generators() : IValueGeneratorMap { return this._generators; }
 
     protected drive(time : number, cycles : number) {
         if (this.channelController) {
@@ -515,22 +520,24 @@ export class ComponentDriver extends PeriodicDriver {
             console.log(this.tag + ' updating generators (' + this.channelController.info.parameters.length + ' parameters)');
             this.channelController.info.parameters.forEach((parameterInfo : ParameterInfo) => {
                 // single value parameter samples for now
-                if (!this.generators.has(parameterInfo.identifier)) {
+                if (!this.generators[parameterInfo.identifier]) {
                     this.generators[parameterInfo.identifier] = new ValueGeneratorContainer(this._defaultGeneratorType);
                 }
             });
         } else {
             console.error(this.tag + ' cannot update generators, no channel controller');
-            this.generators.clear();
         }
-        this._generatorKeysSource.next(Array.from(this.generators.keys()));
+        const keys = _.keys(this.generators);
+        console.log(this.tag + ' updating generator keys source with : ' + keys.join(', '));
+        this._generatorKeysSource.next(keys);
     }
 
     protected generateParameters(time : number, cycles : number) : Parameters {
         const parameters = new Parameters();
         this.channelController.info.parameters.forEach((parameterInfo : ParameterInfo) => {
-            // single value parameter samples for now
-            let generator = this.generators.get(parameterInfo.identifier);
+            // single value parameter samples for now, for some reason .get() doesn't work
+            //const generator = this.generators.get(parameterInfo.identifier);
+            const generator = this.generators[parameterInfo.identifier];
             if (generator) {
                 parameters.setParameter(parameterInfo.identifier, [generator.generate(time, cycles)])
             } else {

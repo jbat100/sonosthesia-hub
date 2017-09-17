@@ -2,7 +2,7 @@
 import * as Rx from 'rxjs/Rx';
 import * as Math from 'mathjs';
 
-import {NativeClass, IFloatSettingDescription, IFloatSettingMap} from "./core";
+import {NativeClass, IFloatSettingDescription, IFloatSettingMap, IStringTMap} from "./core";
 
 
 export interface IValueGenerator {
@@ -10,6 +10,8 @@ export interface IValueGenerator {
     settings : IFloatSettingMap;
     generate(time : number, cycles : number) : number;
 }
+
+export interface IValueGeneratorMap extends IStringTMap<IValueGenerator> { }
 
 export enum ValueGeneratorType
 {
@@ -46,11 +48,13 @@ export class ValueGeneratorContainer extends NativeClass implements  IValueGener
     get generatorType() { return this._generatorTypeSource.getValue(); }
 
     set generatorType(generatorType : ValueGeneratorType) {
-        if (ValueGeneratorClasses.has(generatorType)) {
-            this._generator = new ValueGeneratorClasses[generatorType]();
-        } else {
-            this._generator = null;
+        let generatorClass = this.getGeneratorClass(generatorType);
+        if (!generatorClass)
+        {
+            console.error(this.tag + ' unsuported generator type ' + generatorType);
+            generatorClass = ConstantGenerator;
         }
+        this._generator = new ValueGeneratorClasses[generatorType]();
         this._generatorSource.next(this._generator);
         this._generatorTypeSource.next(generatorType);
     }
@@ -69,7 +73,21 @@ export class ValueGeneratorContainer extends NativeClass implements  IValueGener
         return 0.0;
     }
 
+    protected getGeneratorClass(generatorType : ValueGeneratorType) : any {
 
+        switch(generatorType) {
+            case ValueGeneratorType.CONSTANT:
+                return ConstantGenerator;
+            case ValueGeneratorType.SINE:
+                return SineGenerator;
+            case ValueGeneratorType.SAWTOOTH:
+                return SawtoothGenerator;
+            case ValueGeneratorType.TRIANGLE:
+                return TriangleGenerator;
+            default:
+                return null;
+        }
+    }
 }
 
 

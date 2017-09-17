@@ -1,2 +1,19 @@
 
-<generator-detail [generator]="generatorObservable | async"></generator-detail>
+<div class="content-panel-2">
+
+    <div class="bar-container bar-vertical-margin">
+
+        <div class="bar-label">{{label}}</div>
+
+        <enum-select [initial]="generatorContainer.generatorType"
+                     [enumType]="generatorTypeEnumType"
+                     (selected)="onSelectedGeneratorType($event)"></enum-select>
+
+    </div>
+
+    <generator-detail [generator]="generatorObservable | async"></generator-detail>
+
+
+</div>
+
+

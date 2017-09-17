@@ -1,18 +1,21 @@
 
-<div class="bar-container" *ngFor="let description of generator.settingDescriptions">
-    <div class="bar-label">{{description.key}}</div>
-    <div class="bar-field slider-space">
-        <nouislider [connect]="true"
-                    [min]="description.min"
-                    [max]="description.max"
-                    [(ngModel)]="generator.settings[description.key]"></nouislider>
-    </div>
-    <div class="bar-label">
-        <input type="number"
-               name="quantity"
-               min="{{description.min}}"
-               max="{{description.max}}"
-               [(ngModel)]="generator.settings[description.key]">
+<div class="content-panel-3" *ngFor="let description of generator.settingDescriptions">
+    <div class="bar-container">
+        <div class="bar-label" *ngIf="!description">No description</div>
+        <div class="bar-label">{{description.key}}</div>
+        <div class="bar-field slider-space">
+            <nouislider [connect]="true"
+                        [min]="description.minValue"
+                        [max]="description.maxValue"
+                        [(ngModel)]="generator.settings[description.key]"></nouislider>
+        </div>
+        <div class="bar-label">
+            <input type="number"
+                   name="quantity"
+                   min="{{description.minValue}}"
+                   max="{{description.maxValue}}"
+                   [(ngModel)]="generator.settings[description.key]">
+        </div>
     </div>
 </div>
 

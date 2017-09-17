@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 
 import {
-    ValueGeneratorContainer, IValueGenerator
+    ValueGeneratorContainer, IValueGenerator, ValueGeneratorType
 } from "../../sonosthesia/lib/generator";
 
 
@@ -20,12 +20,28 @@ export class GeneratorContainerDetailComponent implements OnInit {
     readonly tag = 'GeneratorContainerDetailComponent';
 
     @Input()
+    label : string;
+
+    @Input()
     generatorContainer : ValueGeneratorContainer;
 
     generatorObservable : Rx.Observable<IValueGenerator>;
 
+    generatorTypeEnumType = ValueGeneratorType;
+
     ngOnInit() {
-        this.generatorObservable = this.generatorContainer.generatorObservable;
+        if (this.generatorContainer) {
+            console.log(this.tag + ' ngOnInit type ' + this.generatorContainer.generatorType);
+            this.generatorObservable = this.generatorContainer.generatorObservable;
+        } else {
+            console.warn(this.tag + ' ngOnInit without generatorContainer');
+        }
+    }
+
+    onSelectedGeneratorType(type : ValueGeneratorType) {
+        event.preventDefault();
+        console.log(this.tag + ' selected generator type ' + type);
+        this.generatorContainer.generatorType = type;
     }
 
 }
@@ -34,11 +50,20 @@ export class GeneratorContainerDetailComponent implements OnInit {
     selector: 'generator-detail',
     templateUrl: 'generator.detail.html'
 })
-export class GeneratorDetailComponent {
+export class GeneratorDetailComponent implements OnInit {
 
     readonly tag = 'GeneratorDetailComponent';
 
     @Input()
     generator : IValueGenerator;
+
+    ngOnInit() {
+        if (this.generator) {
+            console.log(this.tag + ' ngOnInit ' + this.generator +
+                ' settings : ' + JSON.stringify(this.generator.settingDescriptions));
+        } else {
+            console.warn(this.tag + ' ngOnInit without generator');
+        }
+    }
 
 }

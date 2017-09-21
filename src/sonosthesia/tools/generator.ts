@@ -2,13 +2,16 @@
  * A script to help producing messages mostly as a test and debug tool for other clients
  */
 
+
+
 const commandLineArgs = require('command-line-args');
 
 import {Socket} from 'net';
 import * as _  from 'underscore';
 
-import {GUID} from '../lib/core';
-import {TCPConnection} from '../lib/connector/tcp';
+import {GUID, IConnection, IMessageSender} from '../lib/core';
+import {TCPConnector, TCPConnection} from '../lib/connector/tcp';
+import {WSConnector, WSConnection} from '../lib/connector/ws';
 import {ControlMessageContent, ActionMessageContent, HubMessageContentParser} from '../lib/messaging';
 import {CreateMessageContent, DestroyMessageContent} from '../lib/messaging';
 import {Parameters, HubMessageType, HubMessage} from '../lib/messaging';
@@ -17,6 +20,7 @@ const iterations = 1000000;
 let current = 0;
 
 const optionDefinitions = [
+    { name: 'server', alias: 's', type: Boolean },
     { name: 'type', alias: 't', type: String },
     { name: 'address', alias: 'a', type: String },
     { name: 'port', alias: 'p', type: Number },
@@ -97,13 +101,17 @@ function* instanceGenerator() {
 }
 
 
-async function generate(connection : TCPConnection, generator : any) {
+async function generate(sender : IMessageSender, generator : any) {
     // usually stopped with ctrl-c, but safeguards against the program running forever pointlessly
+    //console.log('generate start');
     while (current < iterations) {
         current++;
+        if (sender.canSendMessage() == false) break;
+        //console.log('generate delay ' + options.interval);
         await delay(options.interval);
         const obj = generator.next();
-        connection.sendMessage(obj.value);
+        //console.log('generate sendMessage');
+        sender.sendMessage(obj.value);
         if (obj.done) break;
     }
 }
@@ -120,16 +128,37 @@ if (!_.has(generators, options.type)) {
     throw new Error('unsuported generator type : ' + options.type);
 }
 
-const client = new Socket();
 const parser = new HubMessageContentParser();
 const generator = generators[options.type]();
 
-client.connect(options.port, options.address, () => {
-    console.log('Connected');
-    const connection = new TCPConnection(parser, null, client);
-    generate(connection, generator).then(() => { console.log('done'); }).catch(err => {
+if (options.server) {
+
+    const connector = new WSConnector(parser);
+
+    console.log('WSConnector starting on port ' + options.port + '...');
+
+    connector.messageObservable.subscribe(message => {
+        console.log('WSConnector received message : ' + JSON.stringify(message.toJSON()));
+    });
+    
+    connector.start(options.port).then(() => {
+        console.log('WSConnector started on port ' + options.port);
+    });
+
+    generate(connector, generator).then(() => { console.log('done'); }).catch(err => {
         console.log('Ended with error ' + err.stack);
     });
-});
 
+} else {
+
+    const client = new Socket();
+    client.connect(options.port, options.address, () => {
+        console.log('Connected');
+        const connection = new TCPConnection(parser, null, client);
+        generate(connection, generator).then(() => { console.log('done'); }).catch(err => {
+            console.log('Ended with error ' + err.stack);
+        });
+    });
+
+}
 

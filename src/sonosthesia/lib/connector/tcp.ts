@@ -89,7 +89,10 @@ export class TCPConnection extends BaseConnection implements IConnection {
 
     private _lineInputStream : any;
 
-    constructor(_parser : MessageContentParser, private _connector : TCPConnector, private _socket : net.Socket) {
+    constructor(_parser : MessageContentParser,
+                private _connector : TCPConnector,
+                private _socket : net.Socket) {
+
         super(_parser);
 
         console.info(this.tag + ' initializing : ' + this.socket.remoteAddress +':'+ this.socket.remotePort);

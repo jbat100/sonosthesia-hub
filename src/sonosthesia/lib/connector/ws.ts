@@ -58,7 +58,12 @@ export class WSConnection extends BaseConnection implements IConnection {
 
     sendJSON(obj : any) {
         if (this.verbose) console.info(this.tag + ' sending message ' + obj.type);
-        this._socket.send(JSON.stringify(obj)); // emit message event
+        if (this._socket.readyState == ws.OPEN) {
+            this._socket.send(JSON.stringify(obj)); // emit message event
+        } else {
+            console.warn(this.tag + ' cannot send, socket is not opened');
+        }
+
     }
 
     sendMessage(message : Message) {

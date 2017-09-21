@@ -11,6 +11,7 @@ import * as uuid from 'node-uuid';
 
 export interface IMessageSender {
     sendMessage(message : Message);
+    canSendMessage() : boolean;
 }
 
 

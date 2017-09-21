@@ -60,7 +60,7 @@ export class GeneratorDetailComponent implements OnInit {
     ngOnInit() {
         if (this.generator) {
             console.log(this.tag + ' ngOnInit ' + this.generator +
-                ' settings : ' + JSON.stringify(this.generator.settingDescriptions));
+                ' settings : ' + JSON.stringify(this.generator.settings.descriptions));
         } else {
             console.warn(this.tag + ' ngOnInit without generator');
         }

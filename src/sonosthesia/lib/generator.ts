@@ -2,12 +2,11 @@
 import * as Rx from 'rxjs/Rx';
 import * as Math from 'mathjs';
 
-import {NativeClass, IFloatSettingDescription, IFloatSettingMap, IStringTMap} from "./core";
+import {NativeClass, IFloatSettingDescription, IStringTMap, FloatSettingGroup} from "./core";
 
 
 export interface IValueGenerator {
-    settingDescriptions : IFloatSettingDescription[];
-    settings : IFloatSettingMap;
+    settings : FloatSettingGroup;
     generate(time : number, cycles : number) : number;
 }
 
@@ -56,12 +55,7 @@ export class ValueGeneratorContainer extends NativeClass implements  IValueGener
         this._generatorTypeSource.next(generatorType);
     }
 
-    get settingDescriptions() : IFloatSettingDescription[] {
-        if (this._generator) return this._generator.settingDescriptions;
-        return [];
-    }
-
-    get settings() : IFloatSettingMap {
+    get settings() : FloatSettingGroup {
         if (this._generator) return this._generator.settings;
     }
 
@@ -89,30 +83,25 @@ export class ValueGeneratorContainer extends NativeClass implements  IValueGener
 
 export class ValueGenerator extends NativeClass implements IValueGenerator {
 
-    private _settings : IFloatSettingMap = {};
-    private _settingKeys : string[] = [];
+    private _settings : FloatSettingGroup;
 
     constructor() {
         super();
         // cache keys
-        this._settingKeys = this.settingDescriptions.map(description => description.key);
-        // apply defaults
-        this.settingDescriptions.forEach(description => {
-            this._settings[description.key] = description.defaultValue;
-        });
+        this._settings = new FloatSettingGroup(this.settingDescriptions);
     }
 
     protected static SETTING_DESCRIPTIONS = [];
 
-    get settingDescriptions() : IFloatSettingDescription[] {
-        //https://stackoverflow.com/questions/29244119/how-to-access-static-members-from-instance-methods-in-typescript
+    //https://stackoverflow.com/questions/29244119/how-to-access-static-members-from-instance-methods-in-typescript
+    private get settingDescriptions() : IFloatSettingDescription[] {
         const generatorType = <typeof ValueGenerator>this.constructor;
         return generatorType.SETTING_DESCRIPTIONS;
     }
 
-    get settings() : IFloatSettingMap { return this._settings; }
+    get settings() : FloatSettingGroup { return this._settings; }
 
-    public generate(time : number, cycles : number) : number { return 0.0; }
+    generate(time : number, cycles : number) : number { return 0.0; }
 
 }
 
@@ -129,8 +118,8 @@ export class ConstantGenerator extends ValueGenerator {
         }
     ];
 
-    public generate(time : number, cycles : number) : number {
-        return this.settings['constant'];
+    generate(time : number, cycles : number) : number {
+        return this.settings.setting('constant');
     }
 
 }
@@ -147,7 +136,7 @@ export class PrimitiveGenerator extends ValueGenerator {
         {
             key: 'frequency',
             defaultValue: 0.0,
-            minValue: -100,
+            minValue: 0,
             maxValue: 100
         },
         {
@@ -159,7 +148,8 @@ export class PrimitiveGenerator extends ValueGenerator {
     ];
 
     public generate(time : number, cycles : number) : number {
-        return this.settings['amplitude'] * this.raw((this.settings['frequency'] * time) + this.settings['offset']);
+        return this.settings.setting('amplitude')
+            * this.raw((this.settings.setting('frequency') * time) + this.settings.setting('offset'));
     }
 
     protected raw(time : number) : number { return 0.0; }

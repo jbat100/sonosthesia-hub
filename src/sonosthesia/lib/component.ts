@@ -464,8 +464,8 @@ export class ComponentDriver extends PeriodicDriver {
     //private _channelControllerSource = new Rx.BehaviorSubject<ChannelController>(null);
     //private _channelControllerObservable = this._channelControllerSource.asObservable();
 
-    constructor(period : number, private _manager : ComponentManager) {
-        super(period);
+    constructor(private _manager : ComponentManager) {
+        super();
         // TODO: provide a clean way to unsubscribe, teardown/destroy kind of thing
         this._selectionSubscription = this._channelSelection.changeObservable.subscribe(() => {
             this._channelController = this.manager.getChannelController(this.channelSelection);
@@ -515,13 +515,15 @@ export class ComponentDriver extends PeriodicDriver {
 
     protected updateGenerators() {
         // we want to keep previous generators, don't clear...
-        // this.generators.clear();
+        this._generators = {};
         if (this.channelController) {
-            console.log(this.tag + ' updating generators (' + this.channelController.info.parameters.length + ' parameters)');
+            console.log(this.tag + ' updating generators ('
+                + this.channelController.info.parameters.length + ' parameters)');
             this.channelController.info.parameters.forEach((parameterInfo : ParameterInfo) => {
                 // single value parameter samples for now
                 if (!this.generators[parameterInfo.identifier]) {
-                    this.generators[parameterInfo.identifier] = new ValueGeneratorContainer(this._defaultGeneratorType);
+                    this.generators[parameterInfo.identifier] =
+                        new ValueGeneratorContainer(this._defaultGeneratorType);
                 }
             });
         } else {
@@ -566,7 +568,8 @@ export class ComponentDriver extends PeriodicDriver {
                 this.channelController.sendOutgoingMessage(message);
             }
         } else {
-            console.error(this.tag + ' no content class for hub message type : ' + HubMessageType[messageType]);
+            console.error(this.tag + ' no content class for hub message type : '
+                + HubMessageType[messageType]);
         }
     }
 

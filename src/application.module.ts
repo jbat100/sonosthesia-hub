@@ -72,7 +72,10 @@ import {
 import {
     ParameterOperatorContainerComponent, ScaleValueOperatorComponent, OffsetValueOperatorComponent
 } from "./components/processing/parameter.operator.component";
-import {EnumSelectComponent} from "./components/common/common.component";
+
+import {
+    EnumSelectComponent, FloatSettingGroupComponent
+} from "./components/common/common.component";
 
 
 const routes : Routes = [
@@ -118,6 +121,7 @@ const routes : Routes = [
         EnumKeysPipe,
         // common components --------------------------
         EnumSelectComponent,
+        FloatSettingGroupComponent,
         // root components ----------------------------
         RootComponent,
         MenuComponent,

@@ -2,7 +2,11 @@
 import {
     Component, Input, Output, EventEmitter, OnInit
 } from '@angular/core';
-import {IFloatSettingDescription} from "../../sonosthesia/lib/core";
+
+import {
+    FloatSettingGroup
+} from "../../sonosthesia/lib/core";
+
 
 @Component({
     selector: 'enum-select',
@@ -37,33 +41,20 @@ export class EnumSelectComponent implements OnInit {
 }
 
 
-
 @Component({
-    selector: 'float-setting',
-    templateUrl: 'float.setting.html'
+    selector: 'float-setting-group',
+    templateUrl: 'float.setting.group.html'
 })
-export class FloatSettingComponent {
+export class FloatSettingGroupComponent implements OnInit  {
 
-    readonly tag = 'FloatSettingComponent';
+    readonly tag = 'FloatSettingGroupComponent';
 
     @Input()
-    description : IFloatSettingDescription;
+    settingGroup : FloatSettingGroup;
 
-    @Output()
-    valueChanged = new EventEmitter();
-
-    value : number;
-
-    onSliderChange(event) {
-        console.log(this.tag + ' slider change : ' + JSON.stringify(event));
-        //this.value = event;
-        //this.valueChanged.emit(event);
-    }
-
-    onBoxChange(event) {
-        console.log(this.tag + ' box change : ' + JSON.stringify(event));
-        //this.value = event;
-        //this.valueChanged.emit(event);
+    ngOnInit() {
+        console.log(this.tag + ' init with settingGroup with descriptions ' +
+            JSON.stringify(this.settingGroup.descriptions));
     }
 
 }

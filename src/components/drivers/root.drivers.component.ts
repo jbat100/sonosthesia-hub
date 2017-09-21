@@ -56,7 +56,7 @@ export class RootDriversComponent implements OnInit, OnDestroy {
     onCreateDriver() {
         //console.log(this.tag + ' onCreateGenerator');
         if (this._hubManager) {
-            const driver = new ComponentDriver(1000, this._hubManager.componentManager);
+            const driver = new ComponentDriver(this._hubManager.componentManager);
             this._hubManager.driverManager.appendElement(driver);
         }
     }

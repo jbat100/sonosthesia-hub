@@ -1,7 +1,8 @@
 
+import * as _ from 'underscore';
 import * as Rx from 'rxjs/Rx';
 
-import {NativeClass, ListManager} from './core';
+import {NativeClass, ListManager, IStringTMap} from './core';
 
 import { ParameterSample, ParameterOperator, ParameterProcessorChain } from './processing';
 import { ComponentManager, ChannelSelection, ParameterSelection, ChannelController } from './component';
@@ -10,7 +11,7 @@ import { HubMessage, HubMessageType, Parameters, ChannelMessageContent } from ".
 // ---------------------------------------------------------------------------------------------------------------------
 // Mapper actually carries out the mapping process for a given parameter mapping for a given channel or instance
 
-export class Mapper extends NativeClass {
+export class ParameterMapper extends NativeClass {
 
     private _processorChain : ParameterProcessorChain;
 
@@ -36,6 +37,8 @@ export class Mapper extends NativeClass {
 
 }
 
+export interface IParameterMapperMap extends IStringTMap<ParameterMapper> { }
+
 export class ParameterOperatorManager extends ListManager<ParameterOperator> { }
 
 export class ParameterMapping extends NativeClass {
@@ -48,8 +51,8 @@ export class ParameterMapping extends NativeClass {
 
     private _operatorManager = new ParameterOperatorManager();
 
-    private _staticMapper = new Mapper(this._operatorManager);
-    private _instanceMappers = new Map<string, Mapper>();
+    private _staticMapper = new ParameterMapper(this._operatorManager);
+    private _instanceMappers : IParameterMapperMap = {};
 
     constructor(channelMapping : ChannelMapping) {
         super();
@@ -79,17 +82,17 @@ export class ParameterMapping extends NativeClass {
     get output() { return this._output; }
 
     createInstanceMapper(instance : string) {
-        this._instanceMappers[instance] = new Mapper(this.operatorManager);
+        this._instanceMappers[instance] = new ParameterMapper(this.operatorManager);
     }
 
     destroyInstanceMapper(instance : string) {
-        this._instanceMappers.delete(instance);
+        delete this._instanceMappers[instance];
     }
 
     process(sample : ParameterSample, instance : string) : ParameterSample {
         if (instance) {
-            const mapper = this._instanceMappers.get(instance);
-            if (mapper) {
+            if (_.has(this._instanceMappers, instance)) {
+                const mapper = this._instanceMappers[instance];
                 return mapper.process(sample);
             } else {
                 throw new Error('invalid instance ' + instance);
@@ -101,8 +104,8 @@ export class ParameterMapping extends NativeClass {
 
     reset() {
         this._staticMapper.reset();
-        this._instanceMappers.forEach((mapper) => { mapper.reset(); });
-        this._instanceMappers.clear();
+        _.each(this._instanceMappers, (mapper, instance) => { mapper.reset(); });
+        this._instanceMappers = {};
     }
 
     teardown() {
@@ -201,7 +204,7 @@ export class ChannelMapping extends NativeClass {
 
         // first check message is addressed to the correct component channel
 
-        const content = message.content as ChannelMessageContent;
+        const content : ChannelMessageContent = message.content as ChannelMessageContent;
 
         if (!content)
             throw new Error('expected message content');
@@ -210,7 +213,7 @@ export class ChannelMapping extends NativeClass {
         if (content.channel !== this._input.identifier)
             throw new Error('unexpected channel');
 
-        const instance : string = message.content.instance;
+        const instance : string = content.instance;
 
         if (message.hubMessageType == HubMessageType.Create && instance) {
             for (let parameterMapping of this.parameterMappingManager.elementIterator) {
@@ -218,11 +221,12 @@ export class ChannelMapping extends NativeClass {
             }
         }
 
+        const parameters : Parameters = content.parameters;
+
         if (this._outputController) {
 
             // message should be coming from subscription to input channel so it should be a channel related
 
-            const parameters : Parameters = message.content.settingDescriptions;
             const timestamp : number = message.timestamp;
             const mappedParameters : Parameters = new Parameters();
             for (let parameterMapping of this.parameterMappingManager.elementIterator) {

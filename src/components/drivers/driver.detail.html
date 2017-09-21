@@ -35,8 +35,9 @@
                 type="button"
                 class="btn btn-primary btn-sm secondary-bar-item"> Delete </button>
 
-
     </div>
+
+    <float-setting-group [settingGroup]="driver.settings"></float-setting-group>
 
     <generator-container-detail *ngFor="let key of driver.generatorKeysObservable | async"
                                 [label]="key"

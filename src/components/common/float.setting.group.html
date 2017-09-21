@@ -1,0 +1,20 @@
+
+<div class="content-panel-3" *ngFor="let description of settingGroup.descriptions">
+    <div class="bar-container">
+        <div class="bar-label">{{description.key}}</div>
+        <div class="bar-field slider-space">
+            <nouislider [connect]="true"
+                        [min]="description.minValue"
+                        [max]="description.maxValue"
+                        [(ngModel)]="settingGroup.values[description.key]"></nouislider>
+        </div>
+        <div class="bar-label">
+            <input type="number"
+                   name="quantity"
+                   min="{{description.minValue}}"
+                   max="{{description.maxValue}}"
+                   [(ngModel)]="settingGroup.values[description.key]">
+        </div>
+    </div>
+</div>
+

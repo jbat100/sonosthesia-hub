@@ -39,7 +39,7 @@ client.connect(options.port, options.address, () => {
 
     // log incoming messages
     connection.messageObservable.subscribe(message => {
-        console.log('Client received message ' + message);
+        console.log('Client received message ' + JSON.stringify(message.toJSON()));
     });
 
     // read config file, package into HubMessage and send to Hub

@@ -1,7 +1,7 @@
 
 import * as Rx from 'rxjs/Rx';
 
-import {NativeClass, ListManager} from "./core";
+import {NativeClass, ListManager, FloatSettingGroup} from "./core";
 
 export enum DriverState {
     IDLE,
@@ -30,22 +30,27 @@ export class PeriodicDriver extends NativeClass implements IDriver {
     private _stateSubject = new Rx.BehaviorSubject<DriverState>(DriverState.IDLE);
     private _stateObservable = this._stateSubject.asObservable();
     private _cycles = 0;
+    private _settings : FloatSettingGroup;
 
-    constructor(private _period : number) {
+    constructor() {
         super();
+        this._settings = new FloatSettingGroup([{
+            key : "period",
+            minValue: 1,
+            maxValue: 10000,
+            defaultValue: 1000
+        }]);
     }
+
+    get settings() : FloatSettingGroup { return this._settings; }
 
     get stateObservable() : Rx.Observable<DriverState> { return this._stateObservable; }
 
-    get period() : number { return this._period; }
-
-    set period(val : number) { this._period = val; }
-
     start() {
         if (this._subscription) this._subscription.unsubscribe();
-        console.log(this.tag + ' starting generator with period ' + this.period + ' ms');
+        console.log(this.tag + ' starting generator with period ' + this.settings.setting('period') + ' ms');
         this._startTime = Date.now();
-        this._subscription = Rx.Observable.interval(this.period).subscribe((index : number) => {
+        this._subscription = Rx.Observable.interval(this.settings.setting('period')).subscribe((index : number) => {
             const elapsed = Date.now() - this._startTime;
             this._cycles++;
             //console.log(this.tag + ' generate with elapsed: ' + elapsed + ', cycles: ' + this._cycles);

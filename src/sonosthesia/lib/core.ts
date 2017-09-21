@@ -452,7 +452,29 @@ export interface IStringTMap<T>
 
 export interface IFloatSettingMap extends IStringTMap<number> { }
 
+// useful for angular component
+export class FloatSettingGroup extends NativeClass
+{
+    public descriptions : IFloatSettingDescription[] = [];
+    public values : IFloatSettingMap = {};
 
+    constructor(_descriptions : IFloatSettingDescription[]) {
+        super();
+        this.descriptions = _descriptions;
+        this.descriptions.forEach(description => {
+            this.values[description.key] = description.defaultValue;
+        });
+    }
+
+    setting(key : string) : number {
+        if (_.has(this.values, key)) {
+            return this.values[key];
+        } else {
+            console.error(this.tag + ' unknown value key : ' + key);
+            return 0.0;
+        }
+    }
+}
 
 export class GUID extends NativeClass {
 

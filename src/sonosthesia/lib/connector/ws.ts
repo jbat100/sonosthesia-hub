@@ -29,7 +29,16 @@ export class WSConnector extends BaseConnector {
                 this._wsServer.on('connection', (socket) => {
                     const connection = new WSConnection(this.parser, this, socket);
                     this.registerConnection(connection);
+                    socket.on('close', () => {
+                        console.warn(this.tag + ' destroying connection on close');
+                        this.destroyConnection(connection);
+                    });
+                    socket.on('error', (err) => {
+                        console.warn(this.tag + ' destroying connection on error: ' + err.message);
+                        this.destroyConnection(connection);
+                    });
                     socket.on('disconnect', () => {
+                        console.warn(this.tag + ' destroying connection on close');
                         this.destroyConnection(connection);
                     });
                 });

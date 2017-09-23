@@ -78,23 +78,23 @@ function* actionGenerator() {
 function* instanceGenerator() {
     let i = 0, content, message;
     while(i < iterations) {
-        i++;
+        i++; 
         const instance = GUID.generate();
+        const parameters = Parameters.newFromJSON({parameter : 0.5});
         // create instance
-        content = new CreateMessageContent(component, channel, instance, null, null);
+        content = new CreateMessageContent(component, channel, instance, null, parameters);
         message = new HubMessage(HubMessageType.Create, null, content);
         yield message;
         // instance action message
-        content = new ActionMessageContent(component, channel, instance, key, null);
+        content = new ActionMessageContent(component, channel, instance, key, parameters);
         message = new HubMessage(HubMessageType.Action, null, content);
         yield message;
         // instance control message
-        const parameters = Parameters.newFromJSON({parameter : 0.5});
         content = new ControlMessageContent(component, channel, instance, null, parameters);
         message = new HubMessage(HubMessageType.Control, null, content);
         yield message;
         // destroy instance
-        content = new DestroyMessageContent(component, channel, instance, null, null);
+        content = new DestroyMessageContent(component, channel, instance, null, parameters);
         message = new HubMessage(HubMessageType.Destroy, null, content);
         yield message;
     }

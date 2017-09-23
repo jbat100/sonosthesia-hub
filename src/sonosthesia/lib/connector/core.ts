@@ -98,7 +98,12 @@ export class BaseConnector extends NativeClass implements IMessageSender {
 
     // needs to be public so that it can be called by the connection
     destroyConnection(connection : BaseConnection) {
-        console.warn(this.tag + ' destroying connection!');
+
+        if (this.knownConnectionIdentifier(connection.identifier) == false) {
+            console.warn(this.tag + ' destroying dead connection!');
+        }
+
+        console.log(this.tag + ' destroying connection!');
 
         connection.destroy();
 
@@ -108,6 +113,13 @@ export class BaseConnector extends NativeClass implements IMessageSender {
 
         this._connections = _.without(this._connections, connection);
         this.emitter.emit('disconnection', connection);
+    }
+
+    protected knownConnectionIdentifier(identifier : string) : boolean {
+        const connection : BaseConnection = this._connections.find(candidate => {
+            return candidate.identifier == identifier
+        });
+        return !!connection;
     }
 
     protected registerConnection(connection : BaseConnection) {

@@ -78,7 +78,7 @@ function* actionGenerator() {
 function* instanceGenerator() {
     let i = 0, content, message;
     while(i < iterations) {
-        i++; 
+        i++;
         const instance = GUID.generate();
         const parameters = Parameters.newFromJSON({parameter : 0.5});
         // create instance

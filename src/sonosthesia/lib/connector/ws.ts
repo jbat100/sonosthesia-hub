@@ -61,7 +61,11 @@ export class WSConnection extends BaseConnection implements IConnection {
         super(_parser);
         this._socket.on('message', (str : string) => {
             const obj = JSON.parse(str);
-            this.messageSubject.next(HubMessage.newFromJSON(obj, this.parser));
+            try {
+                this.messageSubject.next(HubMessage.newFromJSON(obj, this.parser));
+            } catch (e) {
+                console.error(e.message);
+            }
         });
     }
 

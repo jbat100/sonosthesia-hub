@@ -7,6 +7,7 @@ import * as Rx from 'rx';
 
 import {HubMessageContentParser, HubMessage} from "../lib/messaging";
 import {TCPConnector, TCPConnection} from '../lib/connector/tcp';
+import {WSConnector, WSConnection} from '../lib/connector/ws';
 import {Message} from "../lib/core";
 
 const optionDefinitions = [
@@ -20,8 +21,10 @@ const options = commandLineArgs(optionDefinitions);
 if (!options.port) options.port = 3333;
 
 const parser = new HubMessageContentParser();
-const connector = new TCPConnector(parser);
-const connections = new Map<string, TCPConnection>();
+//const connector = new TCPConnector(parser);
+//const connections = new Map<string, TCPConnection>();
+const connector = new WSConnector(parser);
+const connections = new Map<string, WSConnection>();
 const subscriptions = new Map<string, Rx.Disposable>();
 
 connector.emitter.on('connection', (connection) => {
@@ -34,7 +37,7 @@ connector.emitter.on('connection', (connection) => {
 
 connector.emitter.on('disconnection', (connection) => {
     connections.delete(connection.identifier);
-    subscriptions[connection.identifier].dispose();
+    subscriptions[connection.identifier].unsubscribe();
     subscriptions.delete(connection.identifier);
 });
 

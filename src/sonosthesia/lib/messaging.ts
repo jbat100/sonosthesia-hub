@@ -188,7 +188,10 @@ export class HubMessage extends Message {
 
     static newFromJSON(obj : any, parser : MessageContentParser) : Message {
         this.checkJSON(obj);
-        const hubMessageType : HubMessageType = HubMessageType[obj.type as string];
+        const typeStr = obj.type as string;
+        const capitalised = typeStr.charAt(0).toUpperCase() + typeStr.substring(1);
+        const hubMessageType : HubMessageType = HubMessageType[capitalised];
+        console.log('HubMessage.newFromJSON ' + capitalised + ' ' + hubMessageType);
         return new this(hubMessageType, +(obj.date as string), parser.parse(obj.type, obj.content)) as Message;
     }
 
@@ -226,10 +229,11 @@ export class HubMessage extends Message {
 export class HubMessageContentParser extends MessageContentParser {
 
     parse(typeStr : string, content : any) : any {
-        const type : HubMessageType = HubMessageType[typeStr];
+        const capitalised = typeStr.charAt(0).toUpperCase() + typeStr.substring(1);
+        const type : HubMessageType = HubMessageType[capitalised];
         // note that Map has doesn't seem to work
         const contentClass = HubMessageContentClasses[type];
-        if (!contentClass) throw new Error('unsupported message type : ' + type);
+        if (!contentClass) throw new Error(this.tag + ' unsupported message type : ' + type);
         return contentClass.newFromJSON(content);
     }
 

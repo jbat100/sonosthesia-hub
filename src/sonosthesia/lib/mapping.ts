@@ -216,7 +216,7 @@ export class ChannelMapping extends NativeClass {
         const instance : string = content.instance;
 
         if (message.hubMessageType == HubMessageType.Create && instance) {
-            for (let parameterMapping of this.parameterMappingManager.elementIterator) {
+            for (let parameterMapping of this.parameterMappingManager.elements) {
                 parameterMapping.createInstanceMapper(instance);
             }
         }
@@ -229,7 +229,7 @@ export class ChannelMapping extends NativeClass {
 
             const timestamp : number = message.timestamp;
             const mappedParameters : Parameters = new Parameters();
-            for (let parameterMapping of this.parameterMappingManager.elementIterator) {
+            for (let parameterMapping of this.parameterMappingManager.elements) {
                 const values = parameters.getParameter(parameterMapping.input.identifier);
                 const sample = new ParameterSample(values, timestamp);
                 const processed = parameterMapping.process(sample, instance);
@@ -252,7 +252,7 @@ export class ChannelMapping extends NativeClass {
         }
 
         if (message.hubMessageType == HubMessageType.Destroy && instance) {
-            for (let parameterMapping of this.parameterMappingManager.elementIterator) {
+            for (let parameterMapping of this.parameterMappingManager.elements) {
                 parameterMapping.destroyInstanceMapper(instance);
             }
         }

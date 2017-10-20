@@ -383,26 +383,26 @@ export class Selection {
     private _validObservable : Rx.Observable<boolean> = this._validSubject.asObservable();
 
     private _changeSubject = new Rx.Subject<void>();
-    private _changeObservable : Rx.Observable<void> = this._changeSubject.asObservable();
+    protected _changeObservable : Rx.Observable<void> = this._changeSubject.asObservable();
 
     constructor(_identifier : string = null) {
         this._identifierSubject.next(_identifier);
         this._validSubject.next(false);
     }
 
-    get identifierObservable() : Rx.Observable<string> { return this._identifierObservable; }
-    get identifier() : string { return this._identifierSubject.getValue(); }
-    set identifier(identifier : string) {
+    public get identifierObservable() : Rx.Observable<string> { return this._identifierObservable; }
+    public get identifier() : string { return this._identifierSubject.getValue(); }
+    public set identifier(identifier : string) {
         this._identifierSubject.next(identifier);
         this._changeSubject.next();
     }
 
-    get validObservable() : Rx.Observable<boolean> { return this._validObservable; }
-    get valid() : boolean { return this._validSubject.getValue(); }
-    set valid(valid : boolean) { this._validSubject.next(valid); }
+    public get validObservable() : Rx.Observable<boolean> { return this._validObservable; }
+    public get valid() : boolean { return this._validSubject.getValue(); }
+    public set valid(valid : boolean) { this._validSubject.next(valid); }
 
     // change observable is usefull in the case of composed selections (eg Paramater/Channel/Component)
-    get changeObservable() : Rx.Observable<void> { return this._changeObservable; }
+    public get changeObservable() : Rx.Observable<void> { return this._changeObservable; }
 
 }
 

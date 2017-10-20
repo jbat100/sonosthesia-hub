@@ -5,7 +5,7 @@ import * as Q from "q";
 import * as _ from "underscore";
 import { expect} from "chai";
 
-import {NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, FileUtils, Message} from "./core";
+import {NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, FileUtils, Message, IStringTMap} from "./core";
 import { HubMessage, Parameters, HubMessageType } from "./messaging";
 import {ValueGeneratorType, ValueGeneratorContainer, IValueGeneratorMap} from "./generator";
 import {PeriodicDriver} from "./driver";
@@ -191,7 +191,7 @@ export class ChannelSelection extends Selection {
 
     // change fires if either the channel or the component selection changes
     get changeObservable() : Rx.Observable<void> {
-        return Rx.Observable.merge(super.changeObservable, this._componentSelection.changeObservable);
+        return Rx.Observable.merge(this._changeObservable, this._componentSelection.changeObservable);
     }
 
     applyChannelSelection(channelSelection : ChannelSelection) {
@@ -213,7 +213,7 @@ export class ParameterSelection extends Selection {
 
     // change fires if either the channel or the channel selection changes
     get changeObservable() : Rx.Observable<void> {
-        return Rx.Observable.merge(super.changeObservable, this._channelSelection.changeObservable);
+        return Rx.Observable.merge(this._changeObservable, this._channelSelection.changeObservable);
     }
 
 }
@@ -335,9 +335,11 @@ export class ChannelController extends BaseController<ChannelInfo> implements IP
 }
 
 
+export interface IChannelControllerMap extends IStringTMap<ChannelController> { }
+
 export class ComponentController extends BaseController<ComponentInfo> implements IChannelSelectionValidator  {
 
-    private _channelControllerMap = new Map<string, ChannelController>();
+    private _channelControllerMap: IChannelControllerMap = {};
     private _channelControllerSource = new Rx.BehaviorSubject<ChannelController[]>([]);
     private _channelControllersObservable = this._channelControllerSource.asObservable();
 
@@ -388,43 +390,43 @@ export class ComponentController extends BaseController<ComponentInfo> implement
     }
 
     validateChannelSelection(selection : ChannelSelection) : boolean {
-        const result =  this._channelControllerMap.has(selection.identifier);
+        const result =  _.has(this._channelControllerMap, selection.identifier);
         selection.valid = result;
         return result;
     }
 
     getChannelController(selection : ChannelSelection) : ChannelController {
-        return this._channelControllerMap.get(selection.identifier);
+        return this._channelControllerMap[selection.identifier];
     }
 
     teardown() {
-        for (let controller of this._channelControllerMap.values()) { controller.teardown(); }
-        this._channelControllerMap.clear();
+        for (let controller of _.values(this._channelControllerMap)) { controller.teardown(); }
+        this._channelControllerMap = {};
         this.updateChannelControllerSource();
     }
 
     protected internalUpdate(info : ComponentInfo) {
         super.internalUpdate(info);
         info.channelSet.elements().forEach((channelInfo : ChannelInfo) => {
-            let controller = this._channelControllerMap.get(channelInfo.identifier);
+            let controller = this._channelControllerMap[channelInfo.identifier];
             if (!controller) {
                 controller = new ChannelController(this);
-                this._channelControllerMap.set(channelInfo.identifier, controller);
+                this._channelControllerMap[channelInfo.identifier] = controller;
             }
             controller.update(channelInfo);
         });
         // remove obsolete channel controllers, add required new channel controllers
-        _.difference(Array.from(this._channelControllerMap.keys()), this.info.channelSet.identifiers())
+        _.difference(Array.from(_.keys(this._channelControllerMap)), this.info.channelSet.identifiers())
             .forEach((id : string) => {
                 this._channelControllerMap[id].teardown();
-                this._channelControllerMap.delete(id);
+                delete this._channelControllerMap[id];
             });
         this.updateChannelControllerSource();
     }
 
     protected updateChannelControllerSource() {
         //console.log(this.tag + ' update channel controller source ' + this._channelControllerMap.size);
-        this._channelControllerSource.next(Array.from(this._channelControllerMap.values()));
+        this._channelControllerSource.next(_.values(this._channelControllerMap));
     }
 
 }
@@ -581,9 +583,11 @@ export class ComponentDriver extends PeriodicDriver {
 // Note, allows multiple component declarations per connection (keyed by identifier).
 // Cannot have duplicate component identifiers
 
+export interface IComponentControllerMap extends IStringTMap<ComponentController> { }
+
 export class ComponentManager extends NativeClass implements IComponentSelectionValidator  {
 
-    private _componentControllerMap = new Map<string, ComponentController>();
+    private _componentControllerMap : IComponentControllerMap = {};
     private _componentControllerSource = new Rx.BehaviorSubject<ComponentController[]>([]);
     private _componentControllersObservable = this._componentControllerSource.asObservable();
 
@@ -641,13 +645,13 @@ export class ComponentManager extends NativeClass implements IComponentSelection
 
     // clear all registered controllers
     reset() {
-        this._componentControllerMap.clear();
+        this._componentControllerMap = {};
         this.updateComponentControllerSource();
     }
 
     // validate a component selection
     validateComponentSelection(selection : ComponentSelection) : boolean {
-        const result =  this._componentControllerMap.has(selection.identifier);
+        const result =  _.has(this._componentControllerMap, selection.identifier);
         selection.valid = result;
         return result;
     }
@@ -674,10 +678,10 @@ export class ComponentManager extends NativeClass implements IComponentSelection
 
     // get component or channel controllers based on selections
     getComponentController(selection : ComponentSelection) : ComponentController {
-        return this._componentControllerMap.get(selection.identifier);
+        return this._componentControllerMap[selection.identifier];
     }
     getComponentControllers(connection : IConnection) : ComponentController[] {
-        return Array.from(this._componentControllerMap.values()).filter((controller : ComponentController) => {
+        return _.values(this._componentControllerMap).filter((controller : ComponentController) => {
             return controller.connection === connection
         });
     }
@@ -689,7 +693,7 @@ export class ComponentManager extends NativeClass implements IComponentSelection
     // call register to associate component info with a connection, note there can be multiple components per connection
     private internalRegisterComponent(connection : IConnection, info : ComponentInfo) {
         if (!(info && info.identifier)) throw new Error('invalid identifier');
-        let componentController = this._componentControllerMap.get(info.identifier);
+        let componentController = this._componentControllerMap[info.identifier];
         if (componentController) {
             console.log(this.tag + ' updating component ' + info.identifier);
             if (componentController.connection !== connection)
@@ -697,23 +701,23 @@ export class ComponentManager extends NativeClass implements IComponentSelection
         } else {
             console.log(this.tag + ' registering component ' + info.identifier);
             componentController = new ComponentController(connection);
-            this._componentControllerMap.set(info.identifier, componentController);
+            this._componentControllerMap[info.identifier] = componentController;
         }
         componentController.update(info);
     }
     // in order to unregister a component, you must know its associated connection
     private internalUnregisterComponent(connection : IConnection, identifier : string) {
-        let componentController = this._componentControllerMap.get(identifier);
+        let componentController = this._componentControllerMap[identifier];
         if (!componentController)
             throw new Error('unknown component identifier : ' + identifier);
         if (componentController.connection !== connection)
             throw new Error('component ' + identifier + ' is not associated with connection');
-        this._componentControllerMap.delete(identifier);
+        delete this._componentControllerMap[identifier];
     }
 
     private updateComponentControllerSource() {
         //console.log(this.tag + ' update component controller source ' + this._componentControllerMap.size);
-        this._componentControllerSource.next(Array.from(this._componentControllerMap.values()));
+        this._componentControllerSource.next(_.values(this._componentControllerMap));
     }
 
 }

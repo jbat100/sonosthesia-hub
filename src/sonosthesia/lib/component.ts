@@ -33,6 +33,10 @@ export class ComponentInfo extends Info {
 
     private _channelSet = new InfoSet<ChannelInfo>(ChannelInfo);
 
+    constructor() {
+        super();
+    }
+
     applyJSON(obj:any) {
         super.applyJSON(obj);
         if (obj.channels) this._channelSet.applyJSON(obj.channels as any[]);

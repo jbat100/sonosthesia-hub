@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 
-import {HubConfiguration, ConnectorType} from '../sonosthesia';
+import {HubConfiguration, ConnectorType} from '../sonosthesia/lib/configuration';
 
 @Injectable()
 export class ConfigurationService {

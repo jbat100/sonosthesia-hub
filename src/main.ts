@@ -1,28 +1,21 @@
 
 import { enableProdMode } from '@angular/core';
-
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { ApplicationModule } from './application.module';
+
+import { AppModule } from './app/app.module';
 import { environment } from 'environments';
 
-// to include sass PER COMPONENT look here
-// https://github.com/AngularClass/angular2-webpack-starter/wiki/How-to-include-SCSS-in-components
+import * as sonosthesia  from './sonosthesia';
 
 import 'bootstrap/dist/css/bootstrap.css';
 import 'nouislider/distribute/nouislider.min.css';
-
-import './scss/style.scss';
+import './styles.scss';
 
 if (environment.production) {
-    enableProdMode();
+  enableProdMode();
 }
 
-const platform = platformBrowserDynamic();
-
-platform.bootstrapModule(ApplicationModule);
-
-console.info('main');
+console.log("Sonosthesia test: " + sonosthesia.Message);
 
 
-
-
+platformBrowserDynamic().bootstrapModule(AppModule);

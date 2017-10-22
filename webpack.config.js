@@ -222,7 +222,10 @@ module.exports = {
     "string_decoder": "require('string_decoder')",
     "url": "require('url')",
     "util": "require('util')",
-    "zlib": "require('zlib')"
+    "zlib": "require('zlib')",
+
+    "bufferutil": "require('bufferutil')",
+    "utf-8-validate": "require('utf-8-validate')"
   },
   "resolve": {
     "extensions": [
@@ -281,14 +284,20 @@ module.exports = {
         "test": /\.(jpg|png|gif|otf|ttf|woff|woff2|cur|ani)$/,
         "loader": "url-loader?name=[name].[hash:20].[ext]&limit=10000"
       },
+      /*
+    {
+      "exclude": style_paths,
+      "test": /\.css$/,
+      "loaders": [
+        "exports-loader?module.exports.toString()",
+        "css-loader?{\"sourceMap\":false,\"importLoaders\":1}",
+        "postcss-loader"
+      ]
+    },
+    */
       {
-        "exclude": style_paths,
-        "test": /\.css$/,
-        "loaders": [
-          "exports-loader?module.exports.toString()",
-          "css-loader?{\"sourceMap\":false,\"importLoaders\":1}",
-          "postcss-loader"
-        ]
+        test: /\.css$/,
+        loaders: ['style-loader', 'css-loader']
       },
       {
         "exclude": style_paths,
@@ -320,6 +329,7 @@ module.exports = {
           "stylus-loader?{\"sourceMap\":false,\"paths\":[]}"
         ]
       },
+      /*
       {
         "include": style_paths,
         "test": /\.css$/,
@@ -332,6 +342,7 @@ module.exports = {
           "publicPath": ""
         })
       },
+*/
       {
         "include": style_paths,
         "test": /\.scss$|\.sass$/,

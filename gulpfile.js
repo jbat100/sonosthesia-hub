@@ -1,10 +1,7 @@
 'use strict';
 
 const gulp = require('gulp');
-const debug = require('gulp-debug');
-const inject = require('gulp-inject');
 const tsc = require('gulp-typescript');
-const tslint = require('gulp-tslint');
 const sourcemaps = require('gulp-sourcemaps');
 const del = require('del');
 const tsProject = tsc.createProject('tsconfig.json');
@@ -12,13 +9,12 @@ const tsProject = tsc.createProject('tsconfig.json');
 // note: this gulp file is meant to compile the sonosthesia lib for ui-less node based usage
 
 const config = {
-    tsOutputPath: './dist/sonosthesia',
+    tsOutputPath: './lib-dist/sonosthesia',
     allJavaScript: ['./src/sonosthesia/**/*.js'],
     allTypeScript: './src/sonosthesia/**/*.ts',
     typings: './typings/',
     libraryTypeScriptDefinitions: './typings/generate/**/*.ts'
 };
-
 
 /**
  * Compile TypeScript and include references to library and app .d.ts files.

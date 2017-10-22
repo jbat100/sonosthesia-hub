@@ -6,10 +6,9 @@ import {NgZone, Component, OnInit, OnDestroy} from '@angular/core';
 
 import { HubService } from '../../services/hub.service';
 
-import {
-    ComponentController, HubManager
-} from "../../sonosthesia";
+import { ComponentController } from "../../sonosthesia/lib/component";
 
+import { HubManager } from "../../sonosthesia/lib/hub";
 
 @Component({
     selector: 'root-components',

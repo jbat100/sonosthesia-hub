@@ -5,7 +5,6 @@ import {Component, NgZone, OnInit, OnDestroy} from '@angular/core';
 import {ChannelMapping} from "../../sonosthesia/lib/mapping";
 import {HubManager} from "../../sonosthesia/lib/hub";
 import {HubService} from "../../services/hub.service";
-import {ListIterator} from "../../sonosthesia/lib/core";
 
 
 @Component({

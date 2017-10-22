@@ -6,9 +6,7 @@ import {
     Component, OnInit, Input, Output, EventEmitter
 } from '@angular/core';
 
-import {
-    ComponentDriver, ComponentDriverFlow
-} from "../../sonosthesia/lib/component";
+import { ComponentDriver, ComponentDriverFlow } from "../../sonosthesia/lib/component";
 
 import { DriverState } from "../../sonosthesia/lib/driver";
 

@@ -1,7 +1,7 @@
 
 // https://journal.artfuldev.com/write-tests-for-typescript-projects-with-mocha-and-chai-in-typescript-86e053bdb2b6#.ddi6y2q2a
 
-import 'mocha';
+import 'jasmine';
 import * as Rx from 'rxjs/Rx';
 import { expect } from 'chai';
 

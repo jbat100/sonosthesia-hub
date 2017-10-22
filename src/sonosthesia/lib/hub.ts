@@ -1,5 +1,6 @@
 
 import * as Q from "q";
+import * as Rx from 'rxjs/Rx';
 
 import {NativeClass, IConnector, IConnection} from "./core";
 import {HubConfiguration, ConnectorConfiguration, ConnectorType} from './configuration';
@@ -15,7 +16,7 @@ import {WSConnector} from "./connector/ws";
 export class HubManager extends NativeClass {
 
     private _connections = new Map<string, IConnection>();
-    private _subscriptions = new Map<string, Rx.Disposable>();
+    private _subscriptions = new Map<string, Rx.Subscription>();
 
     // connectors
     private _connectors : IConnector[];
@@ -55,7 +56,7 @@ export class HubManager extends NativeClass {
             return Q.all(this._connectors.map(connector => {
                 return connector.stop();
             })).then(() => {
-                this._subscriptions.forEach((subscription : Rx.Disposable) => { subscription.dispose(); });
+                this._subscriptions.forEach((subscription : Rx.Subscription) => { subscription.unsubscribe(); });
                 this._subscriptions.clear();
                 this._connections.clear();
             });

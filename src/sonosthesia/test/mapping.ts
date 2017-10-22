@@ -1,7 +1,7 @@
 
 // https://journal.artfuldev.com/write-tests-for-typescript-projects-with-mocha-and-chai-in-typescript-86e053bdb2b6#.ddi6y2q2a
 
-import 'mocha';
+import 'jasmine';
 
 import * as path from 'path';
 
@@ -83,7 +83,7 @@ describe('Mapping tests', () => {
     }
 
     // before tests, setup the hub manager (which runs the tcp server) and create the tcp clients
-    before(() => {
+    beforeAll(() => {
         return setupHubManager().then(() => {
             return TCPClient.newTCPClient(localAddress, hubPort);
         }).then((client : TCPClient) => {
@@ -114,7 +114,7 @@ describe('Mapping tests', () => {
         const componentInfo = componentInfoList[0];
         const channelInfo = componentInfo.channels[0];
 
-        before(() => {
+        beforeAll(() => {
             return Q().then(() => {
                 client1.registerComponent(componentInfo);
                 return wait();

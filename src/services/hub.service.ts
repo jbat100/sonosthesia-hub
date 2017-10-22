@@ -6,10 +6,12 @@ import * as Rx from 'rxjs/Rx';
 import { Injectable } from '@angular/core';
 import { ConfigurationService } from './configuration.service';
 
-import {
-    HubManager, HubConfiguration, ComponentInfo, LocalConnection,
-    HubMessageContentParser
-} from '../sonosthesia';
+// use explicit imports to help out webpack
+import { HubManager  } from '../sonosthesia/lib/hub';
+import { HubConfiguration } from '../sonosthesia/lib/configuration';
+import { LocalConnection,  } from '../sonosthesia/lib/connector/core';
+import { HubMessageContentParser } from '../sonosthesia/lib/messaging';
+import { ComponentInfo } from '../sonosthesia/lib/component';
 
 // simple angular service to offer an entry point to a sonosthesia hub manager instance
 
@@ -32,22 +34,31 @@ export class HubService {
     private _localConnection = new LocalConnection(new HubMessageContentParser());
 
     constructor(private _configurationService: ConfigurationService) {
-
+        console.log(this.tag + ' constructor');
     }
 
-    get hubManager() : Rx.Observable<HubManager> { return this._hubManager; }
+    get hubManager() : Rx.Observable<HubManager> {
+      return this._hubManager;
+    }
 
     init() {
 
-        //console.log(this.tag + ' __dirname' + __dirname);
+        console.log(this.tag + ' init getting configuration');
+
+        const info = new ComponentInfo();
+
+        console.log(this.tag + ' ComponentInfo test');
 
         this._configurationService.configuration.subscribe((configuration : HubConfiguration) => {
             if (!this._done) {
                 this._done = true;
+                console.warn(this.tag + ' creating hub manager with configuration: ' + configuration);
                 const manager = new HubManager(configuration);
                 // we only want the service to be available when the setup is done
+                console.warn(this.tag + ' hub manager setting up');
                 manager.setup().then(() => {
                     // load local component config file
+                    console.warn(this.tag + ' hub manager setup done');
                     return Q.all(
                         this._componentConfigPaths.map(path => {
                             return ComponentInfo.importFromFile(path).then((infoList : ComponentInfo[]) => {

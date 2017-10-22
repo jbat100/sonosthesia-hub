@@ -1,12 +1,14 @@
 /**
  * A script to help producing messages mostly as a test and debug tool for other clients
  */
-
+import {BaseConnector} from "../lib/connector/core";
 
 
 const commandLineArgs = require('command-line-args');
 
 import {Socket} from 'net';
+
+import * as ws from 'ws';
 import * as _  from 'underscore';
 
 import {GUID, IConnection, IMessageSender} from '../lib/core';
@@ -21,11 +23,12 @@ let current = 0;
 
 const optionDefinitions = [
     { name: 'server', alias: 's', type: Boolean },
+    { name: 'connection', alias: 'c', type: String},
     { name: 'type', alias: 't', type: String },
     { name: 'address', alias: 'a', type: String },
     { name: 'port', alias: 'p', type: Number },
     { name: 'interval', alias: 'i', type: Number },
-    { name: 'count', alias: 'c', type: Number }
+    { name: 'count', alias: 'n', type: Number }
 ];
 
 const options = commandLineArgs(optionDefinitions);
@@ -33,6 +36,7 @@ const options = commandLineArgs(optionDefinitions);
 // enter default options
 
 if (!options.type) options.type = 'control';
+if (!options.connection) options.connection = 'ws';
 if (!options.address) options.address = '127.0.0.1';
 if (!options.port) options.port = 3333;
 if (!options.interval) options.interval = 1000;
@@ -133,16 +137,28 @@ const generator = generators[options.type]();
 
 if (options.server) {
 
-    const connector = new WSConnector(parser);
+    let connector : BaseConnector = null;
 
-    console.log('WSConnector starting on port ' + options.port + '...');
+    switch (options.connection)
+    {
+        case 'ws':
+            connector = new WSConnector(parser);
+            break;
+        case 'tcp':
+            connector = new TCPConnector(parser);
+            break;
+        default:
+            throw new Error('unknown connection type : ' + options.connection);
+    }
+
+    console.log('Connector (' + options.connection + ') starting on port ' + options.port + '...');
 
     connector.messageObservable.subscribe(message => {
-        console.log('WSConnector received message : ' + JSON.stringify(message.toJSON()));
+        console.log('Connector received message : ' + JSON.stringify(message.toJSON()));
     });
     
     connector.start(options.port).then(() => {
-        console.log('WSConnector started on port ' + options.port);
+        console.log('Connector started on port ' + options.port);
     });
 
     generate(connector, generator).then(() => { console.log('done'); }).catch(err => {
@@ -151,14 +167,20 @@ if (options.server) {
 
 } else {
 
-    const client = new Socket();
-    client.connect(options.port, options.address, () => {
-        console.log('Connected');
-        const connection = new TCPConnection(parser, null, client);
-        generate(connection, generator).then(() => { console.log('done'); }).catch(err => {
-            console.log('Ended with error ' + err.stack);
+    if (options.connection == 'tcp') {
+        const client = new Socket();
+        client.connect(options.port, options.address, () => {
+            console.log('Connected');
+            const connection = new TCPConnection(parser, null, client);
+            generate(connection, generator).then(() => { console.log('done'); }).catch(err => {
+                console.log('Ended with error ' + err.stack);
+            });
         });
-    });
+    } else if (options.connection == 'ws') {
+
+    }
+
+
 
 }
 

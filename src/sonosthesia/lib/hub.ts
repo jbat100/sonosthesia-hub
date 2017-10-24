@@ -93,7 +93,7 @@ export class HubManager extends NativeClass {
             connector.emitter.on('disconnection', (connection : IConnection) => {
                 this.teardownConnection(connection);
             });
-            return connector.start(config.port).then(() => {
+            return connector.start(config).then(() => {
                 console.log('Server started on port ' + config.port);
                 return connector;
             }).catch(err => {

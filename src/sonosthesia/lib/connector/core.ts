@@ -86,7 +86,7 @@ export class BaseConnector extends NativeClass implements IMessageSender {
         });
     }
 
-    start(port : number) : Q.Promise<void> {
+    start(config : any) : Q.Promise<void> {
         return Q();
     }
 

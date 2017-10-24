@@ -40,7 +40,7 @@ export interface IConnector {
     //connectionObservable : Rx.Observable<IConnection>;
     //disconnectionObservable : Rx.Observable<IConnection>;
 
-    start(port : number) : Q.Promise<void>;
+    start(config : any) : Q.Promise<void>;
 
     stop() : Q.Promise<void>;
 

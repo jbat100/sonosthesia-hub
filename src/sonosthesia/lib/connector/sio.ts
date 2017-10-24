@@ -21,8 +21,9 @@ export class SIOConnector extends BaseConnector {
     _httpServer : http.Server;
     _sioServer : any; // can't seem to find a socket.io Server type in the type definition file
 
-    start(port : number) : Q.Promise<void> {
-        return super.start(port).then(() => {
+    start(config : any) : Q.Promise<void> {
+        return super.start(config).then(() => {
+            const port = config.port;
             return Q().then(() => {
                 if (this._sioServer) throw new Error('connector is already started');
                 console.info(this.tag + ' start on port ' + port);

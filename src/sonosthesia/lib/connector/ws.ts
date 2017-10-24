@@ -17,8 +17,9 @@ export class WSConnector extends BaseConnector {
 
     _wsServer : any;
 
-    start(port : number) : Q.Promise<void> {
-        return super.start(port).then(() => {
+    start(config : any) : Q.Promise<void> {
+        return super.start(config).then(() => {
+            const port = config.port;
             return Q().then(() => {
                 if (this._wsServer) throw new Error('connector is already started');
                 console.info(this.tag + ' start on port ' + port);

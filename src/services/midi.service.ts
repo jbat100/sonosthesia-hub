@@ -19,24 +19,32 @@ export class MidiService {
 
     testMidi()  {
 
-        console.log("Renderer testMidi 1");
+        try {
 
-        // Set up a new input.
-        this.midiInput = new midi.input();
+            console.log(this.tag + " testMidi 1");
 
-        // Count the available input ports.
-        const icount = this.midiInput.getPortCount();
+            // Set up a new input.
+            this.midiInput = new midi.input();
 
-        console.log("Renderer process midi input count : " + icount);
+            // Count the available input ports.
+            const icount = this.midiInput.getPortCount();
 
-        this.midiOutput = new midi.output();
+            console.log(this.tag + " process midi input count : " + icount);
 
-        // Count the available output ports.
-        const ocount = this.midiOutput.getPortCount();
+            this.midiOutput = new midi.output();
 
-        console.log("Renderer process midi output count : " + ocount);
+            // Count the available output ports.
+            const ocount = this.midiOutput.getPortCount();
 
-        this.playNoteOnPort(3);
+            console.log(this.tag + " process midi output count : " + ocount);
+
+            this.playNoteOnPort(3);
+        } catch (err) {
+
+            console.error(err.message);
+
+        }
+
 
     }
 
@@ -44,19 +52,19 @@ export class MidiService {
 
         const name = this.midiOutput.getPortName(i);
 
-        console.log("Opening output port " + name);
+        console.log(this.tag + " opening output port " + name);
         // Open the first available output port.
         this.midiOutput.openPort(i);
 
         q().then(() => {
             // Send a MIDI note on message. https://www.music.mcgill.ca/~gary/rtmidi/
-            console.log("Sending note on to output port " + name);
+            console.log(this.tag + " sending note on to output port " + name);
             this.midiOutput.sendMessage([144, 64, 90]);
         }).delay(1000).then(() => {
-            console.log("Sending note off to output port " + name);
+            console.log(this.tag + " sending note off to output port " + name);
             this.midiOutput.sendMessage([128, 64, 40]);
         }).delay(1000).then(() => {
-            console.log("Closing output port " + name);
+            console.log(this.tag + " closing output port " + name);
             // Close the port when done.
             this.midiOutput.closePort();
         });

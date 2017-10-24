@@ -20,8 +20,10 @@ export class OSCConnector extends BaseConnector {
 
     _socket : any;
 
-    start(port : number) : Q.Promise<void> {
-        return super.start(port).then(() => {
+    start(config : any) : Q.Promise<void> {
+
+        return super.start(config).then(() => {
+            const port = config.port;
             return Q().then(() => {
                 this._socket = dgram.createSocket("udp4", (msg, rinfo) => {
                     // TODO: create/get connection based on rinfo

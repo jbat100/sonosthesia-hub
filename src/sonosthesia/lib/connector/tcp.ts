@@ -25,8 +25,9 @@ export class TCPConnector extends BaseConnector {
 
     get server() { return this._server; }
 
-    start(port : number) : Q.Promise<void> {
-        return super.start(port).then(() => {
+    start(config : any) : Q.Promise<void> {
+        return super.start(config).then(() => {
+            const port = config.port;
             //console.log(this.tag + ' start on port: ' + port);
             return Q.Promise((resolve, reject) => {
                 if (this.server) return reject(new Error('connector is already started'));

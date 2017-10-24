@@ -1,6 +1,6 @@
 
+import * as path from 'path';
 import * as Q from 'q';
-
 import * as Rx from 'rxjs/Rx';
 
 import { Injectable } from '@angular/core';
@@ -28,7 +28,7 @@ export class HubService {
 
     // component config paths will be loaded to the hubManager's manager
     private _componentConfigPaths = [
-        'F:/Sonosthesia/sonosthesia-hub/config/test.component.1.json'
+        path.join(__dirname, '..', 'config', 'test.component.1.json')
     ];
 
     private _localConnection = new LocalConnection(new HubMessageContentParser());
@@ -43,7 +43,7 @@ export class HubService {
 
     init() {
 
-        console.log(this.tag + ' init getting configuration');
+        console.log(this.tag + ' init getting configuration cwd: ' + process.cwd() + ' __dirname ' + __dirname);
 
         const info = new ComponentInfo();
 

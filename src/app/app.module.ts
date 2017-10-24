@@ -81,6 +81,7 @@ import {
 import {
     EnumSelectComponent, FloatSettingGroupComponent
 } from "../components/common/common.component";
+import {MidiService} from "../services/midi.service";
 
 @NgModule({
     declarations: [
@@ -137,6 +138,7 @@ import {
         //NouisliderModule
     ],
     providers: [
+        MidiService,
         ElectronService,
         ConfigurationService,
         HubService,
@@ -146,8 +148,9 @@ import {
 })
 export class AppModule {
 
-    constructor(private _hubService : HubService) {
+    constructor(private _hubService : HubService, private _midiService : MidiService) {
         _hubService.init();
+        _midiService.testMidi();
     }
 
 }

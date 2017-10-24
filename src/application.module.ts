@@ -18,6 +18,7 @@ import { NouisliderModule } from 'ng2-nouislider';
 
 import { ConfigurationService } from './services/configuration.service';
 import { HubService } from './services/hub.service';
+import { MidiService } from './services/midi.service';
 import { NavigationService } from "./services/navigation.service";
 import { ParameterOperatorService } from "./services/operator.service";
 
@@ -162,8 +163,13 @@ const routes : Routes = [
 })
 export class ApplicationModule { 
 
-    constructor(private _hubService : HubService) {
+    constructor(private _hubService : HubService, private _midiService : MidiService) {
+
+        console.warn('ApplicationModule constructor');
         _hubService.init();
+
+        console.warn('Calling test midi');
+        _midiService.testMidi();
     }
 
 }

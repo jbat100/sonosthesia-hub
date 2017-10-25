@@ -40,6 +40,7 @@
     "chance": "^1.0.6",
     "command-line-args": "^3.0.5",
     "core-js": "2.4.1",
+    "easymidi": "0.0.4",
     "enhanced-resolve": "3.3.0",
     "es6-shim": "^0.35.3",
     "eventemitter3": "^2.0.2",

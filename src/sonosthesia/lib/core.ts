@@ -10,16 +10,24 @@ import * as uuid from 'node-uuid';
 
 
 export interface IMessageSender {
+
     sendMessage(message : Message);
+
     canSendMessage() : boolean;
+
 }
 
 
 export interface IConnection extends IMessageSender {
+
     // http://stackoverflow.com/questions/12838248/is-it-possible-to-use-getters-setters-in-interface-definition
     messageObservable : Rx.Observable<Message>;
+
     identifier : string;
+
     connectionType: string;
+
+    close();
 }
 
 export enum ConnectorState {

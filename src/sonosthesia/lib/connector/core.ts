@@ -42,6 +42,10 @@ export class BaseConnection extends NativeClass implements IConnection {
         // subclasses should implement this
     }
 
+    close() {
+        // subclass this to perfom any cleanup...
+    }
+
     destroy() {
         this._destroyed = true;
     }

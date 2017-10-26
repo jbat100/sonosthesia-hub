@@ -193,6 +193,7 @@ export class Identifier extends NativeClass {
 
     get identifier() : string { return this._identifier; }
 
+    set identifier(identifier : string) { this._identifier = identifier; }
 
 }
 

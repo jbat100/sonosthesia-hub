@@ -5,10 +5,10 @@ import * as Q from "q";
 import * as _ from "underscore";
 import { expect} from "chai";
 
-import {NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, FileUtils, Message, IStringTMap} from "./core";
+import { NativeClass, Info, InfoSet, Selection, Range, IConnection, GUID, FileUtils, Message, IStringTMap } from "./core";
 import { HubMessage, Parameters, HubMessageType } from "./messaging";
-import {ValueGeneratorType, ValueGeneratorContainer, IValueGeneratorMap} from "./generator";
-import {PeriodicDriver} from "./driver";
+import { ValueGeneratorType, ValueGeneratorContainer, IValueGeneratorMap } from "./generator";
+import { PeriodicDriver } from "./driver";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Info classes represent the declarations of available components (and their channels) made by connections, they are
@@ -145,6 +145,14 @@ export class ParameterInfo extends Info {
 
     private _defaultValue = 0.0;
     private _range : Range;
+
+    static Create(identifier : string = null, defaultValue : number = 0.0, minValue : number = 0.0, maxValue : number = 1.0) : ParameterInfo {
+        const info = new ParameterInfo();
+        if (identifier) info.identifier = identifier;
+        info._defaultValue = defaultValue;
+        info._range = new Range(minValue, maxValue);
+        return info;
+    }
 
     applyJSON(obj) {
         super.applyJSON(obj);

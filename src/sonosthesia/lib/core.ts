@@ -179,6 +179,13 @@ export interface ISerialisableJSON {
 
 }
 
+export class CoreUtils
+{
+    public static createIdentifier() {
+        return GUID.generate();
+    }
+}
+
 /**
  * Abstract class for info (usually declared by JSON network interfaces)
  */
@@ -188,7 +195,7 @@ export class Identifier extends NativeClass {
 
     constructor() {
         super();
-        this._identifier = GUID.generate(); // generate a default id, may be overriten by JSON
+        this._identifier = CoreUtils.createIdentifier(); // generate a default id, may be overriten by JSON
     }
 
     get identifier() : string { return this._identifier; }

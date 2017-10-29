@@ -47,6 +47,7 @@ export class BaseConnection extends NativeClass implements IConnection {
     }
 
     destroy() {
+        this.close();
         this._destroyed = true;
     }
 }

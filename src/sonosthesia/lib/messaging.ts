@@ -43,6 +43,16 @@ export class Parameters extends NativeClass {
         return this._values[key];
     }
 
+    // special case when dimension 1 is expected
+    getSingleParameter(key : string) : number {
+        const parameter = this.getParameter(key);
+        if (parameter.length == 1) {
+            return parameter[0];
+        } else {
+            throw new Error('expected 1 dimension');
+        }
+    }
+
 }
 
 
@@ -98,6 +108,7 @@ export class ChannelMessageContent extends MessageContent {
         const parameters = Parameters.newFromJSON(obj.parameters);
         return new this(obj.component, obj.channel, obj.instance, obj.key, parameters);
     }
+
 
     constructor(private _component : string,
                 private _channel : string,

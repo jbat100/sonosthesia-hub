@@ -9,7 +9,7 @@ const tsProject = tsc.createProject('tsconfig.json');
 // note: this gulp file is meant to compile the sonosthesia lib for ui-less node based usage
 
 const config = {
-    tsOutputPath: './lib-dist/sonosthesia',
+    tsOutputPath: './dist-lib/sonosthesia',
     allJavaScript: ['./src/sonosthesia/**/*.js'],
     allTypeScript: './src/sonosthesia/**/*.ts',
     typings: './typings/',

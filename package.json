@@ -5,7 +5,7 @@
   "license": "SEE LICENSE IN LICENSE.md",
   "main": "main.js",
   "scripts": {
-    "postinstall": "node rebuild.js",
+    "postinstalll": "node rebuild.js",
     "build": "webpack --display-error-details && npm run build:electron:main",
     "build:electron:main": "tsc main.ts --outDir dist && copyfiles package.json rebuild.js dist && cd dist && npm install --prod && cd ..",
     "build:prod": "cross-env NODE_ENV=production npm run build",
@@ -23,7 +23,9 @@
     "start": "npm-run-all --parallel webpack:watch electron:serve",
     "start:web": "webpack-dev-server --content-base . --port 4200 --inline",
     "test": "karma start ./karma.conf.js",
-    "webpack:watch": "webpack --watch"
+    "webpack:watch": "webpack --watch",
+    "lib-build": "gulp",
+    "lib-dev": "gulp dev"
   },
   "dependencies": {
     "@angular/common": "4.4.3",

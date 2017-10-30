@@ -3,6 +3,7 @@
 /assets/glyphicons
 
 # compiled output
+/dist-lib
 /lib-dist
 /dist
 /tmp

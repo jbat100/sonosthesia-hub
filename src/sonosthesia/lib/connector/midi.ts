@@ -10,16 +10,18 @@ import {BaseConnection, BaseConnector} from './core';
 
 const easymidi = require('easymidi');
 
-export interface MIDIOutputConfig
+export interface MIDIOutputAdapterConfig
 {
     name : string;
     virtual : boolean;
+    denormalise: boolean;
 }
 
-export interface MIDIInputConfig
+export interface MIDIInputAdapterConfig
 {
     name : string;
     virtual : boolean;
+    normalise: boolean;
 }
 
 interface IMidiNoteDescription
@@ -126,17 +128,22 @@ export class MIDIUtils
 
 export class MIDIInputAdapter extends BaseConnection implements IConnection
 {
-    private _normalise : boolean = true;
-
-    private _config : MIDIInputConfig = null;
+    private _config : MIDIInputAdapterConfig = null;
 
     private _midiInput : any;
 
     private _instanceNoteMap : IInstanceNoteMap = {};
 
-    start(config : MIDIInputConfig)
+    start(config : MIDIInputAdapterConfig)
     {
-        this._midiInput = new easymidi.Input(config.name, config.virtual);
+        try {
+            this._midiInput = new easymidi.Input(config.name, config.virtual);
+            this._config = config;
+        } catch (error) {
+            this._config = null;
+            console.error(this.tag + ' error creating midi input, available: ' + JSON.stringify(easymidi.getInputs()));
+            throw error;
+        }
 
         this._midiInput.on('noteon', (midiMessage) => {
             const message = this.midiNoteMessageToHubMessage(midiMessage, HubMessageType.Create);
@@ -157,6 +164,7 @@ export class MIDIInputAdapter extends BaseConnection implements IConnection
             const message = this.midiControlMessageToHubMessage(midiMessage);
             this.messageSubject.next(message);
         });
+
 
     }
 
@@ -207,7 +215,7 @@ export class MIDIInputAdapter extends BaseConnection implements IConnection
     }
 
     private processMIDINumber(value : number) {
-        return value / (this._normalise ? 127.0 : 1.0);
+        return value / (this._config.normalise ? 127.0 : 1.0);
     }
 
     private pushNoteInstance(note : IMidiNoteDescription, instance : string) {
@@ -236,19 +244,22 @@ export class MIDIInputAdapter extends BaseConnection implements IConnection
 
 export class MIDIOutputAdapter extends BaseConnection implements IConnection
 {
-    private _denormalise : boolean = true;
-
-    private _config : MIDIOutputConfig = null;
+    private _config : MIDIOutputAdapterConfig = null;
 
     private _midiOutput : any;
 
     private _instanceNoteMap : IInstanceNoteMap = {};
 
 
-    start(config : MIDIOutputConfig)
+    start(config : MIDIOutputAdapterConfig)
     {
-        this._config = config;
-        this._midiOutput = new easymidi.Output(config.name, config.virtual);
+        try {
+            this._midiOutput = new easymidi.Output(config.name, config.virtual);
+            this._config = config;
+        } catch (error) {
+            this._config = null;
+            console.error(this.tag + ' error creating midi output, available: ' + JSON.stringify(easymidi.getOutputs()));
+        }
     }
 
     sendMessage(message : HubMessage) {
@@ -302,14 +313,14 @@ export class MIDIOutputAdapter extends BaseConnection implements IConnection
                     try {
                         const controller = MIDIUtils.controllerIdentifierToNumber(key);
                         const value = content.parameters.getParameter(key);
-                        this._midiOutput.send('cc', {
-                            channel: channel,
-                            controller: controller,
-                            value: value
-                        });
+                        const msg = { channel: channel, controller: controller, value: value };
+                        console.log(this.tag + ' sending MIDI cc ' + JSON.stringify(msg));
+                        this._midiOutput.send('cc', msg);
                     } catch (error) {
                         console.error(this.tag + ' MIDI output error: ' + error.message);
                     }
+                } else {
+                    console.warn(this.tag + ' unexpected parameter identifier: ' + key);
                 }
             });
         }
@@ -324,11 +335,9 @@ export class MIDIOutputAdapter extends BaseConnection implements IConnection
                 const note = this.extractNote(content);
                 const velocity = this.extractVelocity(content);
                 this.pushInstanceNote(content.instance, {note: note, channel: channel});
-                this._midiOutput.send('noteon', {
-                    note: note,
-                    channel: channel,
-                    velocity: velocity
-                });
+                const msg = {note: note, channel: channel, velocity: velocity };
+                console.log(this.tag + ' sending MIDI noteon : ' + JSON.stringify((msg)));
+                this._midiOutput.send('noteon', msg);
             } catch (error) {
                 console.error(this.tag + ' MIDI output error: ' + error.message);
             }
@@ -342,11 +351,9 @@ export class MIDIOutputAdapter extends BaseConnection implements IConnection
             try {
                 const description = this.popInstanceNote(content.instance);
                 const velocity = this.extractVelocity(content);
-                this._midiOutput.send('noteoff', {
-                    note: description.note,
-                    channel: description.channel,
-                    velocity: velocity
-                });
+                const msg =  {note: description.note, channel: description.channel, velocity: velocity };
+                console.log(this.tag + ' sending MIDI noteoff : ' + JSON.stringify((msg)));
+                this._midiOutput.send('noteoff', msg);
             } catch (error) {
                 console.error(this.tag + ' MIDI output error: ' + error.message);
             }
@@ -360,11 +367,9 @@ export class MIDIOutputAdapter extends BaseConnection implements IConnection
             try {
                 const description = this.getInstanceNote(content.instance);
                 const velocity = this.extractVelocity(content);
-                this._midiOutput.send('poly aftertouch', {
-                    note: description.note,
-                    channel: description.channel,
-                    velocity: velocity
-                });
+                const msg = { note: description.note, channel: description.channel, velocity: velocity };
+                console.log(this.tag + ' sending MIDI note puly aftertouch : ' + JSON.stringify((msg)));
+                this._midiOutput.send('poly aftertouch', msg);
             } catch (error) {
                 console.error(this.tag + ' MIDI output error: ' + error.message);
             }
@@ -382,7 +387,7 @@ export class MIDIOutputAdapter extends BaseConnection implements IConnection
 
     private extractKey(content : ChannelMessageContent, key : string) {
         const val = content.parameters.getSingleParameter(key);
-        if (this._denormalise) {
+        if (this._config.denormalise) {
             return Math.round(val * 127.0);
         } else {
             return val;
@@ -425,11 +430,11 @@ export class MIDIOutputAdapter extends BaseConnection implements IConnection
     private checkContent(content : ChannelMessageContent, expectInstance : boolean) : boolean
     {
         if (MIDIUtils.isMIDIComponentIdentifier(content.component) == false) {
-            console.error(this.tag + ' unexpected component identifier');
+            console.error(this.tag + ' unexpected component identifier: ' + content.component);
             return false;
         }
         if (MIDIUtils.isChannelIdentifier(content.channel) == false) {
-            console.error(this.tag + ' unexpected channel identifier');
+            console.error(this.tag + ' unexpected channel identifier: ' + content.channel);
             return false;
         }
         if ((!!content.instance) != expectInstance) {

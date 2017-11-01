@@ -79,7 +79,7 @@ describe('Mapping tests', () => {
             instance,
             null,
             parameters);
-        return new HubMessage(HubMessageType.Control, null, content);
+        return new HubMessage(HubMessageType.CONTROL, null, content);
     }
 
     // before tests, setup the hub manager (which runs the tcp server) and create the tcp clients

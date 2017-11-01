@@ -79,7 +79,7 @@ function* controlGenerator() {
         const parameters = Parameters.newFromJSON({});
         parameters.setParameter(controllerIdentifier, [value]);
         const content = new ControlMessageContent(componentIdentifier, channelIdentifier, null, null, parameters);
-        const message = new HubMessage(HubMessageType.Control, null, content);
+        const message = new HubMessage(HubMessageType.CONTROL, null, content);
         i++;
         yield message;
     }
@@ -95,17 +95,17 @@ function* noteGenerator() {
         // create instance
         parameters = Parameters.newFromJSON({note : note, velocity: velocity});
         content = new CreateMessageContent(componentIdentifier, channelIdentifier, instance, null, parameters);
-        message = new HubMessage(HubMessageType.Create, null, content);
+        message = new HubMessage(HubMessageType.CREATE, null, content);
         yield message;
         // instance control message
         parameters = Parameters.newFromJSON({note : note, velocity: velocity + 10});
         content = new ControlMessageContent(componentIdentifier, channelIdentifier, instance, null, parameters);
-        message = new HubMessage(HubMessageType.Control, null, content);
+        message = new HubMessage(HubMessageType.CONTROL, null, content);
         yield message;
         // destroy instance
         parameters = Parameters.newFromJSON({note : note, velocity: velocity});
         content = new DestroyMessageContent(componentIdentifier, channelIdentifier, instance, null, parameters);
-        message = new HubMessage(HubMessageType.Destroy, null, content);
+        message = new HubMessage(HubMessageType.DESTROY, null, content);
         yield message;
     }
 }

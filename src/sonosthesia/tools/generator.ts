@@ -63,7 +63,7 @@ function* controlGenerator() {
         if (val > 1.0) val = 0.0;
         const parameters = Parameters.newFromJSON({parameter : val});
         const content = new ControlMessageContent(component, channel, null, null, parameters);
-        const message = new HubMessage(HubMessageType.Control, null, content);
+        const message = new HubMessage(HubMessageType.CONTROL, null, content);
         i++;
         yield message;
     }
@@ -74,7 +74,7 @@ function* actionGenerator() {
     while(i < iterations) {
         i++;
         const content = new ActionMessageContent(component, channel, null, key, null);
-        const message = new HubMessage(HubMessageType.Action, null, content);
+        const message = new HubMessage(HubMessageType.ACTION, null, content);
         yield message;
     }
 }
@@ -87,19 +87,19 @@ function* instanceGenerator() {
         const parameters = Parameters.newFromJSON({parameter : 0.5});
         // create instance
         content = new CreateMessageContent(component, channel, instance, null, parameters);
-        message = new HubMessage(HubMessageType.Create, null, content);
+        message = new HubMessage(HubMessageType.CREATE, null, content);
         yield message;
         // instance action message
         content = new ActionMessageContent(component, channel, instance, key, parameters);
-        message = new HubMessage(HubMessageType.Action, null, content);
+        message = new HubMessage(HubMessageType.ACTION, null, content);
         yield message;
         // instance control message
         content = new ControlMessageContent(component, channel, instance, null, parameters);
-        message = new HubMessage(HubMessageType.Control, null, content);
+        message = new HubMessage(HubMessageType.CONTROL, null, content);
         yield message;
         // destroy instance
         content = new DestroyMessageContent(component, channel, instance, null, parameters);
-        message = new HubMessage(HubMessageType.Destroy, null, content);
+        message = new HubMessage(HubMessageType.DESTROY, null, content);
         yield message;
     }
 }

@@ -171,7 +171,7 @@ export class Declarable extends NativeClass {
     }
 }
 
-export interface ISerialisableJSON {
+export interface IJSONSerialisable {
 
     applyJSON(obj:any);
 
@@ -204,7 +204,7 @@ export class Identifier extends NativeClass {
 
 }
 
-export class Info extends Identifier implements ISerialisableJSON {
+export class Info extends Identifier implements IJSONSerialisable {
 
     static newFromJSON(obj : any) {
         const instance = new this();
@@ -324,12 +324,29 @@ export class ListIterator <T> implements IterableIterator<T> {
 
 }
 
-export class ListManager <T> {
+export class ListManager <T extends IJSONSerialisable> {
 
     private _elements : T[] = [];
 
     private _elementsSource = new Rx.BehaviorSubject<T[]>([]);
     private _elementsObservable = this._elementsSource.asObservable();
+
+    constructor(private _TCreator : { new (): T; }) {
+        this._elements = [];
+    }
+
+    applyJSON(obj : any) {
+        expect(obj).to.be.an('object');
+        this._elements = _.map(obj, elementJSON => {
+            const element = new this._TCreator();
+            element.applyJSON(elementJSON);
+            return element;
+        });
+    }
+
+    toJSON() : any {
+        return this._elements.map(element => { });
+    }
 
     private updateElementSource() {
         this._elementsSource.next( this.elements );
@@ -388,7 +405,7 @@ export class ListManager <T> {
 
 }
 
-export class Selection {
+export class Selection extends NativeClass implements IJSONSerialisable {
 
     private _valid : boolean;
 
@@ -402,8 +419,18 @@ export class Selection {
     protected _changeObservable : Rx.Observable<void> = this._changeSubject.asObservable();
 
     constructor(_identifier : string = null) {
+        super();
         this._identifierSubject.next(_identifier);
         this._validSubject.next(false);
+    }
+
+    applyJSON(obj : any) {
+        expect(obj).to.be.an('object');
+        this._identifierSubject.next(obj.identifier);
+    }
+
+    toJSON() : any {
+        return {identifier : this._identifierSubject.getValue()};
     }
 
     public get identifierObservable() : Rx.Observable<string> { return this._identifierObservable; }
@@ -422,17 +449,26 @@ export class Selection {
 
 }
 
-export class Range extends NativeClass {
+export class Range extends NativeClass implements IJSONSerialisable {
 
     static newFromJSON(obj) {
-        expect(obj).to.be.an('object');
-        const instance = new this(+obj.min, +obj.max);
-        instance.check();
+        const instance = new this();
+        instance.applyJSON(obj);
         return instance;
     }
 
-    constructor(private _min : number, private _max : number) {
+    constructor(private _min : number = 0.0, private _max : number = 1.0) {
         super();
+    }
+
+    applyJSON(obj : any) {
+        expect(obj).to.be.an('object');
+        this._min = +obj.min;
+        this._max = +obj.max;
+    }
+
+    toJSON() : any {
+        return _.pick(this, 'min', 'max');
     }
 
     get min() : number { return this._min; }
@@ -442,13 +478,9 @@ export class Range extends NativeClass {
 
     check() { if (this._min > this._max) throw new Error('min should be less than max'); }
 
-    toJSON() {
-        return _.pick(this, 'min', 'max');
-    }
+
 
 }
-
-
 
 // consider using this for operators
 

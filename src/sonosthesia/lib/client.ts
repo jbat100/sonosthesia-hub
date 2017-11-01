@@ -60,7 +60,7 @@ export class Client extends NativeClass {
             return controller.info;
         });
         const content = new ComponentMessageContent(infoList);
-        const message = new HubMessage(HubMessageType.Component, null, content);
+        const message = new HubMessage(HubMessageType.COMPONENT, null, content);
         console.log(this.tag + ' sending component info for ' + infoList.length + ' component(s)');
         this.connection.sendMessage(message);
     }

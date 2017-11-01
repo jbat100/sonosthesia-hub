@@ -125,7 +125,7 @@ export class HubManager extends NativeClass {
         console.log('processing hub message ' + JSON.stringify(message.toJSON()));
 
         switch (message.hubMessageType) {
-            case HubMessageType.Component:
+            case HubMessageType.COMPONENT:
                 {
                     const content = message.content as ComponentMessageContent;
                     this.componentManager.updateComponents(connection, content.components);

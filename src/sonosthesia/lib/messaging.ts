@@ -177,20 +177,20 @@ export class DestroyMessageContent extends InstanceMessageContent { }
 // may become necessary to distinguish between channel and instance versions of control and action messages
 
 export enum HubMessageType {
-    Component,
-    Action,
-    Control,
-    Create,
-    Destroy
+    COMPONENT,
+    ACTION,
+    CONTROL,
+    CREATE,
+    DESTROY
 }
 
 const HubMessageContentClasses = new Map<HubMessageType, typeof MessageContent>();
 
-HubMessageContentClasses[HubMessageType.Component] = ComponentMessageContent;
-HubMessageContentClasses[HubMessageType.Control] = ControlMessageContent;
-HubMessageContentClasses[HubMessageType.Action] = ActionMessageContent;
-HubMessageContentClasses[HubMessageType.Create] = CreateMessageContent;
-HubMessageContentClasses[HubMessageType.Destroy] = DestroyMessageContent;
+HubMessageContentClasses[HubMessageType.COMPONENT] = ComponentMessageContent;
+HubMessageContentClasses[HubMessageType.CONTROL] = ControlMessageContent;
+HubMessageContentClasses[HubMessageType.ACTION] = ActionMessageContent;
+HubMessageContentClasses[HubMessageType.CREATE] = CreateMessageContent;
+HubMessageContentClasses[HubMessageType.DESTROY] = DestroyMessageContent;
 
 
 export class HubMessage extends Message {
@@ -200,7 +200,7 @@ export class HubMessage extends Message {
     static newFromJSON(obj : any, parser : MessageContentParser) : Message {
         this.checkJSON(obj);
         const typeStr = obj.type as string;
-        const capitalised = typeStr.charAt(0).toUpperCase() + typeStr.substring(1);
+        const capitalised = typeStr.toUpperCase();
         const hubMessageType : HubMessageType = HubMessageType[capitalised];
         console.log('HubMessage.newFromJSON ' + capitalised + ' ' + hubMessageType);
         return new this(hubMessageType, +(obj.date as string), parser.parse(obj.type, obj.content)) as Message;
@@ -229,7 +229,7 @@ export class HubMessage extends Message {
         if (!expectedContentClass) throw new Error('unsupported message type : ' + type);
         //const expectedContentClass = HubMessageContentClasses[type];
         expect(content).to.be.instanceOf(expectedContentClass);
-        super(HubMessageType[type] as string, timestamp, content);
+        super((HubMessageType[type] as string).toLowerCase(), timestamp, content);
         this._hubMessageType = type;
     }
 
@@ -240,7 +240,7 @@ export class HubMessage extends Message {
 export class HubMessageContentParser extends MessageContentParser {
 
     parse(typeStr : string, content : any) : any {
-        const capitalised = typeStr.charAt(0).toUpperCase() + typeStr.substring(1);
+        const capitalised = typeStr.toUpperCase();
         const type : HubMessageType = HubMessageType[capitalised];
         // note that Map has doesn't seem to work
         const contentClass = HubMessageContentClasses[type];

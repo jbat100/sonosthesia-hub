@@ -47,7 +47,7 @@ client.connect(options.port, options.address, () => {
     FileUtils.readJSONFile(options.config).then((obj : any) => {
         console.log('Client read config file : ' + JSON.stringify(obj));
         const content = ComponentMessageContent.newFromJSON(obj);
-        const message = new HubMessage(HubMessageType.Component, null, content);
+        const message = new HubMessage(HubMessageType.COMPONENT, null, content);
         connection.sendMessage(message);
     }).catch(err => {
         console.error('Client could not load config: ' + err.message);

@@ -515,13 +515,13 @@ export class ComponentDriver extends PeriodicDriver {
             if (cycles % this._instanceCycles == 0) {
                 // destroy current instance if it exists
                 if (this._currentInstance) {
-                    this.sendMessage(HubMessageType.Destroy, this._currentInstance, this.generateParameters(time, cycles));
+                    this.sendMessage(HubMessageType.DESTROY, this._currentInstance, this.generateParameters(time, cycles));
                 }
                 // create an instance
                 this._currentInstance = GUID.generate();
-                this.sendMessage(HubMessageType.Create, this._currentInstance, this.generateParameters(time, cycles));
+                this.sendMessage(HubMessageType.CREATE, this._currentInstance, this.generateParameters(time, cycles));
             }
-            this.sendMessage(HubMessageType.Control, this._currentInstance, this.generateParameters(time, cycles));
+            this.sendMessage(HubMessageType.CONTROL, this._currentInstance, this.generateParameters(time, cycles));
         } else {
             console.error(this.tag + ' could not generate message, no channel controller');
         }

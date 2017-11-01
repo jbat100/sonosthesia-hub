@@ -215,7 +215,7 @@ export class ChannelMapping extends NativeClass {
 
         const instance : string = content.instance;
 
-        if (message.hubMessageType == HubMessageType.Create && instance) {
+        if (message.hubMessageType == HubMessageType.CREATE && instance) {
             for (let parameterMapping of this.parameterMappingManager.elements) {
                 parameterMapping.createInstanceMapper(instance);
             }
@@ -251,7 +251,7 @@ export class ChannelMapping extends NativeClass {
 
         }
 
-        if (message.hubMessageType == HubMessageType.Destroy && instance) {
+        if (message.hubMessageType == HubMessageType.DESTROY && instance) {
             for (let parameterMapping of this.parameterMappingManager.elements) {
                 parameterMapping.destroyInstanceMapper(instance);
             }

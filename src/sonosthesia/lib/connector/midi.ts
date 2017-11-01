@@ -146,17 +146,17 @@ export class MIDIInputAdapter extends BaseConnection implements IConnection
         }
 
         this._midiInput.on('noteon', (midiMessage) => {
-            const message = this.midiNoteMessageToHubMessage(midiMessage, HubMessageType.Create);
+            const message = this.midiNoteMessageToHubMessage(midiMessage, HubMessageType.CREATE);
             this.messageSubject.next(message);
         });
 
         this._midiInput.on('noteoff', (midiMessage) => {
-            const message = this.midiNoteMessageToHubMessage(midiMessage, HubMessageType.Destroy);
+            const message = this.midiNoteMessageToHubMessage(midiMessage, HubMessageType.DESTROY);
             this.messageSubject.next(message);
         });
 
         this._midiInput.on('poly aftertouch', (midiMessage) => {
-            const message = this.midiNoteMessageToHubMessage(midiMessage, HubMessageType.Control);
+            const message = this.midiNoteMessageToHubMessage(midiMessage, HubMessageType.CONTROL);
             this.messageSubject.next(message);
         });
 
@@ -180,7 +180,7 @@ export class MIDIInputAdapter extends BaseConnection implements IConnection
 
         const content = new ChannelMessageContent(component, channel, null, null, parameters);
 
-        return new HubMessage(HubMessageType.Control, null, content);
+        return new HubMessage(HubMessageType.CONTROL, null, content);
     }
 
     private midiNoteMessageToHubMessage(midiMessage : any, messageType : HubMessageType) : HubMessage {
@@ -191,14 +191,14 @@ export class MIDIInputAdapter extends BaseConnection implements IConnection
         let instance = null;
 
         switch (messageType) {
-            case HubMessageType.Create:
+            case HubMessageType.CREATE:
                 instance = CoreUtils.createIdentifier();
                 this.pushNoteInstance(midiMessage, instance);
                 break;
-            case HubMessageType.Control:
+            case HubMessageType.CONTROL:
                 instance = this.getNoteInstance(midiMessage);
                 break;
-            case HubMessageType.Destroy:
+            case HubMessageType.DESTROY:
                 instance = this.popNoteInstance(midiMessage);
                 break;
             default:
@@ -275,13 +275,13 @@ export class MIDIOutputAdapter extends BaseConnection implements IConnection
         if (content.instance)
         {
             switch (message.hubMessageType) {
-                case HubMessageType.Create:
+                case HubMessageType.CREATE:
                     this.sendInstanceCreate(content);
                     break;
-                case HubMessageType.Destroy:
+                case HubMessageType.DESTROY:
                     this.sendInstanceDestroy(content);
                     break;
-                case HubMessageType.Control:
+                case HubMessageType.CONTROL:
                     this.sendInstanceControl(content);
                     break;
                 default:
@@ -292,7 +292,7 @@ export class MIDIOutputAdapter extends BaseConnection implements IConnection
         else
         {
             switch (message.hubMessageType) {
-                case HubMessageType.Control:
+                case HubMessageType.CONTROL:
                     this.sendStaticControl(content);
                     break;
                 default:

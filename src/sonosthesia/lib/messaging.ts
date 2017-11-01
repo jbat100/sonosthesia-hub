@@ -2,31 +2,39 @@
 import * as _ from "underscore";
 import { expect } from 'chai';
 
-import {NativeClass, MessageContentParser, Message} from './core';
+import {NativeClass, MessageContentParser, Message, IStringTMap, IJSONSerialisable} from './core';
 import { ComponentInfo } from './component';
 
 
-export class Parameters extends NativeClass {
+export interface IFloatValuesMap extends IStringTMap<number[]> { }
 
-    private _values = {};
+
+export class Parameters extends NativeClass implements IJSONSerialisable {
+
+    private _values : IFloatValuesMap = {};
 
     // accepts null for empty parameter set
     static newFromJSON(obj : any) {
         const parameters = new this();
-        if (obj) {
-            expect(obj).to.be.an('object');
-            _.each(obj, (value, key : string) => {
-                expect(key).to.be.a('string');
-                if (typeof value === 'number') value = [value];
-                if (!_.isArray(value)) throw new Error('value should be number or array');
-                parameters.setParameter(key, value);
-            });
-        }
+        parameters.applyJSON(obj);
         return parameters;
     }
 
     toJSON() : any {
         return this._values;
+    }
+
+    applyJSON(obj : any) {
+        if (obj) {
+            this._values = {};
+            expect(obj).to.be.an('object');
+            _.each(obj, (value, key : string) => {
+                expect(key).to.be.a('string');
+                if (typeof value === 'number') value = [value];
+                if (!_.isArray(value)) throw new Error('value should be number or array');
+                this.setParameter(key, value);
+            });
+        }
     }
 
     getKeys() : string[] {
@@ -56,26 +64,30 @@ export class Parameters extends NativeClass {
 }
 
 
-export class MessageContent extends NativeClass {
+export class MessageContent extends NativeClass implements IJSONSerialisable {
 
-    toJSON() : any {
-        return {};
-    }
+    applyJSON(obj : any) { }
+
+    toJSON() : any { return {}; }
 
 }
 
 export class ComponentMessageContent extends MessageContent {
 
     static newFromJSON(obj : any) {
-        //expect(obj.components).to.be.an('object'); // check instance of array ?
-        const components : ComponentInfo[] = obj.components.map((component : any) => {
-            return ComponentInfo.newFromJSON(component) as ComponentInfo;
-        });
-        return new this(components);
+        const content = new this(null);
+        content.applyJSON(obj);
+        return content
     }
 
     constructor(private _components : ComponentInfo[]) {
         super();
+    }
+
+    applyJSON(obj : any) {
+        this._components = obj.components.map((component : any) => {
+            return ComponentInfo.newFromJSON(component) as ComponentInfo;
+        });
     }
 
     toJSON() : any {
@@ -104,9 +116,9 @@ export class ChannelMessageContent extends MessageContent {
     }
 
     static newFromJSON(obj : any) {
-        this.checkJSON(obj);
-        const parameters = Parameters.newFromJSON(obj.parameters);
-        return new this(obj.component, obj.channel, obj.instance, obj.key, parameters);
+        const content = new this(null, null, null, null, null);
+        content.applyJSON(obj);
+        return content;
     }
 
 
@@ -116,6 +128,15 @@ export class ChannelMessageContent extends MessageContent {
                 private _key : string,
                 private _parameters : Parameters) {
         super();
+    }
+
+    applyJSON(obj : any) {
+        ChannelMessageContent.checkJSON(obj);
+        this._parameters = Parameters.newFromJSON(obj.parameters);
+        this._component = obj.component;
+        this._channel = obj.channel;
+        this._instance = obj.instance;
+        this._key = obj.key;
     }
 
     toJSON() : any {

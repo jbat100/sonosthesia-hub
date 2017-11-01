@@ -240,7 +240,7 @@ export class InfoSet <T extends Info> {
     }
 
     // cannot use generic type in static method
-    applyJSON(objs : any[]) {
+    applyJSON(objs : any) {
         expect(objs).to.be.instanceof(Array);
         objs.forEach((obj : any) => {
             const element : T = new this._TCreator();
@@ -249,8 +249,8 @@ export class InfoSet <T extends Info> {
         })
     }
 
-    toJSON() : any[] {
-        return this._elements.map((element : T) => { return element.toJSON(); })
+    toJSON() : any {
+        return this._elements.map(element  => element.toJSON());
     }
 
     addOrUpdateElement(element : T) {
@@ -324,7 +324,7 @@ export class ListIterator <T> implements IterableIterator<T> {
 
 }
 
-export class ListManager <T extends IJSONSerialisable> {
+export class ListManager <T extends IJSONSerialisable> extends NativeClass implements IJSONSerialisable {
 
     private _elements : T[] = [];
 
@@ -332,6 +332,7 @@ export class ListManager <T extends IJSONSerialisable> {
     private _elementsObservable = this._elementsSource.asObservable();
 
     constructor(private _TCreator : { new (): T; }) {
+        super();
         this._elements = [];
     }
 
@@ -345,7 +346,7 @@ export class ListManager <T extends IJSONSerialisable> {
     }
 
     toJSON() : any {
-        return this._elements.map(element => { });
+        return this._elements.map(element => element.toJSON());
     }
 
     private updateElementSource() {
